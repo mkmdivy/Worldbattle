@@ -2,7 +2,9 @@
 
 실제 세계지도 위에서 무작위 국가로 시작해 영토를 넓히는 실시간 땅따먹기 게임입니다. OpenFront 스타일 레이아웃을 따랐습니다.
 
-▶ 플레이: https://claude.ai/artifact/1EBcw7TZSm16ipmXU2xYvZ (claude.ai 아티팩트, 초대된 계정만 접속 가능)
+▶ 혼자 플레이 (GitHub Pages): https://mkmdivy.github.io/worldbattle/
+
+▶ 친구와 멀티플레이 (claude.ai 아티팩트, 초대된 계정만 접속 가능): https://claude.ai/artifact/1EBcw7TZSm16ipmXU2xYvZ
 
 ## 게임 요약
 - 육지 칸을 무작위로 뽑아 시작 국가를 정합니다. 큰 나라가 자주 걸리고 작은 나라는 가끔 걸립니다.
