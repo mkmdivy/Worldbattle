@@ -84,8 +84,13 @@ button:focus-visible{outline:2px solid var(--you);outline-offset:2px}
 .ub .ic{font-size:19px}.ub .co{font:600 11px var(--f-num);color:var(--gold)}
 .ub .ct{position:absolute;top:2px;right:5px;font:600 9.5px var(--f-num);color:var(--muted)}
 .ub:disabled{opacity:.42}.ub.can{border-color:rgba(243,195,79,.55)}
+.ub.on{background:rgba(95,224,168,.16);border-color:var(--ok);box-shadow:0 0 0 1px var(--ok) inset}
+.ub.on .co{color:var(--ok)}
+.ub .ln{position:absolute;left:6px;right:6px;bottom:2px;height:2px;border-radius:2px;background:var(--ok);opacity:0;transform-origin:left}
+.ub.on .ln{opacity:1;animation:line .5s linear infinite}
+@keyframes line{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 .ub.farm.can{border-color:rgba(155,227,107,.6)}
-.ub:active:not(:disabled){transform:scale(.95);background:rgba(70,212,255,.15)}
+.ub:active{transform:scale(.95)}
 .pb{background:transparent;border:0;border-radius:7px;padding:5px 8px;font-size:15px;display:flex;flex-direction:column;align-items:center;line-height:1.1;color:var(--muted);min-width:46px}
 .pb span{font-size:11px;font-weight:600}
 .pb[aria-checked="true"]{background:var(--panel-hi);color:var(--text);box-shadow:inset 0 0 0 1px var(--pc,var(--you))}
@@ -311,7 +316,8 @@ button:focus-visible{outline:2px solid var(--you);outline-offset:2px}
       <li>매 판 <b>무작위 국가</b>로 시작합니다. 땅이 넓은 나라가 자주 걸리고, 작은 나라는 가끔 걸립니다.</li>
       <li>바티칸·모나코·산마리노 같은 아주 작은 나라는 <b style="color:var(--gold)">슈퍼 국가</b>입니다. 생산·골드 보너스와 고유 특전이 붙습니다.</li>
       <li>영토는 자동으로 퍼지고, 도시에서 병사가 계속 나와 싸우러 갑니다. 🏹 도시는 원거리병, 🛡 도시는 근접 탱커를 만듭니다.</li>
-      <li>골드는 <b>자동으로</b> 쌓입니다. 유닛 버튼을 누를 때마다 한 명씩 뽑고, 누르고 있으면 계속 뽑습니다. (단축키 A·S·D·F, Shift는 5명)</li>
+      <li>골드는 <b>자동으로</b> 쌓입니다. 유닛 버튼을 한 번 누르면 그 유닛을 <b>계속 생산</b>하고, 다시 누르면 멈춥니다. 여러 개를 같이 켤 수 있습니다. (단축키 A·S·D·F, Shift를 누르면 5명 즉시 구매)</li>
+      <li>가까이 모인 병사는 부대로 묶여 보입니다. 5명 이상은 분대, 25명 이상은 깃발을 든 중대, 100명 이상은 군단입니다.</li>
       <li>🌾 <b>농부</b>는 도시 주변에서 농사를 지어 수입을 올립니다. ⚔ <b>돌격병</b>은 땅을 빼앗고, 🏹 <b>궁수</b>는 뒤에서 쏘고, 🛡 <b>수비병</b>은 국경을 지킵니다. 농부는 적의 습격에 약하니 지켜 주세요.</li>
       <li>🔬 <b>연구</b>가 차면 시대가 넘어가며 하나를 고릅니다. ⚔ <b>정예</b>는 병사를 강하게(공격·체력, 장비 외형), 👥 <b>대군</b>은 병사를 많이(상한·생산·징집) 만듭니다. (단축키 Z·X)</li>
       <li>손이 바쁘면 🤖 <b>자동</b>을 켜세요. 업그레이드·정책·연구·징집을 AI가 대신하고, 공격 목표만 직접 찍으면 됩니다.</li>
@@ -706,7 +712,7 @@ function makeNation(id,ci,cell,isPlayer){
   const m=META[ci], sup=SUPER_BY_CI[ci]||null;
   const color=isPlayer?NATION_COLORS[0]:NATION_COLORS[1+((id-1+16)%15)];
   return {id,ci,cul:getCulture(ci),name:m.ko,flag:flagOf(m.a2),color,rgb:hexRGB(color),isPlayer,sup,sp:sup?sup.a2:null,
-    cells:0,gold:70,farmers:0,buyT:0,pol:0,auto:false,rp:0,era:0,tq:0,tn:0,sciWait:0,qBias:.5,tr:getTrait(ci),st:{},wt:0,at:0,boostT:0,flashT:0,lv:{prod:0,atk:0,hp:0,spd:0,rng:0},built:0,front:[],units:0,kills:0,alive:true,
+    cells:0,gold:70,farmers:0,buyT:0,lines:[false,false,false,false],lineT:[0,0,0,0],pol:0,auto:false,rp:0,era:0,tq:0,tn:0,sciWait:0,qBias:.5,tr:getTrait(ci),st:{},wt:0,at:0,boostT:0,flashT:0,lv:{prod:0,atk:0,hp:0,spd:0,rng:0},built:0,front:[],units:0,kills:0,alive:true,
     target:null,tgtT:0,tgtCells:[],neuCells:[],manual:null,chargeT:0,chargeCD:0,heroCD:0,aiT:srnd(1,4),sayT:srnd(2,10),
     spawn:cell,lx:cell%W,ly:cell/W|0,border:new Map(),nAdj:0,expAcc:0,x2:false,rank:0,wars:new Set(),deadAt:0,peak:0};
 }
@@ -844,7 +850,7 @@ const UNITS=[
  {t:'ranged',ic:'🏹',nm:'궁수',  base:13,desc:'뒤에서 쏘는 원거리 병사. 땅도 조금 빼앗습니다'},
  {t:'def',   ic:'🛡',nm:'수비병',base:16,desc:'국경을 지키는 튼튼한 병사. 땅은 빼앗지 않습니다'},
 ];
-const FARM_YIELD=.9;
+const FARM_YIELD=.9,LINE_IV=.5;
 function prodBase(n){return [1,1.5,2,3][G.dm]}
 function farmCap(n){let c=0;for(const x of G.cities)if(x.owner===n.id)c++;return 6+c*5}
 function farmIncome(n){return n.farmers*FARM_YIELD*(1+.25*n.lv.prod)*TE(n,'farm')}
@@ -1135,7 +1141,7 @@ function newMatchCfg(cfg,mp){
   G.state='play';computeBorders();for(const n of G.nations)updateTargets(n);
   const humans=G.nations.filter(n=>n.human);
   if(mp&&humans.length>1)feed(`👥 ${humans.map(n=>`${n.flag} ${n.pname||'플레이어'}`).join(', ')} 참전!`,'gold');
-  if(myId>=0){const p=G.nations[myId];flyTo(p.lx,p.ly,Math.max(fitScale()*2.2,6));setTimeout(()=>say(p,true),900);NET.hinted2=false;setTimeout(()=>feed('💡 골드는 자동으로 쌓입니다. 🌾 농부를 늘리면 더 빨리 쌓여요. 유닛 버튼을 눌러 한 명씩 뽑으세요','gold'),1500);}
+  if(myId>=0){const p=G.nations[myId];flyTo(p.lx,p.ly,Math.max(fitScale()*2.2,6));setTimeout(()=>say(p,true),900);NET.hinted2=false;setTimeout(()=>feed('💡 골드는 자동으로 쌓입니다. 유닛 버튼을 누르면 계속 생산돼요. 먼저 🌾 농부를 켜서 돈을 불려 보세요','gold'),1500);}
   else flyTo(W/2,H/2*0.9,fitScale());
   lastWinner&&feed(`👑 지난 판 1등: ${lastWinner}`,'gold');
 }
@@ -1154,6 +1160,7 @@ function applyCmd(nid,t,a,b){
   else if(t===3)doCharge(n);
   else if(t===4)setTarget(n,a);
   else if(t===8)chooseTech(n,a?1:0);
+  else if(t===11){if(a>=0&&a<4){n.lines[a]=!!b;if(n.isPlayer){const U=UNITS[a];toast(b?`${U.ic} ${U.nm} 계속 생산 ON`:`${U.ic} ${U.nm} 생산 멈춤`,b?'#9be36b':'#8fa3b8');}}}
   else if(t===10){for(let k=0;k<Math.max(1,Math.min(10,b));k++)if(!buyUnit(n,a))break;}
   else if(t===9){n.auto=!!a;if(n.isPlayer){toast(a?'🤖 자동 운영 ON · 공격 목표만 찍으세요':'🤖 자동 운영 OFF','#9fd3ff');feed(a?'🤖 업그레이드·정책·연구·징집을 AI가 대신 운영합니다':'🤖 직접 운영으로 돌아왔습니다');}}
   else if(t===5){if(n.human){n.human=false;feed(`👤 ${n.pname||n.name} 연결 끊김 · AI가 이어서 지휘합니다`);}}
@@ -1188,6 +1195,8 @@ function step(){
     n.chargeT-=dt;n.chargeCD-=dt;n.heroCD-=dt;
     if(!n.human||n.auto){n.aiT-=dt;if(n.aiT<=0){n.aiT=srnd(1.5,3);botAI(n);}n.buyT-=dt;if(n.buyT<=0){n.buyT=srnd(.4,.8);botBuy(n);}}
     n.boostT-=dt;n.flashT-=dt;
+    // production lines: each switched-on unit type is built every LINE_IV seconds while gold allows
+    for(let i=0;i<4;i++){if(!n.lines[i])continue;n.lineT[i]-=dt;if(n.lineT[i]<=0){if(buyUnit(n,i))n.lineT[i]=LINE_IV;else n.lineT[i]=0;}}
     // neutral expansion
     if(n.nAdj>0||n.front.length){
       n.expAcc+=dt*expandRate(n);
@@ -1384,6 +1393,19 @@ function unitImg(n,type,flip,mode,sz){
 // drawImage that accepts our cached {canvas,width,height} records
 const _di=CanvasRenderingContext2D.prototype.drawImage;
 function drawRec(r,x,y){_di.call(ctx,r.canvas,x,y,r.width,r.height);}
+// group visible units of one nation into screen-space cells; returns [{n,list,x,y,type,hp,hit,mv,face}]
+function squadsOf(cs,vis){
+  const m=new Map();
+  for(const u of G.units){if(!vis(u.x,u.y))continue;const k=((Math.floor(u.x/cs)*1024+Math.floor(u.y/cs))*32)+u.n;let g=m.get(k);
+    if(!g){g={n:u.n,list:[],sx:0,sy:0};m.set(k,g);}g.list.push(u);g.sx+=u.x;g.sy+=u.y;}
+  const out=[];
+  for(const g of m.values()){const L=g.list,N=L.length;g.x=g.sx/N;g.y=g.sy/N;
+    if(N>=5){const tc={};let hp=0,f=0;g.hit=false;g.mv=false;
+      for(const u of L){tc[u.type]=(tc[u.type]||0)+1;hp+=u.hp/u.mhp;f+=u.face;if(u.hit>0)g.hit=true;if(u.mv>0){g.mv=true;u.mv-=1/60;}}
+      let bt='melee',bc=-1;for(const t in tc)if(tc[t]>bc){bc=tc[t];bt=t;}g.type=bt;g.hp=hp/N;g.face=f>=0?1:-1;}
+    out.push(g);}
+  return out;
+}
 function draw(){
   flushMap();
   ctx.setTransform(DPR,0,0,DPR,0,0);
@@ -1436,8 +1458,16 @@ function draw(){
     const byN=new Map();
     for(const u of G.units){if(!vis(u.x,u.y))continue;let L=byN.get(u.n);if(!L)byN.set(u.n,L=[]);L.push(u);}
     for(const [nid,L] of byN){ctx.fillStyle=G.nations[nid].color;ctx.beginPath();for(const u of L){const r=u.type==='hero'?3:1.6;ctx.rect(SX(u.x)-r/2,SY(u.y)-r/2,r,r);}ctx.fill();}
+    // from afar, big crowds read as one numbered marker
+    for(const g of squadsOf(Math.max(3,44/s),vis)){if(g.list.length<25)continue;const n=G.nations[g.n],N=g.list.length,X=SX(g.x),Y=SY(g.y);
+      const r=N>=100?13:10;ctx.fillStyle='rgba(0,0,0,.55)';ctx.beginPath();ctx.arc(X,Y+1.5,r,0,6.283);ctx.fill();
+      ctx.fillStyle=n.color;ctx.beginPath();ctx.arc(X,Y,r,0,6.283);ctx.fill();ctx.lineWidth=N>=100?2.5:1.5;ctx.strokeStyle=N>=100?'#ffe08a':'#fff';ctx.stroke();
+      const t=textImg(String(N),`700 ${N>=100?11:10}px "IBM Plex Mono",monospace`,'#ffffff',2.5);drawRec(t,X-t.width/2,Y-t.height/2);}
   }else{
-    const us=G.units.filter(u=>vis(u.x,u.y)).sort((a,b)=>a.y-b.y);
+    // squads: 5+ nearby soldiers of one nation draw as one bigger unit; 25+ and 100+ get escorts and a banner
+    const singles=[],squads=[];
+    for(const g of squadsOf(Math.max(1.1,30/s),vis)){if(g.list.length<5)singles.push(...g.list);else squads.push(g);}
+    const us=singles.sort((a,b)=>a.y-b.y);
     const base=clamp(s*2.1,10,56);const dust=[],aura=[],hp=[],boats=[];
     for(const u of us){const n=G.nations[u.n];const sz=(u.type==='hero'?base*1.6:u.type==='farm'?base*.85:u.type==='def'?base*1.1:base)*(1+.045*n.lv.hp);const x=SX(u.x),y=SY(u.y);
       if(u.mv>0&&(n.lv.spd>0||n.boostT>0))dust.push(x,y,sz,u.face);
@@ -1452,6 +1482,29 @@ function draw(){
       const mode=u.hit>0?2:(n.flashT>0&&(n.flashT*4|0)%2)?1:0;
       const sp=unitImg(n,u.type,u.face<0,mode,sz);const bob=Math.abs(Math.sin(u.ph))*sz*.05;
       ctx.drawImage(sp,SX(u.x)-sz/2,SY(u.y)-bob-sz*.9,sz,sz);u.mv-=1/60;}
+    squads.sort((a,b)=>a.y-b.y);
+    for(const g of squads){const n=G.nations[g.n],N=g.list.length,tier=N>=100?3:N>=25?2:1;
+      const tf=g.type==='farm'?.85:g.type==='def'?1.1:g.type==='hero'?1.6:1;
+      const sz=base*tf*[1,1.45,1.85,2.3][tier]*(1+.045*n.lv.hp),X=SX(g.x),Y=SY(g.y);
+      const mode=g.hit?2:(n.flashT>0&&(n.flashT*4|0)%2)?1:0;
+      // ground disc in nation colour
+      ctx.globalAlpha=tier===3?.4:.28;ctx.fillStyle=n.color;ctx.beginPath();ctx.ellipse(X,Y-sz*.02,sz*(.5+tier*.08),sz*(.17+tier*.03),0,0,6.283);ctx.fill();
+      if(tier===3){ctx.globalAlpha=.8;ctx.strokeStyle='#ffe08a';ctx.lineWidth=2;ctx.stroke();}ctx.globalAlpha=1;
+      if(n.chargeT>0){ctx.fillStyle='rgba(255,70,60,.38)';ctx.beginPath();ctx.ellipse(X,Y,sz*.55,sz*.19,0,0,6.283);ctx.fill();}
+      // escorts behind the leader
+      if(tier>=2){const es=sz*.62,ei=unitImg(n,g.type,g.face<0,mode,es);const pos=tier===3?[[-.42,-.16],[.42,-.16],[-.24,-.3],[.24,-.3]]:[[-.36,-.14],[.36,-.14]];
+        for(const [ox,oy] of pos)ctx.drawImage(ei,X+ox*sz-es/2,Y+oy*sz-es*.9,es,es);}
+      // banner
+      if(tier>=2){const px=X-g.face*sz*.42,top=Y-sz*(tier===3?1.75:1.5);ctx.strokeStyle='#3b2a1a';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(px,Y-sz*.15);ctx.lineTo(px,top);ctx.stroke();
+        const fw=sz*(tier===3?.62:.5),fh=sz*(tier===3?.36:.3),fx=g.face<0?px-fw:px;ctx.fillStyle=n.color;ctx.beginPath();ctx.moveTo(fx,top);ctx.lineTo(fx+fw,top+fh*.15);ctx.lineTo(fx+fw,top+fh*.85);ctx.lineTo(fx,top+fh);ctx.closePath();ctx.fill();
+        ctx.strokeStyle='rgba(0,0,0,.4)';ctx.lineWidth=1;ctx.stroke();const fl=textImg(n.flag,EMOJI_FONT(Math.max(9,fh*.62|0)),'#000',0);drawRec(fl,fx+fw/2-fl.width/2,top+fh/2-fl.height/2);}
+      const sp=unitImg(n,g.type,g.face<0,mode,sz);const bob=g.mv?Math.abs(Math.sin(performance.now()/130+g.n))*sz*.04:0;
+      ctx.drawImage(sp,X-sz/2,Y-bob-sz*.9,sz,sz);
+      // head-count pill and morale (average health)
+      const t=textImg(`×${N}`,`800 ${tier===3?14:tier===2?13:11}px "IBM Plex Mono",monospace`,tier===3?'#ffe08a':'#ffffff',3);
+      const bx=X+sz*.3,by=Y-sz*.98;ctx.fillStyle='rgba(8,14,24,.82)';ctx.beginPath();ctx.roundRect(bx-3,by-t.height/2,t.width+2,t.height,6);ctx.fill();ctx.strokeStyle=n.color;ctx.lineWidth=1.5;ctx.stroke();drawRec(t,bx-2,by-t.height/2);
+      if(g.hp<.97){const w=sz*.6;ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillRect(X-w/2,Y+sz*.12,w,3);ctx.fillStyle=g.hp>.5?'#5fe0a8':'#ff5b52';ctx.fillRect(X-w/2,Y+sz*.12,w*g.hp,3);}
+    }
     if(hp.length){ctx.fillStyle='rgba(0,0,0,.6)';ctx.beginPath();for(let j=0;j<hp.length;j+=4){const w=hp[j+2]*.55;ctx.rect(hp[j]-w/2,hp[j+1]-hp[j+2]*.98,w,2.5);}ctx.fill();
       for(const good of [true,false]){ctx.fillStyle=good?'#5fe0a8':'#ff5b52';ctx.beginPath();for(let j=0;j<hp.length;j+=4){if((hp[j+3]>.5)!==good)continue;const w=hp[j+2]*.55;ctx.rect(hp[j]-w/2,hp[j+1]-hp[j+2]*.98,w*hp[j+3],2.5);}ctx.fill();}}
   }
@@ -1528,14 +1581,10 @@ const BTN=[
  {id:'charge',ic:'📯',nm:'돌격',tip:'8초간 전군 공격·속도 +50%'},
  {id:'auto',ic:'🤖',nm:'자동',tip:'업그레이드·정책·연구·징집을 AI가 대신 운영합니다. 공격 목표는 직접 찍으세요'},
 ];
-$('buy').innerHTML=UNITS.map((U,i)=>`<button class="ub ${U.t}" id="ub${i}" type="button" title="${U.desc} (누르고 있으면 연속 생산)"><span class="ct"></span><span class="ic">${U.ic}</span><span>${U.nm}</span><span class="co"></span></button>`).join('');
-// tap = one unit; hold = keep buying
-UNITS.forEach((U,i)=>{const el=$('ub'+i);let tm=null,rep=null;
-  const once=()=>{const n=myNation();if(!n||!canBuy(n,i))return false;issue(10,i,1);try{navigator.vibrate&&navigator.vibrate(8);}catch(e){}return true;};
-  const stop=()=>{clearTimeout(tm);clearInterval(rep);tm=rep=null;};
-  el.addEventListener('pointerdown',e=>{e.preventDefault();userActed=true;stop();once();tm=setTimeout(()=>{rep=setInterval(()=>{if(!once())stop();},110);},330);});
-  for(const ev of ['pointerup','pointerleave','pointercancel','blur'])el.addEventListener(ev,stop);
-  el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();userActed=true;once();}});
+$('buy').innerHTML=UNITS.map((U,i)=>`<button class="ub ${U.t}" id="ub${i}" type="button" aria-pressed="false" title="${U.desc} · 누르면 계속 생산, 다시 누르면 멈춤"><span class="ct"></span><span class="ic">${U.ic}</span><span class="nm">${U.nm}</span><span class="co"></span><i class="ln"></i></button>`).join('');
+// tap = switch that unit's production line on/off (it keeps building while gold allows)
+UNITS.forEach((U,i)=>{const el=$('ub'+i);
+  el.addEventListener('click',()=>{const n=myNation();if(!n)return;userActed=true;issue(11,i,n.lines[i]?0:1);try{navigator.vibrate&&navigator.vibrate(10);}catch(e){}});
 });
 acts.innerHTML=BTN.map(b=>`<button class="ab" id="ab_${b.id}" type="button" title="${b.tip}"><span class="lv"></span><span class="ic">${b.ic}</span><span>${b.nm}</span><span class="co"></span><i class="cdv" hidden></i></button>`).join('');
 let placing=null;
@@ -1575,8 +1624,9 @@ function updateBar(){
   const ec=$('ab_city'),lc=share(n)<ACT.city.unlock;ec.querySelector('.co').textContent=lc?`🔒${(ACT.city.unlock*100).toFixed(1)}%`:cityCost(n);ec.disabled=lc||(!placing&&n.gold<cityCost(n));ec.classList.toggle('locked',lc);ec.classList.toggle('on',!!placing);ec.classList.toggle('can',!ec.disabled&&!placing);
   ec.querySelector('.lv').textContent=placing==='ranged'?'🏹':placing==='melee'?'🛡':'';
   const eh=$('ab_hero'),lh=share(n)<ACT.hero.unlock;eh.querySelector('.co').textContent=lh?`🔒${(ACT.hero.unlock*100).toFixed(0)}%`:n.heroCD>0?Math.ceil(n.heroCD)+'s':ACT.hero.cost;eh.disabled=!canHero(n);eh.classList.toggle('locked',lh);eh.classList.toggle('can',canHero(n));
-  UNITS.forEach((U,i)=>{const el=$('ub'+i),ok=canBuy(n,i);el.disabled=!ok;el.classList.toggle('can',ok);
-    el.querySelector('.co').textContent=unitCost(n,i);
+  UNITS.forEach((U,i)=>{const el=$('ub'+i),ok=canBuy(n,i),on=n.lines[i];el.classList.toggle('can',ok);el.classList.toggle('on',on);el.setAttribute('aria-pressed',on?'true':'false');
+    const full=U.t==='farm'?n.farmers>=farmCap(n):n.units>=unitCap(n);
+    el.querySelector('.co').textContent=on?(full?'가득 참':ok?'▶ 생산 중':'💰 대기'):unitCost(n,i)+'💰';
     let cnt=0;if(U.t==='farm')cnt=n.farmers;else for(const u of G.units)if(u.n===n.id&&u.type===U.t)cnt++;
     el.querySelector('.ct').textContent=U.t==='farm'?`${n.farmers}/${farmCap(n)}`:cnt;});
   const done=n.era>=ERAS.length,rdy=sciReady(n);
@@ -1586,7 +1636,7 @@ function updateBar(){
   if(rdy){const e=n.era;setText('sciTitle',`🔬 ${ERAS[e]} 시대 연구 완료 · 하나를 고르세요`);setText('sciQi',TECH_Q[e][1]);setText('sciQn',TECH_Q[e][0]);setText('sciNi',TECH_N[e][1]);setText('sciNn',TECH_N[e][0]);
     setText('sciCount',`${Math.max(0,Math.ceil(25-n.sciWait))}초 뒤 자동 선택`);setText('sciFoot',`지금까지 ⚔ 정예 ${n.tq} · 👥 대군 ${n.tn}`);}
   setHTML('rates',`💰 <b>+${goldRate(n).toFixed(1)}</b>/s <small>(🌾 +${(farmIncome(n)*(n.sup?1.5:1)*TE(n,'gold')*[1,1.5,2,3][G.dm]).toFixed(1)})</small> · 🌱 <b>${expandRate(n).toFixed(0)}</b>칸/s`);
-  if(!NET.hinted2&&n.border.size&&G.t>40){NET.hinted2=true;feed('💡 국경이 맞닿았어요. ⚔ 돌격병으로 밀고 🛡 수비병으로 막으세요. 버튼을 누르고 있으면 연속 생산됩니다','gold');}
+  if(!NET.hinted2&&n.border.size&&G.t>40){NET.hinted2=true;feed('💡 국경이 맞닿았어요. ⚔ 돌격병 생산을 켜서 밀고, 🛡 수비병으로 막으세요','gold');}
   const ea=$('ab_auto');ea.classList.toggle('on',!!n.auto);ea.querySelector('.co').textContent=n.auto?'ON':'OFF';
   $('dockTog').hidden=false;
   const ech=$('ab_charge');ech.querySelector('.co').textContent=n.chargeCD>0?Math.ceil(n.chargeCD)+'s':ACT.charge.cost;ech.disabled=!canCharge(n);ech.classList.toggle('can',canCharge(n));ech.classList.toggle('on',n.chargeT>0);
@@ -1691,7 +1741,7 @@ function mapClick(sx,sy){
 addEventListener('keydown',e=>{if(e.target!==document.body)return;const n=myNation();const k=e.key;
   const map={'1':'prod','2':'atk','3':'hp','4':'spd','5':'rng','6':'city','7':'hero','8':'charge',' ':'charge'};if(map[k]){e.preventDefault();$('ab_'+map[k]).click();}
   if(k==='z'||k==='x'){e.preventDefault();$(k==='z'?'sciQ':'sciN').click();}
-  const bi='asdf'.indexOf(k);if(bi>=0&&k.length===1){e.preventDefault();const n=myNation();if(n&&canBuy(n,bi))issue(10,bi,e.shiftKey?5:1);}});
+  const bi='asdf'.indexOf(k);if(bi>=0&&k.length===1){e.preventDefault();const n=myNation();if(n){if(e.shiftKey){if(canBuy(n,bi))issue(10,bi,5);}else issue(11,bi,n.lines[bi]?0:1);}}});
 $('bSound').onclick=()=>{soundOn=!soundOn;userActed=true;$('bSound').textContent=soundOn?'🔊':'🔇';$('bSound').setAttribute('aria-pressed',soundOn);if(!soundOn)try{speechSynthesis.cancel()}catch(e){}};
 $('bSpeed').onclick=()=>{G.speed=G.speed===1?2:G.speed===2?4:G.speed===4?8:1;$('bSpeed').textContent='▶ '+G.speed+'×';};
 $('bHelp').onclick=()=>{$('help').hidden=false;};$('helpX').onclick=()=>{$('help').hidden=true;try{localStorage.setItem('ttm_help','1')}catch(e){}};
@@ -1741,7 +1791,7 @@ function hostIntake(){
     const n=G.nations.find(x=>x.human&&x.peer===p.peer);if(!n)continue;
     let last=NET.lastSeq[p.peer]||0;
     for(const c of pr.cmds){if(!Array.isArray(c)||!(c[0]>last))continue;last=c[0];
-      const t=c[1]|0,a=c[2]|0,b=c[3]|0;if(t>=0&&t<=10&&t!==5&&a>=-1&&a<NC)hostSchedule(n.id,t,a,b);}
+      const t=c[1]|0,a=c[2]|0,b=c[3]|0;if(t>=0&&t<=11&&t!==5&&a>=-1&&a<NC)hostSchedule(n.id,t,a,b);}
     NET.lastSeq[p.peer]=last;}
 }
 function emitTk(){
