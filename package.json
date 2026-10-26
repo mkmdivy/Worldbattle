@@ -8,7 +8,8 @@
     "data:cities": "node tools/cities.js ne/ne_50m_populated_places.geojson",
     "test:sim": "node test/sim.js",
     "test:mp": "node test/mp.js 0.3",
-    "test:perf": "node test/perf.js"
+    "test:perf": "node test/perf.js",
+    "test:restart": "node test/restart.js"
   },
   "devDependencies": {
     "d3-geo": "3.1.0",

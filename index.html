@@ -85,6 +85,22 @@ button:focus-visible{outline:2px solid var(--you);outline-offset:2px}
 .pb[aria-checked="true"]{background:var(--panel-hi);color:var(--text);box-shadow:inset 0 0 0 1px var(--pc,var(--you))}
 #pol0{--pc:var(--ok)}#pol1{--pc:var(--gold)}#pol2{--pc:var(--hot)}
 #rates{font:600 11px/1.35 var(--f-num);color:var(--muted);white-space:nowrap;text-align:center}
+#sciBar{display:flex;align-items:center;gap:6px;font-size:11px;color:#b9a8ff;white-space:nowrap}
+#sciBar i{flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden;min-width:50px}
+#sciBar b{display:block;height:100%;background:linear-gradient(90deg,#7c6cff,#c3b8ff);width:0}
+#sciBar.ready b{background:#ffd84d;animation:pulse .8s ease-in-out infinite alternate}
+@keyframes pulse{from{opacity:.55}to{opacity:1}}
+#sci{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 168px);width:min(470px,calc(100% - 20px));padding:10px 12px 9px;border-color:rgba(160,140,255,.55);box-shadow:0 0 28px rgba(124,108,255,.35),0 10px 30px rgba(0,0,0,.5)}
+.sciHead{display:flex;justify-content:space-between;align-items:baseline;font:17px var(--f-display);margin-bottom:8px}
+#sciCount{font:600 12px var(--f-num);color:var(--muted)}
+.sciCards{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sc{background:var(--panel-hi);border:1px solid var(--line);border-radius:10px;padding:9px 8px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center}
+.sc:hover,.sc:focus-visible{transform:translateY(-2px)}
+.sc.q{border-color:rgba(255,216,77,.55)}.sc.n{border-color:rgba(159,211,255,.55)}
+.sk{font-size:12px;font-weight:700;color:var(--muted)}.sk kbd{font:600 10px var(--f-num);border:1px solid var(--line);border-radius:4px;padding:0 4px;margin-left:3px}
+.si{font-size:28px;line-height:1.2}.sn{font:16px var(--f-display)}.sc.q .sn{color:#ffd84d}.sc.n .sn{color:#9fd3ff}
+.sd{font-size:11px;color:var(--muted);line-height:1.4}
+.sciFoot{font-size:11px;color:var(--muted);text-align:center;margin-top:6px}
 #rates b{color:var(--text);font-weight:600}
 #acts{display:grid;grid-template-columns:repeat(5,62px);gap:5px;align-content:center}
 #acts .ab{width:auto}
@@ -151,8 +167,16 @@ button:focus-visible{outline:2px solid var(--you);outline-offset:2px}
   #acts{width:100%;display:flex;flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px}
   #rates{font-size:10px}
   #toast{font-size:22px}
+  #sci{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 176px);padding:8px 9px 7px}
+  .sciHead{font-size:14px;margin-bottom:6px;gap:8px}
+  #sciCount{white-space:nowrap}
+  .si{font-size:20px}
+  .sn{font-size:14px}
+  .sd{font-size:10px}
   .pb{min-width:40px;padding:4px 6px}
   #econ{border:0;flex-direction:row;align-items:center;width:100%;justify-content:space-between;padding:0}
+  #econ{flex-wrap:wrap;row-gap:4px}
+  #sciBar{width:100%}
   .ab{flex:0 0 58px;width:58px}
   #zoom{right:auto;left:max(10px,env(safe-area-inset-left,0px));flex-direction:row}
   #feed{max-width:200px}
@@ -177,6 +201,14 @@ button:focus-visible{outline:2px solid var(--you);outline-offset:2px}
     <div id="feed" aria-live="polite"></div>
   </div>
   <div id="banner" class="panel" hidden></div>
+  <div id="sci" class="panel" hidden role="dialog" aria-labelledby="sciTitle">
+    <div class="sciHead"><span id="sciTitle"></span><span id="sciCount"></span></div>
+    <div class="sciCards">
+      <button class="sc q" id="sciQ" type="button"><span class="sk">⚔ 정예 <kbd>Z</kbd></span><span class="si" id="sciQi"></span><span class="sn" id="sciQn"></span><span class="sd">공격·체력 +12%<br>무기·갑옷 한 단계 업</span></button>
+      <button class="sc n" id="sciN" type="button"><span class="sk">👥 대군 <kbd>X</kbd></span><span class="si" id="sciNi"></span><span class="sn" id="sciNn"></span><span class="sd">병력 상한 +8% · 생산 +12%<br>징집 비용 -10%</span></button>
+    </div>
+    <div class="sciFoot" id="sciFoot"></div>
+  </div>
   <div id="bar" class="panel" hidden>
     <div id="me"><div id="meName"></div><div id="meSay"></div><div id="meTrait"></div><div id="tgt"></div></div>
     <div id="stats">
@@ -192,6 +224,7 @@ button:focus-visible{outline:2px solid var(--you);outline-offset:2px}
         <button class="pb" id="pol2" type="button" role="radio" title="병력 생산 ×1.5 · 골드 ×0.8 · 확장 ×0.4">⚔<span>징병</span></button>
       </div>
       <div id="rates"></div>
+      <div id="sciBar" title="연구가 차면 정예(병사 강화)와 대군(병력 증가) 중 하나를 고릅니다"><span id="sciTxt"></span><i><b id="sciFill"></b></i></div>
     </div>
     <div id="acts"></div>
   </div>
@@ -238,6 +271,7 @@ button:focus-visible{outline:2px solid var(--you);outline-offset:2px}
       <li>바티칸·모나코·산마리노 같은 아주 작은 나라는 <b style="color:var(--gold)">슈퍼 국가</b>입니다. 생산·골드 보너스와 고유 특전이 붙습니다.</li>
       <li>영토는 자동으로 퍼지고, 도시에서 병사가 계속 나와 싸우러 갑니다. 🏹 도시는 원거리병, 🛡 도시는 근접 탱커를 만듭니다.</li>
       <li><b>정책</b>을 고르세요. 🌱 개척은 땅을 빨리 넓히고, 💰 교역은 골드를 많이 벌고, ⚔ 징병은 병력을 빨리 뽑습니다. 초반엔 개척과 교역 중에 고르고, 전쟁이 붙으면 징병으로 바꾼 뒤 🪖 <b>징집</b>으로 모은 골드를 병사로 바꾸세요. (단축키 Q·W·E, D)</li>
+      <li>🔬 <b>연구</b>가 차면 시대가 넘어가며 하나를 고릅니다. ⚔ <b>정예</b>는 병사를 강하게(공격·체력, 장비 외형), 👥 <b>대군</b>은 병사를 많이(상한·생산·징집) 만듭니다. (단축키 Z·X)</li>
       <li>할 일은 셋뿐입니다. <b>생산</b>·<b>업그레이드</b>에 골드를 쓰고, 지도에서 적 땅을 눌러 <b>공격 목표</b>를 정하세요. 내 땅을 누르면 자동 목표로 돌아갑니다.</li>
       <li>업그레이드는 이미 싸우고 있는 병사에게도 바로 적용됩니다. 무기는 빛나고, 갑옷은 몸에 입혀지고, 생산은 즉시 지원군을 보냅니다.</li>
       <li>나라마다 고유 특성이 있습니다. 한국은 화살 3연발, 일본은 치명타, 러시아는 홈 방어, 몽골은 기마 속도.</li>
@@ -620,7 +654,7 @@ function makeNation(id,ci,cell,isPlayer){
   const m=META[ci], sup=SUPER_BY_CI[ci]||null;
   const color=isPlayer?NATION_COLORS[0]:NATION_COLORS[1+((id-1+16)%15)];
   return {id,ci,cul:getCulture(ci),name:m.ko,flag:flagOf(m.a2),color,rgb:hexRGB(color),isPlayer,sup,sp:sup?sup.a2:null,
-    cells:0,gold:130,pol:0,tr:getTrait(ci),st:{},wt:0,at:0,boostT:0,flashT:0,lv:{prod:0,atk:0,hp:0,spd:0,rng:0},built:0,front:[],units:0,kills:0,alive:true,
+    cells:0,gold:130,pol:0,rp:0,era:0,tq:0,tn:0,sciWait:0,qBias:.5,tr:getTrait(ci),st:{},wt:0,at:0,boostT:0,flashT:0,lv:{prod:0,atk:0,hp:0,spd:0,rng:0},built:0,front:[],units:0,kills:0,alive:true,
     target:null,tgtT:0,tgtCells:[],neuCells:[],manual:null,chargeT:0,chargeCD:0,heroCD:0,aiT:srnd(1,4),sayT:srnd(2,10),
     spawn:cell,lx:cell%W,ly:cell/W|0,border:new Map(),nAdj:0,expAcc:0,x2:false,rank:0,wars:new Set(),deadAt:0,peak:0};
 }
@@ -754,14 +788,32 @@ function strength(n){return n.units*(1+.15*n.lv.atk)*(1+.2*n.lv.hp)+n.cells*.03+
 const POL=[{ic:'🌱',nm:'개척',exp:1.8,gold:.65,prod:.55,desc:'영토 확장 ×1.8 · 골드 ×0.65 · 생산 ×0.55'},
            {ic:'💰',nm:'교역',exp:.6,gold:2.1,prod:.6,desc:'골드 ×2.1 · 확장 ×0.6 · 생산 ×0.6'},
            {ic:'⚔',nm:'징병',exp:.4,gold:.8,prod:1.5,desc:'병력 생산 ×1.5 · 골드 ×0.8 · 확장 ×0.4'}];
-function prodBase(n){return (1+.3*n.lv.prod)*(n.sup?1.4:1)*(n.x2?2:1)*TE(n,'prod')*[1,1.5,2,3][G.dm]}
+function prodBase(n){return (1+.3*n.lv.prod)*(n.sup?1.4:1)*(n.x2?2:1)*TE(n,'prod')*powi(1.12,n.tn)*[1,1.5,2,3][G.dm]}
+// ---- research: every era asks one question, better soldiers (⚔ 정예) or more soldiers (👥 대군)
+const ERAS=['청동기','철기','중세','화약','산업','근대','미래'];
+const TECH_Q=[['청동 무기','⚔'],['철제 갑옷','🛡'],['기사도','🐴'],['머스킷 개량','🔫'],['강선 소총','🎯'],['기갑 보병','🪖'],['파워 아머','🤖']];
+const TECH_N=[['부족 동원','👥'],['농업 혁명','🌾'],['봉건 징병','🏯'],['국민개병제','📜'],['철도 보급','🚂'],['총력전','🏭'],['클론 병사','🧬']];
+const Q_TXT='공격·체력 +12% · 갑옷과 무기가 한 단계 빛납니다',N_TXT='병력 상한 +8% · 생산 +12% · 징집 비용 -10%';
+const SCI_COST=[40,65,95,135,185,245,315];
+const sciCost=n=>SCI_COST[n.era]||1e9;
+function sciRate(n){let c=0;for(const x of G.cities)if(x.owner===n.id)c++;return (.6+c*.35+n.cells*.0012)*TE(n,'sci');}
+const sciReady=n=>n.era<ERAS.length&&n.rp>=sciCost(n);
+function chooseTech(n,c){
+  if(!sciReady(n))return;const era=n.era;n.rp=0;n.sciWait=0;n.era++;
+  if(c===0)n.tq++;else n.tn++;calcStats(n);
+  if(n.isPlayer){const t=(c===0?TECH_Q:TECH_N)[era],col=c===0?'#ffd84d':'#9fd3ff';
+    toast(`🔬 ${ERAS[era]} 시대 · ${t[1]} ${t[0]}`,col);chime(3);
+    for(const x of citiesOf(n.id))G.fx.push({x:x.x+.5,y:x.y+.5,r:4.5,life:1,max:1,c:col,k:'ring'});
+    const mine=G.units.filter(u=>u.n===n.id);for(let i=0;i<Math.min(60,mine.length);i++){const u=mine[ri(mine.length)];G.fx.push({x:u.x,y:u.y-.8,r:0,life:1,max:1,c:col,k:'up',t:t[1]});}
+    feed(`🔬 ${ERAS[era]} 시대 연구 완료 · ${t[1]} ${t[0]} (${c===0?Q_TXT:N_TXT})`,'good');}
+}
 function prodMult(n){return prodBase(n)*POL[n.pol].prod}
 function goldRate(n){return (1+n.cells*.009)*(n.sup?1.5:1)*TE(n,'gold')*POL[n.pol].gold}
 function expandRate(n){return n.nAdj>0?(9+pw0625(n.cells)*.55)*prodBase(n)*TE(n,'expand')*(n.sup?1.15:1)*POL[n.pol].exp:0}
 function prodRate(n){const pm=prodMult(n);let r=0;for(const c of G.cities)if(c.owner===n.id)r+=pm*(c.type==='capital'?TE(n,'capProd')/1.25:c.type==='melee'?1/1.8:1/2.1);return r}
 // 징집: turn gold into soldiers right now, even past the normal cap (up to 130%)
 const draftSize=n=>Math.max(5,Math.round(unitCap(n)*.15));
-const draftCost=n=>draftSize(n)*18;
+const draftCost=n=>Math.round(draftSize(n)*18*powi(.9,n.tn));
 function canDraft(n){return n.gold>=draftCost(n)&&n.units<unitCap(n)*1.2&&citiesOf(n.id).length>0}
 function doDraft(n){if(!canDraft(n))return false;const k=draftSize(n),cs=citiesOf(n.id);n.gold-=draftCost(n);
   for(let i=0;i<k;i++){const c=cs[i%cs.length];spawnUnit(n,c,c.type==='capital'?(i%2?'ranged':'melee'):c.type);}
@@ -770,13 +822,13 @@ function doDraft(n){if(!canDraft(n))return false;const k=draftSize(n),cs=citiesO
 function setPolicy(n,p){if(p<0||p>2||n.pol===p)return;n.pol=p;
   if(n.isPlayer){const P=POL[p];toast(`${P.ic} ${P.nm} 정책 · ${P.desc}`,p===0?'#5fe0a8':p===1?'#f3c34f':'#ff8a80');
     for(const c of citiesOf(n.id))G.fx.push({x:c.x+.5,y:c.y+.5,r:2.5,life:.7,max:.7,c:p===0?'#5fe0a8':p===1?'#f3c34f':'#ff6b6b',k:'ring'});}}
-function unitCap(n){return Math.floor((14+n.cells/34)*TE(n,'cap'))}
+function unitCap(n){return Math.min(480,Math.floor((14+n.cells/34)*TE(n,'cap')*powi(1.08,n.tn)))}
 function calcStats(n){
-  const lv=n.lv;
+  const lv=n.lv,qm=powi(1.12,n.tq);
   for(const t of ['melee','ranged','hero']){const b=BASE[t];
-    n.st[t]={hp:b.hp*(1+.25*lv.hp)*TE(n,'hp'),atk:b.atk*(1+.2*lv.atk)*TE(n,'atk'),spd:b.spd*(1+.15*lv.spd)*TE(n,'spd'),
+    n.st[t]={hp:b.hp*(1+.25*lv.hp)*TE(n,'hp')*qm,atk:b.atk*(1+.2*lv.atk)*TE(n,'atk')*qm,spd:b.spd*(1+.15*lv.spd)*TE(n,'spd'),
       rng:t==='ranged'?b.rng*(1+.18*lv.rng)*TE(n,'rng'):b.rng,cd:b.cd/TE(n,'aspd')};}
-  n.wt=tierOf(lv.atk);n.at=tierOf(lv.hp);
+  n.wt=tierOf(lv.atk+n.tq);n.at=tierOf(lv.hp+n.tq);
   for(const u of G.units)if(u.n===n.id){const m=n.st[u.type].hp;u.hp*=m/u.mhp;u.mhp=m;}
 }
 
@@ -975,7 +1027,7 @@ function newMatchCfg(cfg,mp){
   cfg.n.forEach(([ci,cell,peer,x2],id)=>{
     const n=makeNation(id,ci,cell,id===myId);n.human=!!peer;n.peer=peer||'';n.pname=peer?nameOf(peer):'';n.x2=!!x2;
     if(id!==myId){n.color=NATION_COLORS[1+((id-(myId>=0&&id>myId?1:0))%15)];n.rgb=hexRGB(n.color);}
-    calcStats(n);G.nations.push(n);
+    n.qBias=.25+SR()*.5;calcStats(n);G.nations.push(n);
   });
   for(const n of G.nations){
     const [x,y]=cellXY(n.spawn);
@@ -1008,6 +1060,7 @@ function applyCmd(nid,t,a,b){
   else if(t===4)setTarget(n,a);
   else if(t===6)setPolicy(n,a);
   else if(t===7)doDraft(n);
+  else if(t===8)chooseTech(n,a?1:0);
   else if(t===5){if(n.human){n.human=false;feed(`👤 ${n.pname||n.name} 연결 끊김 · AI가 이어서 지휘합니다`);}}
 }
 function setTarget(n,c){
@@ -1059,6 +1112,12 @@ function step(){
         if(c.timer>=iv){c.timer-=iv;if(type==='capital'){type=(c.alt++%2)?'ranged':'melee';}spawnUnit(n,c,type);if(n.units>=cap)break;}}}
     n.sayT-=dt;if(n.sayT<=0){n.sayT=n.isPlayer?rnd(9,15):rnd(12,24);say(n,false);}
     n.peak=Math.max(n.peak,n.cells);
+    // research
+    if(n.era<ERAS.length){const cost=sciCost(n);
+      if(n.rp<cost)n.rp=Math.min(cost,n.rp+dt*sciRate(n));
+      else{n.sciWait+=dt;
+        if(!n.human){if(n.sciWait>1.5)chooseTech(n,SR()<n.qBias?0:1);}
+        else if(n.sciWait>25)chooseTech(n,n.tq<=n.tn?0:1);}}
   }
   stepUnits(dt);
   // eliminations
@@ -1374,6 +1433,8 @@ const BTN=[
 ];
 acts.innerHTML=BTN.map(b=>`<button class="ab" id="ab_${b.id}" type="button" title="${b.tip}"><span class="lv"></span><span class="ic">${b.ic}</span><span>${b.nm}</span><span class="co"></span><i class="cdv" hidden></i></button>`).join('');
 let placing=null;
+$('sciQ').addEventListener('click',()=>{const n=myNation();if(n&&sciReady(n)){userActed=true;issue(8,0);$('sci').hidden=true;}});
+$('sciN').addEventListener('click',()=>{const n=myNation();if(n&&sciReady(n)){userActed=true;issue(8,1);$('sci').hidden=true;}});
 for(let i=0;i<3;i++)$('pol'+i).addEventListener('click',()=>{const n=myNation();if(!n)return;userActed=true;if(n.pol!==i)issue(6,i);});
 for(const b of BTN){$('ab_'+b.id).addEventListener('click',()=>{const n=myNation();if(!n)return;userActed=true;
   const ui=UPG.findIndex(x=>x.k===b.id);
@@ -1405,6 +1466,12 @@ function updateBar(){
   ec.querySelector('.lv').textContent=placing==='ranged'?'🏹':placing==='melee'?'🛡':'';
   const eh=$('ab_hero'),lh=share(n)<ACT.hero.unlock;eh.querySelector('.co').textContent=lh?`🔒${(ACT.hero.unlock*100).toFixed(0)}%`:n.heroCD>0?Math.ceil(n.heroCD)+'s':ACT.hero.cost;eh.disabled=!canHero(n);eh.classList.toggle('locked',lh);eh.classList.toggle('can',canHero(n));
   for(let i=0;i<3;i++)$('pol'+i).setAttribute('aria-checked',n.pol===i?'true':'false');
+  const done=n.era>=ERAS.length,rdy=sciReady(n);
+  setText('sciTxt',done?'🔬 연구 완료':`🔬 ${ERAS[n.era]} ${rdy?'· 선택!':Math.floor(n.rp/sciCost(n)*100)+'%'}`);
+  $('sciFill').style.width=done?'100%':(n.rp/sciCost(n)*100)+'%';$('sciBar').classList.toggle('ready',rdy);
+  const sp=$('sci');sp.hidden=!rdy;
+  if(rdy){const e=n.era;setText('sciTitle',`🔬 ${ERAS[e]} 시대 연구 완료 · 하나를 고르세요`);setText('sciQi',TECH_Q[e][1]);setText('sciQn',TECH_Q[e][0]);setText('sciNi',TECH_N[e][1]);setText('sciNn',TECH_N[e][0]);
+    setText('sciCount',`${Math.max(0,Math.ceil(25-n.sciWait))}초 뒤 자동 선택`);setText('sciFoot',`지금까지 ⚔ 정예 ${n.tq} · 👥 대군 ${n.tn}`);}
   setHTML('rates',`💰 <b>+${goldRate(n).toFixed(1)}</b>/s · 🌱 <b>${expandRate(n).toFixed(0)}</b>칸/s · 🪖 <b>${prodRate(n).toFixed(1)}</b>명/s`);
   const ed=$('ab_draft');ed.querySelector('.co').textContent=draftCost(n);ed.querySelector('.lv').textContent='+'+draftSize(n);ed.disabled=!canDraft(n);ed.classList.toggle('can',canDraft(n));
   if(!NET.hinted2&&n.border.size&&n.nAdj===0&&n.pol!==2&&G.t>40){NET.hinted2=true;feed('💡 중립 땅이 없어요. ⚔ 징병 정책으로 바꾸고 🪖 징집으로 골드를 병력에 쏟으세요','gold');}
@@ -1447,10 +1514,10 @@ function showPick(){
   $('lbPerks').innerHTML=rows.map(r=>`<div><span class="k">${r[0]}</span><span>${r[1]}</span></div>`).join('');
 }
 let rouletteT=0;
-function startLobby(){
+function startLobby(secs){
   if(G.state==='lobby')return;
   $('endov').hidden=true;
-  resetWorld();G.nations=[];G.state='lobby';G.lobbyT=ME.perkEarned?18:9;G.dm=0;
+  resetWorld();G.nations=[];G.state='lobby';G.lobbyT=secs||(ME.perkEarned?18:9);G.dm=0;
   ME.perk=null;ME.status='queued';
   ME.pick=pickStart(new Set(),[],-1);rouletteT=1.6;
   $('perkPick').hidden=!ME.perkEarned;$('pkHint').hidden=true;$('pkX2').setAttribute('aria-pressed','false');$('pkLoc').setAttribute('aria-pressed','false');
@@ -1509,6 +1576,7 @@ function mapClick(sx,sy){
 }
 addEventListener('keydown',e=>{if(e.target!==document.body)return;const n=myNation();const k=e.key;
   const map={'1':'prod','2':'atk','3':'hp','4':'spd','5':'rng','6':'city','7':'hero','8':'charge',' ':'charge','d':'draft'};if(map[k]){e.preventDefault();$('ab_'+map[k]).click();}
+  if(k==='z'||k==='x'){e.preventDefault();$(k==='z'?'sciQ':'sciN').click();}
   if(k==='q'||k==='w'||k==='e'){e.preventDefault();$('pol'+'qwe'.indexOf(k)).click();}});
 $('bSound').onclick=()=>{soundOn=!soundOn;userActed=true;$('bSound').textContent=soundOn?'🔊':'🔇';$('bSound').setAttribute('aria-pressed',soundOn);if(!soundOn)try{speechSynthesis.cancel()}catch(e){}};
 $('bSpeed').onclick=()=>{G.speed=G.speed===1?2:G.speed===2?4:G.speed===4?8:1;$('bSpeed').textContent='▶ '+G.speed+'×';};
@@ -1550,6 +1618,7 @@ function becomeHost(){
     for(const p of livePeers()){const c=p.presence.cmds;if(Array.isArray(c)&&c.length)NET.lastSeq[p.peer]=c[c.length-1][0];}
     feed('👑 방장이 나가서 내가 방장이 되었습니다','gold');
   }else if(G.mp&&G.state==='lobby'){hostStartLobby(true);}
+  else if(G.state==='lobby'&&!NET.lobbyMP){hostStartLobby(false,Math.max(5,G.lobbyT|0));}
   if(wasClient&&!G.mp&&NET.peersN>1)hostStartLobby();
 }
 function hostSchedule(nid,t,a,b){addCmd(Math.max(G.frame,NET.conf)+1,[NET.q++,nid,t,a,b]);}
@@ -1558,7 +1627,7 @@ function hostIntake(){
     const n=G.nations.find(x=>x.human&&x.peer===p.peer);if(!n)continue;
     let last=NET.lastSeq[p.peer]||0;
     for(const c of pr.cmds){if(!Array.isArray(c)||!(c[0]>last))continue;last=c[0];
-      const t=c[1]|0,a=c[2]|0,b=c[3]|0;if(t>=0&&t<=7&&t!==5&&a>=-1&&a<NC)hostSchedule(n.id,t,a,b);}
+      const t=c[1]|0,a=c[2]|0,b=c[3]|0;if(t>=0&&t<=8&&t!==5&&a>=-1&&a<NC)hostSchedule(n.id,t,a,b);}
     NET.lastSeq[p.peer]=last;}
 }
 function emitTk(){
@@ -1579,10 +1648,10 @@ function hostLoop(){
   }else if(G.mp&&G.state==='end'){NET.emitAt-=dt;if(NET.emitAt<=0){NET.emitAt=1;emitTk();}G.endT-=dt;$('endCount').textContent=`다음 게임까지 ${Math.ceil(Math.max(0,G.endT))}초`;if(G.endT<=0)hostStartLobby();}
   else if(G.state==='lobby'&&NET.lobbyMP)hostLobbyTick(dt);
 }
-function hostStartLobby(keep){
+function hostStartLobby(keep,secs){
   if(NET.role!=='host')return;
   $('endov').hidden=true;
-  if(!keep||!NET.lobby)NET.lobby={m:'l'+Math.random().toString(36).slice(2,8),t:NET.peersN>1?20:10,picks:new Map(),emitT:0,w:NET.lastWinnerPeer};
+  if(!keep||!NET.lobby)NET.lobby={m:'l'+Math.random().toString(36).slice(2,8),t:secs||(NET.peersN>1?20:10),picks:new Map(),emitT:0,w:NET.lastWinnerPeer};
   enterLobbyUI();
 }
 function enterLobbyUI(){
@@ -1653,7 +1722,9 @@ function onPeersChange(ch){
   electHost();refreshNames();
   if(NET.role==='host'){
     for(const p of ch.left){const n=G.mp&&G.state==='play'?G.nations.find(x=>x.human&&x.peer===p.peer&&x.alive):null;if(n)hostSchedule(n.id,5,0,0);}
-    if(ch.joined.some(p=>!p.sameTab)&&!G.mp&&G.state!=='lobby'&&ME.status!=='in')hostStartLobby();
+    const newcomer=ch.joined.some(p=>!p.sameTab&&p.kind==='viewer');
+    const humansAlive=G.mp&&G.state==='play'?G.nations.filter(n=>n.human&&n.alive).length:0;
+    if(newcomer&&G.state==='play'&&(G.mp?humansAlive===0:ME.status!=='in'))hostStartLobby(false,8); // no one is really playing: start a fresh game for the newcomer
   }
   for(const p of ch.joined)if(!p.sameTab&&p.kind==='viewer'&&!NET.greeted.has(p.peer)){NET.greeted.add(p.peer);setTimeout(()=>feed(`👋 ${nameOf(p.peer)}님이 들어왔습니다`,'good'),600);}
   updateNetBadge();
@@ -1703,15 +1774,11 @@ function frame(now){
   requestAnimationFrame(frame);
 }
 
-// boot: a match is already running when you arrive; you queue for the next one
+// boot: no human is playing yet, so a fresh game opens for this visitor right away
 resize();
 cam.s=fitScale();clampCam();
-newMatch(false);
-for(let i=0;i<450;i++)step();
+startLobby(7);
 netInit();
-G.bubbles=[];
-ME.status='queued';
-feed('🌍 진행 중인 게임에 들어왔습니다. 다음 판까지 관전하세요','gold');
 $('loading').remove();
 try{if(!localStorage.getItem('ttm_help'))$('help').hidden=false;}catch(e){$('help').hidden=false;}
 window.__ttm={G,ME,NET,step,draw,cam,zoomAt,startLobby,beginMatch,TOTAL_LAND,sprite,getCulture,META,stateHash,issue};

@@ -11,7 +11,7 @@ const B=await ctx.newPage();B.on('pageerror',e=>errs.push('B '+e.message));
 await B.goto(url);await B.waitForTimeout(4000);
 console.log('A',await st(A));console.log('B',await st(B));
 await B.screenshot({path:'mp_lobbyB.png'});
-await A.click('#lbGo');await A.waitForTimeout(3000);
+if(await A.isVisible('#lbGo'))await A.click('#lbGo');await A.waitForTimeout(3000);
 console.log('A',await st(A));console.log('B',await st(B));
 // B issues an attack + upgrades via the real UI
 await B.evaluate(()=>{const T=window.__ttm;const me=T.G.nations.find(n=>n.isPlayer);me.gold+=0;});
