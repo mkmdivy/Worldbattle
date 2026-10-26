@@ -113,6 +113,7 @@ button:focus-visible{outline:2px solid var(--you);outline-offset:2px}
 .ab.can{border-color:rgba(243,195,79,.55)}
 .ab.on{border-color:var(--you);background:rgba(70,212,255,.15)}
 .ab .cdv{position:absolute;inset:auto 0 0 0;height:3px;background:var(--you);border-radius:0 0 8px 8px;transform-origin:left}
+#dockTog{display:none;position:absolute;top:-14px;left:50%;transform:translateX(-50%);width:54px;height:22px;border-radius:11px;background:var(--panel-hi);border:1px solid var(--line);font-size:12px;align-items:center;justify-content:center;color:var(--muted)}
 #meTrait{font-size:11px;color:var(--ok);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
 #tgt{font-size:11px;color:var(--muted);text-align:center;margin-top:2px;white-space:nowrap}
 
@@ -151,37 +152,74 @@ button:focus-visible{outline:2px solid var(--you);outline-offset:2px}
 #toast.show{opacity:1}
 #loading{position:fixed;inset:0;display:grid;place-items:center;font:20px var(--f-display);color:var(--muted);background:var(--sea);z-index:9}
 
-@media (max-width:760px){
-  #lb{width:186px;padding:6px}
-  .lr{grid-template-columns:14px 18px 1fr 40px;font-size:11px}
+/* ---- phones: a full-width command dock with thumb-sized controls; everything else shrinks out of the way */
+@media (max-width:760px), (pointer:coarse) and (max-height:520px){
+  button{touch-action:manipulation;-webkit-user-select:none;user-select:none}
+  #hud{padding:calc(env(safe-area-inset-top,0px) + 6px) max(6px,env(safe-area-inset-right,0px)) 0 max(6px,env(safe-area-inset-left,0px))}
+  #lb{left:max(6px,env(safe-area-inset-left,0px));top:calc(env(safe-area-inset-top,0px) + 6px);width:150px;padding:5px 5px 3px}
+  #lb h3{margin-bottom:3px;font-size:10px}
+  .lr{grid-template-columns:12px 16px 1fr 34px;font-size:10.5px;padding:2px 3px;gap:3px}
   .lr .un{display:none}
-  #lb.collapsed .lr:nth-child(n+5):not(.me){display:none}
-  #tr{width:auto;max-width:46%}
-  .fe:nth-child(n+3){display:none}
-  #clock{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);left:auto;right:max(10px,env(safe-area-inset-right,0px));transform:none;min-width:0;padding:5px 9px}
-  #clockT{font-size:16px}
-  #bar{bottom:calc(env(safe-area-inset-bottom,0px) + 62px);flex-wrap:wrap;gap:6px;padding:6px;left:max(10px,env(safe-area-inset-left,0px));right:max(10px,env(safe-area-inset-right,0px));transform:none;max-width:none}
-  #me{border:0;min-width:0;flex:1}
-  #meName{font-size:16px}
-  #stats{border:0;grid-template-columns:auto auto auto auto}
-  #acts{width:100%;display:flex;flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px}
-  #rates{font-size:10px}
-  #toast{font-size:22px}
-  #sci{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 176px);padding:8px 9px 7px}
-  .sciHead{font-size:14px;margin-bottom:6px;gap:8px}
+  #lb.collapsed .lr:nth-child(n+4):not(.me){display:none}
+  #clock{top:calc(env(safe-area-inset-top,0px) + 6px);padding:4px 10px 5px;min-width:0}
+  #clockT{font-size:15px}#clockP{font-size:10px;margin-top:1px}#pbar{margin-top:4px}
+  #tr{right:max(6px,env(safe-area-inset-right,0px));top:calc(env(safe-area-inset-top,0px) + 6px);width:auto;max-width:40%;gap:5px}
+  .tb{height:34px;min-width:34px}
+  #feed{max-width:100%}
+  .fe{font-size:11px;padding:4px 7px}
+  .fe:nth-child(n+2){display:none}
+  #zIn,#zOut{display:none}
+  #zoom{right:max(8px,env(safe-area-inset-right,0px));bottom:calc(var(--dock,250px) + 8px);left:auto;top:auto}
+  #zHome{width:44px;height:44px;border-radius:50%;font-size:18px;justify-content:center}
+  #banner{top:auto;bottom:calc(var(--dock,250px) + 8px);font-size:12px;left:8px;right:60px;transform:none;max-width:none}
+  #toast{font-size:20px;top:auto;bottom:calc(var(--dock,250px) + 70px);transform:translateX(-50%)}
+  /* dock */
+  #bar{left:0;right:0;bottom:0;transform:none;max-width:none;border-radius:16px 16px 0 0;border-bottom:0;
+    padding:7px max(8px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 7px) max(8px,env(safe-area-inset-left,0px));
+    display:grid;grid-template-columns:1fr auto;grid-template-areas:"me stats" "econ econ" "acts acts";gap:7px 8px;align-items:center}
+  #me{grid-area:me;border:0;padding:0;min-width:0}
+  #meName{font-size:17px}
+  #meSay,#meTrait{display:none}
+  #bar.info #meSay,#bar.info #meTrait{display:block;max-width:none;white-space:normal}
+  #tgt{text-align:left;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #stats{grid-area:stats;border:0;padding:0;grid-template-columns:auto auto;gap:0 8px;font-size:11px}
+  #stats b{font-size:14px}
+  #econ{grid-area:econ;border:0;padding:0;display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center}
+  #pol{padding:3px}
+  .pb{flex:1;min-height:46px;font-size:18px;padding:3px 4px;min-width:0}
+  .pb span{font-size:12px}
+  #rates{grid-column:1/-1;font-size:10.5px;order:3}
+  #sciBar{width:auto;min-width:96px;flex-direction:column;align-items:stretch;gap:3px;font-size:11px;background:rgba(0,0,0,.3);border-radius:9px;padding:7px 8px;min-height:52px;justify-content:center}
+  #sciBar i{min-width:0;flex:none;height:7px}
+  #acts{grid-area:acts;display:grid;grid-template-columns:repeat(5,1fr);gap:6px;width:100%;overflow:visible;padding:0}
+  .ab,#acts .ab{width:auto;flex:none;min-height:58px;padding:6px 2px 5px;font-size:12px;border-radius:10px}
+  .ab .ic{font-size:21px}
+  .ab .co{font-size:11px}
+  .ab .lv{font-size:9.5px}
+  #bar.min #acts,#bar.min #rates{display:none}
+  #dockTog{display:flex}
+  /* research choice: big cards near the top, clear of the dock */
+  #sci{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 112px);width:calc(100% - 12px);padding:9px 9px 8px}
+  .sciHead{font-size:14px;margin-bottom:7px;gap:8px}
   #sciCount{white-space:nowrap}
-  .si{font-size:20px}
-  .sn{font-size:14px}
-  .sd{font-size:10px}
-  .pb{min-width:40px;padding:4px 6px}
-  #econ{border:0;flex-direction:row;align-items:center;width:100%;justify-content:space-between;padding:0}
-  #econ{flex-wrap:wrap;row-gap:4px}
-  #sciBar{width:100%}
-  .ab{flex:0 0 58px;width:58px}
-  #zoom{right:auto;left:max(10px,env(safe-area-inset-left,0px));flex-direction:row}
-  #feed{max-width:200px}
-  #banner{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 62px);font-size:12px}
+  .sc{min-height:120px;padding:10px 6px}
+  .si{font-size:26px}.sn{font-size:15px}.sd{font-size:10.5px}
   .big{font-size:30px}
+  .card{padding:16px 16px}
+  .btn{padding:11px 14px;font-size:14px}
+}
+@media (pointer:coarse) and (max-height:520px) and (orientation:landscape){
+  #bar{grid-template-columns:auto auto 1fr;grid-template-areas:"me stats econ" "acts acts acts";border-radius:14px 14px 0 0}
+  #acts{grid-template-columns:repeat(10,1fr)}
+  .ab,#acts .ab{min-height:48px}
+  #rates{display:none}
+  #lb{display:none}
+  #stats{grid-template-columns:repeat(4,auto);gap:0 6px}
+  #stats span{font-size:10px}
+  #tgt{display:none}
+  .pb{min-height:40px}
+  #sciBar{min-height:44px;padding:5px 8px}
+  #bar{gap:5px 8px;padding-top:5px}
 }
 @media (prefers-reduced-motion:reduce){.fe{animation:none}#toast{transition:none}}
 </style>
@@ -210,7 +248,7 @@ button:focus-visible{outline:2px solid var(--you);outline-offset:2px}
     <div class="sciFoot" id="sciFoot"></div>
   </div>
   <div id="bar" class="panel" hidden>
-    <div id="me"><div id="meName"></div><div id="meSay"></div><div id="meTrait"></div><div id="tgt"></div></div>
+    <div id="me"><button id="dockTog" type="button" aria-label="조작판 접기" hidden>▾</button><div id="meName"></div><div id="meSay"></div><div id="meTrait"></div><div id="tgt"></div></div>
     <div id="stats">
       <span>골드</span><b class="g" id="sGold">0</b>
       <span>영토</span><b id="sLand">0%</b>
@@ -272,6 +310,7 @@ button:focus-visible{outline:2px solid var(--you);outline-offset:2px}
       <li>영토는 자동으로 퍼지고, 도시에서 병사가 계속 나와 싸우러 갑니다. 🏹 도시는 원거리병, 🛡 도시는 근접 탱커를 만듭니다.</li>
       <li><b>정책</b>을 고르세요. 🌱 개척은 땅을 빨리 넓히고, 💰 교역은 골드를 많이 벌고, ⚔ 징병은 병력을 빨리 뽑습니다. 초반엔 개척과 교역 중에 고르고, 전쟁이 붙으면 징병으로 바꾼 뒤 🪖 <b>징집</b>으로 모은 골드를 병사로 바꾸세요. (단축키 Q·W·E, D)</li>
       <li>🔬 <b>연구</b>가 차면 시대가 넘어가며 하나를 고릅니다. ⚔ <b>정예</b>는 병사를 강하게(공격·체력, 장비 외형), 👥 <b>대군</b>은 병사를 많이(상한·생산·징집) 만듭니다. (단축키 Z·X)</li>
+      <li>손이 바쁘면 🤖 <b>자동</b>을 켜세요. 업그레이드·정책·연구·징집을 AI가 대신하고, 공격 목표만 직접 찍으면 됩니다.</li>
       <li>할 일은 셋뿐입니다. <b>생산</b>·<b>업그레이드</b>에 골드를 쓰고, 지도에서 적 땅을 눌러 <b>공격 목표</b>를 정하세요. 내 땅을 누르면 자동 목표로 돌아갑니다.</li>
       <li>업그레이드는 이미 싸우고 있는 병사에게도 바로 적용됩니다. 무기는 빛나고, 갑옷은 몸에 입혀지고, 생산은 즉시 지원군을 보냅니다.</li>
       <li>나라마다 고유 특성이 있습니다. 한국은 화살 3연발, 일본은 치명타, 러시아는 홈 방어, 몽골은 기마 속도.</li>
@@ -654,7 +693,7 @@ function makeNation(id,ci,cell,isPlayer){
   const m=META[ci], sup=SUPER_BY_CI[ci]||null;
   const color=isPlayer?NATION_COLORS[0]:NATION_COLORS[1+((id-1+16)%15)];
   return {id,ci,cul:getCulture(ci),name:m.ko,flag:flagOf(m.a2),color,rgb:hexRGB(color),isPlayer,sup,sp:sup?sup.a2:null,
-    cells:0,gold:130,pol:0,rp:0,era:0,tq:0,tn:0,sciWait:0,qBias:.5,tr:getTrait(ci),st:{},wt:0,at:0,boostT:0,flashT:0,lv:{prod:0,atk:0,hp:0,spd:0,rng:0},built:0,front:[],units:0,kills:0,alive:true,
+    cells:0,gold:130,pol:0,auto:false,rp:0,era:0,tq:0,tn:0,sciWait:0,qBias:.5,tr:getTrait(ci),st:{},wt:0,at:0,boostT:0,flashT:0,lv:{prod:0,atk:0,hp:0,spd:0,rng:0},built:0,front:[],units:0,kills:0,alive:true,
     target:null,tgtT:0,tgtCells:[],neuCells:[],manual:null,chargeT:0,chargeCD:0,heroCD:0,aiT:srnd(1,4),sayT:srnd(2,10),
     spawn:cell,lx:cell%W,ly:cell/W|0,border:new Map(),nAdj:0,expAcc:0,x2:false,rank:0,wars:new Set(),deadAt:0,peak:0};
 }
@@ -1061,6 +1100,7 @@ function applyCmd(nid,t,a,b){
   else if(t===6)setPolicy(n,a);
   else if(t===7)doDraft(n);
   else if(t===8)chooseTech(n,a?1:0);
+  else if(t===9){n.auto=!!a;if(n.isPlayer){toast(a?'🤖 자동 운영 ON · 공격 목표만 찍으세요':'🤖 자동 운영 OFF','#9fd3ff');feed(a?'🤖 업그레이드·정책·연구·징집을 AI가 대신 운영합니다':'🤖 직접 운영으로 돌아왔습니다');}}
   else if(t===5){if(n.human){n.human=false;feed(`👤 ${n.pname||n.name} 연결 끊김 · AI가 이어서 지휘합니다`);}}
 }
 function setTarget(n,c){
@@ -1091,7 +1131,7 @@ function step(){
     if(!n.alive)continue;
     n.gold+=dt*goldRate(n);
     n.chargeT-=dt;n.chargeCD-=dt;n.heroCD-=dt;
-    if(!n.human){n.aiT-=dt;if(n.aiT<=0){n.aiT=srnd(1.5,3);botAI(n);}}
+    if(!n.human||n.auto){n.aiT-=dt;if(n.aiT<=0){n.aiT=srnd(1.5,3);botAI(n);}}
     n.boostT-=dt;n.flashT-=dt;
     // neutral expansion
     if(n.nAdj>0||n.front.length){
@@ -1116,7 +1156,7 @@ function step(){
     if(n.era<ERAS.length){const cost=sciCost(n);
       if(n.rp<cost)n.rp=Math.min(cost,n.rp+dt*sciRate(n));
       else{n.sciWait+=dt;
-        if(!n.human){if(n.sciWait>1.5)chooseTech(n,SR()<n.qBias?0:1);}
+        if(!n.human||n.auto){if(n.sciWait>1.5)chooseTech(n,SR()<n.qBias?0:1);}
         else if(n.sciWait>25)chooseTech(n,n.tq<=n.tn?0:1);}}
   }
   stepUnits(dt);
@@ -1430,9 +1470,14 @@ const BTN=[
  {id:'hero',ic:'👑',nm:'영웅',tip:'수도에서 강력한 영웅 소환'},
  {id:'draft',ic:'🪖',nm:'징집',tip:'골드로 병사를 즉시 투입 (상한의 120%까지)'},
  {id:'charge',ic:'📯',nm:'돌격',tip:'8초간 전군 공격·속도 +50%'},
+ {id:'auto',ic:'🤖',nm:'자동',tip:'업그레이드·정책·연구·징집을 AI가 대신 운영합니다. 공격 목표는 직접 찍으세요'},
 ];
 acts.innerHTML=BTN.map(b=>`<button class="ab" id="ab_${b.id}" type="button" title="${b.tip}"><span class="lv"></span><span class="ic">${b.ic}</span><span>${b.nm}</span><span class="co"></span><i class="cdv" hidden></i></button>`).join('');
 let placing=null;
+$('dockTog').addEventListener('click',e=>{e.stopPropagation();const b=$('bar');b.classList.toggle('min');$('dockTog').textContent=b.classList.contains('min')?'▴':'▾';try{localStorage.setItem('ttm_dock',b.classList.contains('min')?'min':'');}catch(e){}});
+try{if(localStorage.getItem('ttm_dock')==='min'){$('bar').classList.add('min');$('dockTog').textContent='▴';}}catch(e){}
+$('meName').addEventListener('click',()=>$('bar').classList.toggle('info'));
+let dockH=0;function syncDock(){const b=$('bar');const h=b.hidden?0:b.offsetHeight;if(h!==dockH){dockH=h;document.documentElement.style.setProperty('--dock',h+'px');}}
 $('sciQ').addEventListener('click',()=>{const n=myNation();if(n&&sciReady(n)){userActed=true;issue(8,0);$('sci').hidden=true;}});
 $('sciN').addEventListener('click',()=>{const n=myNation();if(n&&sciReady(n)){userActed=true;issue(8,1);$('sci').hidden=true;}});
 for(let i=0;i<3;i++)$('pol'+i).addEventListener('click',()=>{const n=myNation();if(!n)return;userActed=true;if(n.pol!==i)issue(6,i);});
@@ -1444,6 +1489,8 @@ for(const b of BTN){$('ab_'+b.id).addEventListener('click',()=>{const n=myNation
   else if(b.id==='hero'){if(canHero(n))issue(2);}
   else if(b.id==='charge'){if(canCharge(n))issue(3);}
   else if(b.id==='draft'){if(canDraft(n))issue(7);}
+  else if(b.id==='auto'){issue(9,n.auto?0:1);}
+  try{navigator.vibrate&&navigator.vibrate(10);}catch(e){}
   updateBar();});}
 function myNation(){const n=G.nations.find(x=>x.isPlayer);return n&&n.alive&&G.state==='play'?n:null;}
 const domMemo=new Map();
@@ -1469,12 +1516,14 @@ function updateBar(){
   const done=n.era>=ERAS.length,rdy=sciReady(n);
   setText('sciTxt',done?'🔬 연구 완료':`🔬 ${ERAS[n.era]} ${rdy?'· 선택!':Math.floor(n.rp/sciCost(n)*100)+'%'}`);
   $('sciFill').style.width=done?'100%':(n.rp/sciCost(n)*100)+'%';$('sciBar').classList.toggle('ready',rdy);
-  const sp=$('sci');sp.hidden=!rdy;
+  const sp=$('sci');sp.hidden=!rdy||n.auto;
   if(rdy){const e=n.era;setText('sciTitle',`🔬 ${ERAS[e]} 시대 연구 완료 · 하나를 고르세요`);setText('sciQi',TECH_Q[e][1]);setText('sciQn',TECH_Q[e][0]);setText('sciNi',TECH_N[e][1]);setText('sciNn',TECH_N[e][0]);
     setText('sciCount',`${Math.max(0,Math.ceil(25-n.sciWait))}초 뒤 자동 선택`);setText('sciFoot',`지금까지 ⚔ 정예 ${n.tq} · 👥 대군 ${n.tn}`);}
   setHTML('rates',`💰 <b>+${goldRate(n).toFixed(1)}</b>/s · 🌱 <b>${expandRate(n).toFixed(0)}</b>칸/s · 🪖 <b>${prodRate(n).toFixed(1)}</b>명/s`);
   const ed=$('ab_draft');ed.querySelector('.co').textContent=draftCost(n);ed.querySelector('.lv').textContent='+'+draftSize(n);ed.disabled=!canDraft(n);ed.classList.toggle('can',canDraft(n));
   if(!NET.hinted2&&n.border.size&&n.nAdj===0&&n.pol!==2&&G.t>40){NET.hinted2=true;feed('💡 중립 땅이 없어요. ⚔ 징병 정책으로 바꾸고 🪖 징집으로 골드를 병력에 쏟으세요','gold');}
+  const ea=$('ab_auto');ea.classList.toggle('on',!!n.auto);ea.querySelector('.co').textContent=n.auto?'ON':'OFF';
+  $('dockTog').hidden=false;
   const ech=$('ab_charge');ech.querySelector('.co').textContent=n.chargeCD>0?Math.ceil(n.chargeCD)+'s':ACT.charge.cost;ech.disabled=!canCharge(n);ech.classList.toggle('can',canCharge(n));ech.classList.toggle('on',n.chargeT>0);
   const cd=ech.querySelector('.cdv');cd.hidden=!(n.chargeT>0);if(n.chargeT>0)cd.style.transform=`scaleX(${n.chargeT/ACT.charge.dur})`;
 }
@@ -1627,7 +1676,7 @@ function hostIntake(){
     const n=G.nations.find(x=>x.human&&x.peer===p.peer);if(!n)continue;
     let last=NET.lastSeq[p.peer]||0;
     for(const c of pr.cmds){if(!Array.isArray(c)||!(c[0]>last))continue;last=c[0];
-      const t=c[1]|0,a=c[2]|0,b=c[3]|0;if(t>=0&&t<=8&&t!==5&&a>=-1&&a<NC)hostSchedule(n.id,t,a,b);}
+      const t=c[1]|0,a=c[2]|0,b=c[3]|0;if(t>=0&&t<=9&&t!==5&&a>=-1&&a<NC)hostSchedule(n.id,t,a,b);}
     NET.lastSeq[p.peer]=last;}
 }
 function emitTk(){
@@ -1769,7 +1818,7 @@ function frame(now){
   for(const f of G.fx)f.life-=gdt;G.fx=G.fx.filter(f=>f.life>0);
   for(const b of G.bubbles)b.life-=rdt;G.bubbles=G.bubbles.filter(b=>b.life>0);
   if(G.fx.length>450)G.fx.splice(0,G.fx.length-450);if(G.projs.length>700)G.projs.splice(0,G.projs.length-700);
-  hudT-=rdt;if(hudT<=0){hudT=.25;$('lb').hidden=G.state==='lobby';if(G.state!=='lobby')renderLB();renderClock();updateBar();updateBanner();}
+  hudT-=rdt;if(hudT<=0){hudT=.25;syncDock();$('lb').hidden=G.state==='lobby';if(G.state!=='lobby')renderLB();renderClock();updateBar();updateBanner();}
   draw();
   requestAnimationFrame(frame);
 }
