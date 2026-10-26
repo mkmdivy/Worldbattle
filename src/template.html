@@ -79,7 +79,13 @@ button:focus-visible{outline:2px solid var(--you);outline-offset:2px}
 #stats b{font-family:var(--f-num);font-weight:600;text-align:right}
 #stats b.g{color:var(--gold)}
 #econ{display:flex;flex-direction:column;gap:5px;justify-content:center;padding-right:8px;border-right:1px solid var(--line)}
-#pol{display:flex;background:rgba(0,0,0,.3);border-radius:9px;padding:3px;gap:3px}
+#buy{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.ub{position:relative;background:var(--panel-hi);border:1px solid var(--line);border-radius:10px;padding:5px 4px 4px;min-width:62px;display:flex;flex-direction:column;align-items:center;line-height:1.15;font-size:11px;font-weight:600;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.ub .ic{font-size:19px}.ub .co{font:600 11px var(--f-num);color:var(--gold)}
+.ub .ct{position:absolute;top:2px;right:5px;font:600 9.5px var(--f-num);color:var(--muted)}
+.ub:disabled{opacity:.42}.ub.can{border-color:rgba(243,195,79,.55)}
+.ub.farm.can{border-color:rgba(155,227,107,.6)}
+.ub:active:not(:disabled){transform:scale(.95);background:rgba(70,212,255,.15)}
 .pb{background:transparent;border:0;border-radius:7px;padding:5px 8px;font-size:15px;display:flex;flex-direction:column;align-items:center;line-height:1.1;color:var(--muted);min-width:46px}
 .pb span{font-size:11px;font-weight:600}
 .pb[aria-checked="true"]{background:var(--panel-hi);color:var(--text);box-shadow:inset 0 0 0 1px var(--pc,var(--you))}
@@ -185,9 +191,10 @@ button:focus-visible{outline:2px solid var(--you);outline-offset:2px}
   #stats{grid-area:stats;border:0;padding:0;grid-template-columns:auto auto;gap:0 8px;font-size:11px}
   #stats b{font-size:14px}
   #econ{grid-area:econ;border:0;padding:0;display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center}
-  #pol{padding:3px}
-  .pb{flex:1;min-height:46px;font-size:18px;padding:3px 4px;min-width:0}
-  .pb span{font-size:12px}
+  #buy{gap:6px}
+  .ub{min-height:58px;font-size:12px;min-width:0}
+  .ub .ic{font-size:22px}
+  .ub .co{font-size:12px}
   #rates{grid-column:1/-1;font-size:10.5px;order:3}
   #sciBar{width:auto;min-width:96px;flex-direction:column;align-items:stretch;gap:3px;font-size:11px;background:rgba(0,0,0,.3);border-radius:9px;padding:7px 8px;min-height:52px;justify-content:center}
   #sciBar i{min-width:0;flex:none;height:7px}
@@ -217,7 +224,7 @@ button:focus-visible{outline:2px solid var(--you);outline-offset:2px}
   #stats{grid-template-columns:repeat(4,auto);gap:0 6px}
   #stats span{font-size:10px}
   #tgt{display:none}
-  .pb{min-height:40px}
+  .ub{min-height:46px}
   #sciBar{min-height:44px;padding:5px 8px}
   #bar{gap:5px 8px;padding-top:5px}
 }
@@ -243,7 +250,7 @@ button:focus-visible{outline:2px solid var(--you);outline-offset:2px}
     <div class="sciHead"><span id="sciTitle"></span><span id="sciCount"></span></div>
     <div class="sciCards">
       <button class="sc q" id="sciQ" type="button"><span class="sk">⚔ 정예 <kbd>Z</kbd></span><span class="si" id="sciQi"></span><span class="sn" id="sciQn"></span><span class="sd">공격·체력 +12%<br>무기·갑옷 한 단계 업</span></button>
-      <button class="sc n" id="sciN" type="button"><span class="sk">👥 대군 <kbd>X</kbd></span><span class="si" id="sciNi"></span><span class="sn" id="sciNn"></span><span class="sd">병력 상한 +8% · 생산 +12%<br>징집 비용 -10%</span></button>
+      <button class="sc n" id="sciN" type="button"><span class="sk">👥 대군 <kbd>X</kbd></span><span class="si" id="sciNi"></span><span class="sn" id="sciNn"></span><span class="sd">유닛 가격 -10%<br>병력 상한 +8%</span></button>
     </div>
     <div class="sciFoot" id="sciFoot"></div>
   </div>
@@ -256,11 +263,7 @@ button:focus-visible{outline:2px solid var(--you);outline-offset:2px}
       <span>도시</span><b id="sCities">1</b>
     </div>
     <div id="econ">
-      <div id="pol" role="radiogroup" aria-label="국가 정책">
-        <button class="pb" id="pol0" type="button" role="radio" title="영토 확장 ×1.8 · 골드 ×0.65 · 생산 ×0.55">🌱<span>개척</span></button>
-        <button class="pb" id="pol1" type="button" role="radio" title="골드 ×2.1 · 확장 ×0.6 · 생산 ×0.6">💰<span>교역</span></button>
-        <button class="pb" id="pol2" type="button" role="radio" title="병력 생산 ×1.5 · 골드 ×0.8 · 확장 ×0.4">⚔<span>징병</span></button>
-      </div>
+      <div id="buy" aria-label="유닛 생산 (누르고 있으면 연속 생산)"></div>
       <div id="rates"></div>
       <div id="sciBar" title="연구가 차면 정예(병사 강화)와 대군(병력 증가) 중 하나를 고릅니다"><span id="sciTxt"></span><i><b id="sciFill"></b></i></div>
     </div>
@@ -308,7 +311,8 @@ button:focus-visible{outline:2px solid var(--you);outline-offset:2px}
       <li>매 판 <b>무작위 국가</b>로 시작합니다. 땅이 넓은 나라가 자주 걸리고, 작은 나라는 가끔 걸립니다.</li>
       <li>바티칸·모나코·산마리노 같은 아주 작은 나라는 <b style="color:var(--gold)">슈퍼 국가</b>입니다. 생산·골드 보너스와 고유 특전이 붙습니다.</li>
       <li>영토는 자동으로 퍼지고, 도시에서 병사가 계속 나와 싸우러 갑니다. 🏹 도시는 원거리병, 🛡 도시는 근접 탱커를 만듭니다.</li>
-      <li><b>정책</b>을 고르세요. 🌱 개척은 땅을 빨리 넓히고, 💰 교역은 골드를 많이 벌고, ⚔ 징병은 병력을 빨리 뽑습니다. 초반엔 개척과 교역 중에 고르고, 전쟁이 붙으면 징병으로 바꾼 뒤 🪖 <b>징집</b>으로 모은 골드를 병사로 바꾸세요. (단축키 Q·W·E, D)</li>
+      <li>골드는 <b>자동으로</b> 쌓입니다. 유닛 버튼을 누를 때마다 한 명씩 뽑고, 누르고 있으면 계속 뽑습니다. (단축키 A·S·D·F, Shift는 5명)</li>
+      <li>🌾 <b>농부</b>는 도시 주변에서 농사를 지어 수입을 올립니다. ⚔ <b>돌격병</b>은 땅을 빼앗고, 🏹 <b>궁수</b>는 뒤에서 쏘고, 🛡 <b>수비병</b>은 국경을 지킵니다. 농부는 적의 습격에 약하니 지켜 주세요.</li>
       <li>🔬 <b>연구</b>가 차면 시대가 넘어가며 하나를 고릅니다. ⚔ <b>정예</b>는 병사를 강하게(공격·체력, 장비 외형), 👥 <b>대군</b>은 병사를 많이(상한·생산·징집) 만듭니다. (단축키 Z·X)</li>
       <li>손이 바쁘면 🤖 <b>자동</b>을 켜세요. 업그레이드·정책·연구·징집을 AI가 대신하고, 공격 목표만 직접 찍으면 됩니다.</li>
       <li>할 일은 셋뿐입니다. <b>생산</b>·<b>업그레이드</b>에 골드를 쓰고, 지도에서 적 땅을 눌러 <b>공격 목표</b>를 정하세요. 내 땅을 누르면 자동 목표로 돌아갑니다.</li>
@@ -519,7 +523,7 @@ GR:['팔랑크스','체력 +40%',{hp:1.4}],
 TR:['오스만 대포','원거리 공격이 범위 피해 · 공격 +10%',{splashR:.6,atk:1.1}],
 IR:['불사 부대','병사 체력 자동 회복 · 체력 +15%',{regen:.04,hp:1.15}],
 SA:['오일 머니','골드 +50%',{gold:1.5}],
-EG:['피라미드','수도 생산 2배 · 체력 +10%',{capProd:2,hp:1.1}],
+EG:['나일 강의 선물','농부 수확 +50% · 체력 +10%',{farm:1.5,hp:1.1}],
 IL:['아이언 돔','원거리 공격으로 받는 피해 -45%',{rangedDef:.45}],
 IN:['차크람 관통','원거리 공격이 적 2명을 관통 · 생산 +15%',{multi:1,prod:1.15}],
 PK:['산악 요새','자국 땅 피해 -30% · 공격 +10%',{home:.3,atk:1.1}],
@@ -640,7 +644,8 @@ function sprite(cu,type,color,wt=0,at=0){
   // team disc
   g.fillStyle=color; g.globalAlpha=.95; g.beginPath(); g.ellipse(16,29,9.5,3,0,0,6.283); g.fill(); g.globalAlpha=1;
   if(type==='hero'){g.fillStyle='#d4af37';g.beginPath();g.moveTo(10,14);g.lineTo(6,29);g.lineTo(26,29);g.lineTo(22,14);g.fill();}
-  hatBack(g,cu.hat,cu);
+  const hatT=type==='farm'?'straw':cu.hat;
+  hatBack(g,hatT,cu);
   g.fillStyle='#262626'; g.fillRect(12.4,23,2.8,6); g.fillRect(16.8,23,2.8,6);
   g.fillStyle=cu.c1; g.beginPath(); g.roundRect(10.4,13.4,11.2,11,3); g.fill();
   g.strokeStyle='rgba(0,0,0,.35)'; g.lineWidth=.7; g.stroke();
@@ -652,11 +657,19 @@ function sprite(cu,type,color,wt=0,at=0){
   g.fillStyle=color; g.fillRect(11.4,12.8,9.2,2.1);
   if(!['knight'].includes(cu.hat)){g.fillStyle=SKIN; g.beginPath(); g.arc(16,10,4.4,0,6.283); g.fill();
     g.fillStyle='#222'; g.fillRect(14.2,9.5,1.2,1.4); g.fillRect(16.8,9.5,1.2,1.4);}
-  hat(g,cu.hat,cu);
+  hat(g,hatT,cu);
   g.lineCap='round';
   const bl=wt>=2?TIER_C[wt]:'#e3e7ea';
   if(wt>=1){g.shadowColor=TIER_C[wt];g.shadowBlur=1.5+wt*1.8;}
-  if(type==='melee'||type==='hero'){
+  if(type==='farm'){ // hoe over the shoulder and a little seed bag
+    g.strokeStyle='#8b5a2b';g.lineWidth=1.3;g.beginPath();g.moveTo(21,24);g.lineTo(26,8);g.stroke();
+    g.strokeStyle='#9aa3ab';g.lineWidth=1.8;g.beginPath();g.moveTo(25.6,8.6);g.lineTo(29.5,10.5);g.stroke();
+    g.fillStyle='#c9a46a';g.beginPath();g.ellipse(10,21,2.8,3.2,0,0,6.283);g.fill();g.fillStyle='#6fbf4a';g.beginPath();g.arc(10,18.4,1.2,0,6.283);g.fill();
+  } else if(type==='def'){ // tower shield and spear
+    g.strokeStyle='#7a5230';g.lineWidth=1.3;g.beginPath();g.moveTo(24.5,28);g.lineTo(25.5,2);g.stroke();g.fillStyle=bl;g.beginPath();g.moveTo(24.6,3);g.lineTo(25.6,-1.5);g.lineTo(26.6,3.2);g.fill();
+    g.shadowBlur=0;g.fillStyle=cu.c2;g.beginPath();g.roundRect(6.5,12.5,10,15,3);g.fill();g.strokeStyle=at>=1?TIER_C[at]:'rgba(0,0,0,.5)';g.lineWidth=at>=1?1.4:1;g.stroke();
+    g.fillStyle=color;g.fillRect(10.6,14.5,1.8,11);g.fillRect(7.8,18.6,7.4,1.8);
+  } else if(type==='melee'||type==='hero'){
     const mw=cu.mw;
     if(mw==='spear'){g.strokeStyle='#7a5230';g.lineWidth=1.3;g.beginPath();g.moveTo(24,28);g.lineTo(25.5,3);g.stroke();g.fillStyle=bl;g.beginPath();g.moveTo(24.6,4);g.lineTo(25.7,-0.5);g.lineTo(26.6,4.2);g.fill();}
     else if(mw==='axe'){g.strokeStyle='#7a5230';g.lineWidth=1.4;g.beginPath();g.moveTo(23,24);g.lineTo(25.5,9);g.stroke();g.fillStyle=bl;g.beginPath();g.moveTo(25,9);g.quadraticCurveTo(30,8,29.5,14);g.lineTo(24.6,12);g.fill();}
@@ -693,7 +706,7 @@ function makeNation(id,ci,cell,isPlayer){
   const m=META[ci], sup=SUPER_BY_CI[ci]||null;
   const color=isPlayer?NATION_COLORS[0]:NATION_COLORS[1+((id-1+16)%15)];
   return {id,ci,cul:getCulture(ci),name:m.ko,flag:flagOf(m.a2),color,rgb:hexRGB(color),isPlayer,sup,sp:sup?sup.a2:null,
-    cells:0,gold:130,pol:0,auto:false,rp:0,era:0,tq:0,tn:0,sciWait:0,qBias:.5,tr:getTrait(ci),st:{},wt:0,at:0,boostT:0,flashT:0,lv:{prod:0,atk:0,hp:0,spd:0,rng:0},built:0,front:[],units:0,kills:0,alive:true,
+    cells:0,gold:70,farmers:0,buyT:0,pol:0,auto:false,rp:0,era:0,tq:0,tn:0,sciWait:0,qBias:.5,tr:getTrait(ci),st:{},wt:0,at:0,boostT:0,flashT:0,lv:{prod:0,atk:0,hp:0,spd:0,rng:0},built:0,front:[],units:0,kills:0,alive:true,
     target:null,tgtT:0,tgtCells:[],neuCells:[],manual:null,chargeT:0,chargeCD:0,heroCD:0,aiT:srnd(1,4),sayT:srnd(2,10),
     spawn:cell,lx:cell%W,ly:cell/W|0,border:new Map(),nAdj:0,expAcc:0,x2:false,rank:0,wars:new Set(),deadAt:0,peak:0};
 }
@@ -823,16 +836,40 @@ function updateTargets(n){
   n.neuCells=neu;
 }
 function strength(n){return n.units*(1+.15*n.lv.atk)*(1+.2*n.lv.hp)+n.cells*.03+5}
-// national policy: where this turn's effort goes. 0 개척(expand) 1 교역(gold) 2 징병(army)
-const POL=[{ic:'🌱',nm:'개척',exp:1.8,gold:.65,prod:.55,desc:'영토 확장 ×1.8 · 골드 ×0.65 · 생산 ×0.55'},
-           {ic:'💰',nm:'교역',exp:.6,gold:2.1,prod:.6,desc:'골드 ×2.1 · 확장 ×0.6 · 생산 ×0.6'},
-           {ic:'⚔',nm:'징병',exp:.4,gold:.8,prod:1.5,desc:'병력 생산 ×1.5 · 골드 ×0.8 · 확장 ×0.4'}];
-function prodBase(n){return (1+.3*n.lv.prod)*(n.sup?1.4:1)*(n.x2?2:1)*TE(n,'prod')*powi(1.12,n.tn)*[1,1.5,2,3][G.dm]}
+// ---- economy: gold flows in on its own; every unit is bought one at a time.
+// 🌾 farmers raise income, ⚔ assault troops take land, 🏹 archers shoot, 🛡 guards hold the border.
+const UNITS=[
+ {t:'farm',  ic:'🌾',nm:'농부',  base:22,desc:'도시 주변에서 농사를 지어 골드 수입을 올립니다. 싸우지 않고, 적이 오면 도망칩니다'},
+ {t:'melee', ic:'⚔', nm:'돌격병',base:10,desc:'적진으로 돌격해 땅을 빼앗는 근접 병사'},
+ {t:'ranged',ic:'🏹',nm:'궁수',  base:13,desc:'뒤에서 쏘는 원거리 병사. 땅도 조금 빼앗습니다'},
+ {t:'def',   ic:'🛡',nm:'수비병',base:16,desc:'국경을 지키는 튼튼한 병사. 땅은 빼앗지 않습니다'},
+];
+const FARM_YIELD=.9;
+function prodBase(n){return [1,1.5,2,3][G.dm]}
+function farmCap(n){let c=0;for(const x of G.cities)if(x.owner===n.id)c++;return 6+c*5}
+function farmIncome(n){return n.farmers*FARM_YIELD*(1+.25*n.lv.prod)*TE(n,'farm')}
+function goldRate(n){return (2+n.cells*.006+farmIncome(n))*(n.sup?1.5:1)*TE(n,'gold')*[1,1.5,2,3][G.dm]}
+function expandRate(n){return n.nAdj>0?(9+pw0625(n.cells)*.55)*1.3*TE(n,'expand')*(n.sup?1.15:1):0}
+function unitCost(n,i){const U=UNITS[i];let c=U.base*powi(.9,n.tn)/TE(n,'prod')/(n.sup?1.15:1);
+  if(U.t==='farm')c*=1+n.farmers*.09;else if(n.x2)c*=.5;return Math.max(3,Math.round(c));}
+function canBuy(n,i){const U=UNITS[i];if(!U||n.gold<unitCost(n,i))return false;return U.t==='farm'?n.farmers<farmCap(n):n.units<unitCap(n);}
+function spawnCityFor(n,t){
+  const cs=citiesOf(n.id);if(!cs.length)return null;
+  if(t==='farm'){let best=cs[0],bc=1e9;for(const c of cs){const k=c.fc||0;if(k<bc){bc=k;best=c;}}best.fc=(best.fc||0)+1;return best;}
+  const goal=n.manual?n.manual.cell:n.tgtCells.length?n.tgtCells[0]:-1;if(goal<0)return cs[sri(cs.length)];
+  let best=cs[0],bd=1e18;for(const c of cs){const d=dist2(c.cell,goal);if(d<bd){bd=d;best=c;}}return best;
+}
+function buyUnit(n,i){
+  if(!canBuy(n,i))return false;const U=UNITS[i];n.gold-=unitCost(n,i);
+  const c=spawnCityFor(n,U.t);if(!c)return false;const u=spawnUnit(n,c,U.t);
+  if(n.isPlayer){G.fx.push({x:c.x+.5,y:c.y+.5,r:1.6,life:.45,max:.45,c:U.t==='farm'?'#9be36b':n.color,k:'ring'});}
+  return !!u;
+}
 // ---- research: every era asks one question, better soldiers (⚔ 정예) or more soldiers (👥 대군)
 const ERAS=['청동기','철기','중세','화약','산업','근대','미래'];
 const TECH_Q=[['청동 무기','⚔'],['철제 갑옷','🛡'],['기사도','🐴'],['머스킷 개량','🔫'],['강선 소총','🎯'],['기갑 보병','🪖'],['파워 아머','🤖']];
 const TECH_N=[['부족 동원','👥'],['농업 혁명','🌾'],['봉건 징병','🏯'],['국민개병제','📜'],['철도 보급','🚂'],['총력전','🏭'],['클론 병사','🧬']];
-const Q_TXT='공격·체력 +12% · 갑옷과 무기가 한 단계 빛납니다',N_TXT='병력 상한 +8% · 생산 +12% · 징집 비용 -10%';
+const Q_TXT='공격·체력 +12% · 갑옷과 무기가 한 단계 빛납니다',N_TXT='유닛 가격 -10% · 병력 상한 +8%';
 const SCI_COST=[40,65,95,135,185,245,315];
 const sciCost=n=>SCI_COST[n.era]||1e9;
 function sciRate(n){let c=0;for(const x of G.cities)if(x.owner===n.id)c++;return (.6+c*.35+n.cells*.0012)*TE(n,'sci');}
@@ -846,25 +883,10 @@ function chooseTech(n,c){
     const mine=G.units.filter(u=>u.n===n.id);for(let i=0;i<Math.min(60,mine.length);i++){const u=mine[ri(mine.length)];G.fx.push({x:u.x,y:u.y-.8,r:0,life:1,max:1,c:col,k:'up',t:t[1]});}
     feed(`🔬 ${ERAS[era]} 시대 연구 완료 · ${t[1]} ${t[0]} (${c===0?Q_TXT:N_TXT})`,'good');}
 }
-function prodMult(n){return prodBase(n)*POL[n.pol].prod}
-function goldRate(n){return (1+n.cells*.009)*(n.sup?1.5:1)*TE(n,'gold')*POL[n.pol].gold}
-function expandRate(n){return n.nAdj>0?(9+pw0625(n.cells)*.55)*prodBase(n)*TE(n,'expand')*(n.sup?1.15:1)*POL[n.pol].exp:0}
-function prodRate(n){const pm=prodMult(n);let r=0;for(const c of G.cities)if(c.owner===n.id)r+=pm*(c.type==='capital'?TE(n,'capProd')/1.25:c.type==='melee'?1/1.8:1/2.1);return r}
-// 징집: turn gold into soldiers right now, even past the normal cap (up to 130%)
-const draftSize=n=>Math.max(5,Math.round(unitCap(n)*.15));
-const draftCost=n=>Math.round(draftSize(n)*18*powi(.9,n.tn));
-function canDraft(n){return n.gold>=draftCost(n)&&n.units<unitCap(n)*1.2&&citiesOf(n.id).length>0}
-function doDraft(n){if(!canDraft(n))return false;const k=draftSize(n),cs=citiesOf(n.id);n.gold-=draftCost(n);
-  for(let i=0;i<k;i++){const c=cs[i%cs.length];spawnUnit(n,c,c.type==='capital'?(i%2?'ranged':'melee'):c.type);}
-  if(n.isPlayer){for(const c of cs){G.fx.push({x:c.x+.5,y:c.y+.5,r:3,life:.8,max:.8,c:'#ff6b6b',k:'ring'});}G.fx.push({x:cs[0].x+.5,y:cs[0].y-.6,r:0,life:1.6,max:1.6,c:'#ff8a80',k:'txt',t:`⚔ +${k}명`});toast(`⚔ 징집! 병사 ${k}명 즉시 투입`,'#ff8a80');chime(2);say(n,true);}
-  return true;}
-function setPolicy(n,p){if(p<0||p>2||n.pol===p)return;n.pol=p;
-  if(n.isPlayer){const P=POL[p];toast(`${P.ic} ${P.nm} 정책 · ${P.desc}`,p===0?'#5fe0a8':p===1?'#f3c34f':'#ff8a80');
-    for(const c of citiesOf(n.id))G.fx.push({x:c.x+.5,y:c.y+.5,r:2.5,life:.7,max:.7,c:p===0?'#5fe0a8':p===1?'#f3c34f':'#ff6b6b',k:'ring'});}}
 function unitCap(n){return Math.min(480,Math.floor((14+n.cells/34)*TE(n,'cap')*powi(1.08,n.tn)))}
 function calcStats(n){
   const lv=n.lv,qm=powi(1.12,n.tq);
-  for(const t of ['melee','ranged','hero']){const b=BASE[t];
+  for(const t of ['melee','ranged','hero','def','farm']){const b=BASE[t];
     n.st[t]={hp:b.hp*(1+.25*lv.hp)*TE(n,'hp')*qm,atk:b.atk*(1+.2*lv.atk)*TE(n,'atk')*qm,spd:b.spd*(1+.15*lv.spd)*TE(n,'spd'),
       rng:t==='ranged'?b.rng*(1+.18*lv.rng)*TE(n,'rng'):b.rng,cd:b.cd/TE(n,'aspd')};}
   n.wt=tierOf(lv.atk+n.tq);n.at=tierOf(lv.hp+n.tq);
@@ -879,11 +901,22 @@ function assignTarget(u,n){
   if(!pool.length){u.tx=u.x+srnd(-2,2);u.ty=u.y+srnd(-2,2);u.idle=true;return;}
   const c=pool[sri(pool.length)];u.tx=c%W+.5+srnd(-.3,.3);u.ty=(c/W|0)+.5+srnd(-.3,.3);u.tOwner=owner[c];u.idle=false;
 }
-const BASE={melee:{hp:42,atk:7,rng:.9,cd:.75,spd:4.6,cap:3},ranged:{hp:22,atk:6,rng:3.4,cd:1,spd:4.3,cap:2},hero:{hp:420,atk:24,rng:1.3,cd:.6,spd:4.2,cap:40}};
+const BASE={farm:{hp:16,atk:0,rng:0,cd:9,spd:2.4,cap:0},def:{hp:78,atk:5.5,rng:1,cd:.85,spd:3.4,cap:0},melee:{hp:42,atk:7,rng:.9,cd:.75,spd:4.6,cap:3},ranged:{hp:22,atk:6,rng:3.4,cd:1,spd:4.3,cap:2},hero:{hp:420,atk:24,rng:1.3,cd:.6,spd:4.2,cap:40}};
 function spawnUnit(n,city,type){
   const b=BASE[type],hp=n.st[type].hp;
-  const u={n:n.id,type,x:city.x+.5+srnd(-.7,.7),y:city.y+.5+srnd(-.7,.7),hp,mhp:hp,cd:srnd(0,b.cd),cap:b.cap,tx:0,ty:0,tOwner:-1,alive:true,face:1,ph:SR()*6.28,idle:false,hit:0};
+  const u={n:n.id,type,x:city.x+.5+srnd(-.7,.7),y:city.y+.5+srnd(-.7,.7),hp,mhp:hp,cd:srnd(0,b.cd),cap:b.cap,tx:0,ty:0,tOwner:-1,alive:true,face:1,ph:SR()*6.28,idle:false,hit:0,home:null,postT:0};
+  if(type==='farm'){u.home=city;u.tx=u.x;u.ty=u.y;G.units.push(u);n.farmers++;return u;}
+  if(type==='def'){assignPost(u,n);G.units.push(u);n.units++;return u;}
   assignTarget(u,n); G.units.push(u); n.units++; return u;
+}
+// guards take a post just inside our side of the border with whoever we are fighting
+function assignPost(u,n){
+  u.postT=srnd(12,20);
+  const foes=n.target!==null&&n.border.has(n.target)?[n.target]:[...n.border.keys()];
+  for(let k=0;k<foes.length;k++){const f=foes[sri(foes.length)];const rec=G.nations[f]&&G.nations[f].border.get(n.id);
+    if(rec&&rec.s.length){const c=rec.s[sri(rec.s.length)];u.tx=c%W+.5+srnd(-.4,.4);u.ty=(c/W|0)+.5+srnd(-.4,.4);u.idle=false;return;}}
+  const cs=citiesOf(n.id);if(cs.length){const c=cs[sri(cs.length)];u.tx=c.x+.5+srnd(-1.5,1.5);u.ty=c.y+.5+srnd(-1.5,1.5);}else{u.tx=u.x;u.ty=u.y;}
+  u.idle=true;
 }
 function localTarget(u,n){
   const cx=u.x|0,cy=u.y|0;let best=-1,bp=-1;
@@ -917,6 +950,16 @@ function stepUnits(dt){
     const S=n.st[u.type],rg=TE(n,'regen',0);
     if(rg&&u.hp<u.mhp)u.hp=Math.min(u.mhp,u.hp+u.mhp*rg*dt);
     const charge=n.chargeT>0?TE(n,'chargePow',1.5):1;
+    if(u.type==='farm'){ // tend the fields around home; run from raiders
+      if(!u.home||u.home.owner!==n.id){const cs=citiesOf(n.id);if(!cs.length){u.alive=false;continue;}u.home=cs[sri(cs.length)];u.tx=u.home.x+.5;u.ty=u.home.y+.5;}
+      const th=nearestEnemy(u,2.5);
+      if(th){const dx=u.x-th.x,dy=u.y-th.y,d=hyp(dx,dy)||1;u.tx=u.x+dx/d*2;u.ty=u.y+dy/d*2;}
+      const d=hyp(u.tx-u.x,u.ty-u.y);
+      if(d<.25){u.tx=u.home.x+.5+srnd(-2.2,2.2);u.ty=u.home.y+.5+srnd(-2.2,2.2);u.work=srnd(1,3);}
+      if(u.work>0){u.work-=dt;u.mv=0;continue;}
+      const sp=S.spd*(th?1.6:.6)*dt;u.x+=(u.tx-u.x)/(d||1)*Math.min(sp,d);u.y+=(u.ty-u.y)/(d||1)*Math.min(sp,d);u.face=u.tx>=u.x?1:-1;u.mv=.15;continue;
+    }
+    if(u.type==='def'){u.postT-=dt;if(u.postT<=0||(u.idle&&n.border.size))assignPost(u,n);}
     const e=nearestEnemy(u,u.type==='ranged'?5:4.5);
     let mx,my;
     if(e){
@@ -938,7 +981,10 @@ function stepUnits(dt){
         }
         u.face=e.x>=u.x?1:-1; continue;
       }
-      mx=e.x;my=e.y;
+      if(u.type==='def'&&hyp(e.x-u.tx,e.y-u.ty)>5){mx=u.tx;my=u.ty;}else{mx=e.x;my=e.y;}
+    }else if(u.type==='def'){
+      const d=hyp(u.tx-u.x,u.ty-u.y);if(d<.5){u.face=u.tx>=u.x?1:-1;continue;}
+      mx=u.tx;my=u.ty;
     }else{
       const d=hyp(u.tx-u.x,u.ty-u.y);
       if(d<.6){
@@ -957,12 +1003,14 @@ function stepUnits(dt){
   }
   // purge
   let j=0;for(let i=0;i<us.length;i++){const u=us[i];if(u.alive&&ns[u.n].alive)us[j++]=u;}us.length=j;
-  for(const n of ns)n.units=0;for(const u of us)if(u.type!=='hero')ns[u.n].units++;
+  for(const n of ns){n.units=0;n.farmers=0;}for(const c of G.cities)c.fc=0;
+  for(const u of us){if(u.type==='farm'){ns[u.n].farmers++;if(u.home)u.home.fc++;}else if(u.type!=='hero')ns[u.n].units++;}
 }
 function hurt(u,n,v,dmg){
   if(!v.alive)return;const vn=G.nations[v.n];
   if(owner[(v.y|0)*W+(v.x|0)]===v.n)dmg*=1-.2-TE(vn,'home',0);
   if(u.type==='ranged')dmg*=1-TE(vn,'rangedDef',0);
+  if(v.type==='def')dmg*=.8;
   v.hp-=dmg;v.hit=.15;
   if(v.hp<=0){v.alive=false;n.kills++;const kg=TE(n,'killGold',0);if(kg)n.gold+=kg;G.fx.push({x:v.x,y:v.y,r:.8,life:.4,max:.4,c:vn.color,k:'poof'});}
 }
@@ -972,7 +1020,7 @@ function nearbyEnemies(u,r){const out=[];const us=G.units,bx=u.x/HS|0,by=u.y/HS|
 
 // --- upgrades & actions
 const UPG=[
- {k:'prod',ic:'⚒',nm:'생산',base:80,unlock:0,step:30,desc:'병력 생산 +30% · 모든 도시에서 즉시 지원군'},
+ {k:'prod',ic:'🌾',nm:'농업',base:80,unlock:0,step:25,desc:'농부 수확 +25% · 수도에 농부 1명 무료'},
  {k:'atk',ic:'⚔',nm:'무기',base:100,unlock:0,step:20,desc:'공격력 +20% · 무기가 빛납니다'},
  {k:'hp',ic:'🛡',nm:'갑옷',base:100,unlock:0,step:25,desc:'체력 +25% · 전군 즉시 회복 · 갑옷 착용'},
  {k:'spd',ic:'🐎',nm:'기동',base:120,unlock:.02,step:15,desc:'이동 속도 +15% · 4초간 질주'},
@@ -990,13 +1038,13 @@ function upgradeFX(n,u){
   const P=n.isPlayer;
   for(const city of citiesOf(n.id)){
     if(P){G.fx.push({x:city.x+.5,y:city.y+.5,r:4,life:.9,max:.9,c,k:'ring'});G.fx.push({x:city.x+.5,y:city.y-.6,r:0,life:1.6,max:1.6,c,k:'txt',t:txt});}
-    if(k==='prod'){spawnUnit(n,city,city.type==='capital'?'melee':city.type);}}
+    if(k==='prod'&&city.type==='capital'&&n.farmers<farmCap(n)){spawnUnit(n,city,'farm');}}
   const mine=G.units.filter(x=>x.n===n.id);
   if(P)for(let i=0;i<Math.min(70,mine.length);i++){const x=mine[ri(mine.length)];G.fx.push({x:x.x,y:x.y-.8,r:0,life:1,max:1,c,k:'up',t:u.ic});}
   if(k==='hp')for(const x of mine)x.hp=x.mhp;
   if(k==='atk')n.flashT=3;
   if(k==='spd')n.boostT=4;
-  if(n.isPlayer){toast(`${u.ic} ${u.nm} Lv${lv} · ${u.nm==='생산'?'생산':u.nm==='사거리'?'사거리':u.nm==='기동'?'이동':u.nm==='갑옷'?'체력':'공격력'} +${u.step*lv}%`,c);chime(lv);}
+  if(n.isPlayer){toast(`${u.ic} ${u.nm} Lv${lv} · ${u.nm==='농업'?'수확':u.nm==='사거리'?'사거리':u.nm==='기동'?'이동':u.nm==='갑옷'?'체력':'공격력'} +${u.step*lv}%`,c);chime(lv);}
 }
 let actx=null;
 function chime(lv){if(!soundOn||!userActed)return;try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();const t=actx.currentTime;
@@ -1021,18 +1069,25 @@ function doCharge(n){if(!canCharge(n))return false;n.gold-=ACT.charge.cost;n.cha
 
 function botAI(n){
   const opts=[];
-  for(const u of UPG)if(canUp(n,u))opts.push([()=>doUp(n,u),{prod:3,atk:2.2,hp:2,spd:1,rng:n.cul.wpn?1.2:1}[u.k]]);
+  for(const u of UPG)if(canUp(n,u))opts.push([()=>doUp(n,u),{prod:2.6,atk:2.2,hp:2,spd:1,rng:n.cul.wpn?1.2:1}[u.k]]);
   if(canCity(n))opts.push([()=>{const c=citySpot(n,citiesOf(n.id));if(c>=0)buildCity(n,c,SR()<.5?'melee':'ranged');},1.4]);
   if(canHero(n))opts.push([()=>doHero(n),2.5]);
   if(canCharge(n)&&n.border.size&&n.gold>220)opts.push([()=>doCharge(n),.8]);
-  // policy: expand while there is free land, trade to build a war chest, conscript once fighting
-  const war=n.border.size>0,free=n.nAdj>0;
-  const want=free&&(!war||G.t<70)?(SR()<.75?0:1):war?(n.gold>260||SR()<.55?2:1):1;
-  if(SR()<.5)setPolicy(n,want);
-  if(war&&canDraft(n)&&n.gold>draftCost(n)+120)opts.push([()=>doDraft(n),2.2]);
   if(!opts.length)return;
   if(SR()<.3&&n.gold<400)return; // save a bit
   let tot=opts.reduce((s,o)=>s+o[1],0),r=SR()*tot;for(const o of opts){r-=o[1];if(r<=0){o[0]();break;}}
+}
+// how an AI (or the autopilot) spends gold on units: farms first while it is safe, then an army mix
+function botBuy(n){
+  const war=n.border.size>0;let cheapUp=1e9;for(const u of UPG)if(n.lv[u.k]<MAXLV&&share(n)>=u.unlock)cheapUp=Math.min(cheapUp,upCost(n,u));
+  const keep=SR()<.35?cheapUp*.7:0;
+  const wantFarm=Math.min(farmCap(n),(war?3:6)+citiesOf(n.id).length*(war?1.5:3));
+  for(let k=0;k<8&&n.gold>keep+8;k++){
+    let i;
+    if(n.farmers<wantFarm&&(n.units>10||!war)&&SR()<(war?.35:.7))i=0;
+    else{const r=SR();i=r<.5?1:r<.86?2:3;}
+    if(!buyUnit(n,i)){if(i===0||!buyUnit(n,1))break;}
+  }
 }
 function autoCities(){
   for(const n of G.nations){if(!n.alive)continue;
@@ -1072,14 +1127,15 @@ function newMatchCfg(cfg,mp){
     const [x,y]=cellXY(n.spawn);
     claimDisk(x,y,n.sp==='NR'?6:n.sup?4.5:3.2,n.id,true);
     if(owner[n.spawn]===-1)claim(n.spawn,n.id);
-    addCity(n.spawn,n.id,'capital');
+    const cap0=addCity(n.spawn,n.id,'capital');
+    for(const t of ['farm','farm','melee','melee','melee','melee','ranged','ranged','def'])spawnUnit(n,cap0,t);
     if(n.sup)feed(`✨ 슈퍼 국가 ${n.flag} ${n.name} 등장! (${n.sup.perk})`,'gold');
   }
   ME.nid=myId;ME.status=myId>=0?'in':(ME.status==='in'||ME.status==='dead'?'queued':ME.status);
   G.state='play';computeBorders();for(const n of G.nations)updateTargets(n);
   const humans=G.nations.filter(n=>n.human);
   if(mp&&humans.length>1)feed(`👥 ${humans.map(n=>`${n.flag} ${n.pname||'플레이어'}`).join(', ')} 참전!`,'gold');
-  if(myId>=0){const p=G.nations[myId];flyTo(p.lx,p.ly,Math.max(fitScale()*2.2,6));setTimeout(()=>say(p,true),900);NET.hinted2=false;setTimeout(()=>feed('💡 초반엔 🌱 개척으로 땅을 넓힐지 💰 교역으로 돈을 모을지 고르세요','gold'),1500);}
+  if(myId>=0){const p=G.nations[myId];flyTo(p.lx,p.ly,Math.max(fitScale()*2.2,6));setTimeout(()=>say(p,true),900);NET.hinted2=false;setTimeout(()=>feed('💡 골드는 자동으로 쌓입니다. 🌾 농부를 늘리면 더 빨리 쌓여요. 유닛 버튼을 눌러 한 명씩 뽑으세요','gold'),1500);}
   else flyTo(W/2,H/2*0.9,fitScale());
   lastWinner&&feed(`👑 지난 판 1등: ${lastWinner}`,'gold');
 }
@@ -1097,9 +1153,8 @@ function applyCmd(nid,t,a,b){
   else if(t===2){if(doHero(n)&&n.isPlayer)feed('👑 영웅 출격!','good');}
   else if(t===3)doCharge(n);
   else if(t===4)setTarget(n,a);
-  else if(t===6)setPolicy(n,a);
-  else if(t===7)doDraft(n);
   else if(t===8)chooseTech(n,a?1:0);
+  else if(t===10){for(let k=0;k<Math.max(1,Math.min(10,b));k++)if(!buyUnit(n,a))break;}
   else if(t===9){n.auto=!!a;if(n.isPlayer){toast(a?'🤖 자동 운영 ON · 공격 목표만 찍으세요':'🤖 자동 운영 OFF','#9fd3ff');feed(a?'🤖 업그레이드·정책·연구·징집을 AI가 대신 운영합니다':'🤖 직접 운영으로 돌아왔습니다');}}
   else if(t===5){if(n.human){n.human=false;feed(`👤 ${n.pname||n.name} 연결 끊김 · AI가 이어서 지휘합니다`);}}
 }
@@ -1131,11 +1186,11 @@ function step(){
     if(!n.alive)continue;
     n.gold+=dt*goldRate(n);
     n.chargeT-=dt;n.chargeCD-=dt;n.heroCD-=dt;
-    if(!n.human||n.auto){n.aiT-=dt;if(n.aiT<=0){n.aiT=srnd(1.5,3);botAI(n);}}
+    if(!n.human||n.auto){n.aiT-=dt;if(n.aiT<=0){n.aiT=srnd(1.5,3);botAI(n);}n.buyT-=dt;if(n.buyT<=0){n.buyT=srnd(.4,.8);botBuy(n);}}
     n.boostT-=dt;n.flashT-=dt;
     // neutral expansion
     if(n.nAdj>0||n.front.length){
-      n.expAcc+=dt*(9+pw0625(n.cells)*.55)*prodBase(n)*TE(n,'expand')*(n.sup?1.15:1)*POL[n.pol].exp;
+      n.expAcc+=dt*expandRate(n);
       let k=n.expAcc|0;n.expAcc-=k;let tries=k*3+4;
       const f=n.front;
       while(k>0&&tries-->0&&f.length){const i=sri(f.length),c=f[i];
@@ -1143,13 +1198,6 @@ function step(){
         const nb=neutralNb(c);if(nb<0){f[i]=f[f.length-1];f.pop();continue;}
         claim(nb,n.id);k--;}
     }
-    // production
-    const cap=unitCap(n);
-    if(n.units<cap){const pm=prodMult(n);
-      for(const c of G.cities){if(c.owner!==n.id)continue;
-        let type=c.type,iv=type==='melee'?1.8:type==='ranged'?2.1:1.25;
-        c.timer+=dt*pm*(type==='capital'?TE(n,'capProd'):1);
-        if(c.timer>=iv){c.timer-=iv;if(type==='capital'){type=(c.alt++%2)?'ranged':'melee';}spawnUnit(n,c,type);if(n.units>=cap)break;}}}
     n.sayT-=dt;if(n.sayT<=0){n.sayT=n.isPlayer?rnd(9,15):rnd(12,24);say(n,false);}
     n.peak=Math.max(n.peak,n.cells);
     // research
@@ -1374,6 +1422,15 @@ function draw(){
     if(s>=3.2||(c.type==='capital'&&s>=1.8)){const fs=clamp(s*1.05,10,15)|0;const t=textImg(c.name,`${c.type==='capital'?700:600} ${fs}px "IBM Plex Sans KR",system-ui,sans-serif`,c.type==='capital'?'#ffe08a':'#f2f5f8',3);
       drawRec(t,x-t.width/2,y+r+1);}
   }
+  // farm plots: one strip of crops per farmer working that city
+  if(s>=2.2){const plots=new Map();for(const u of G.units)if(u.type==='farm'&&u.home)plots.set(u.home,(plots.get(u.home)||0)+1);
+    const gold=[],green=[];
+    for(const [c,k] of plots){if(!vis(c.x,c.y))continue;const n=G.nations[c.owner];const L=n&&n.lv.prod>=3?gold:green;
+      for(let i=0;i<Math.min(k,12);i++){const a=i*2.399,r=1.3+(i%4)*.38;const x=SX(c.x+.5+Math.cos(a)*r),y=SY(c.y+.5+Math.sin(a)*r);L.push(x,y);}}
+    const w=s*.9,h=s*.42;
+    for(const [L,col,line] of [[green,'#4f7f33','#76b34c'],[gold,'#9c7d24','#e2c04f']]){if(!L.length)continue;
+      ctx.fillStyle=col;ctx.beginPath();for(let j=0;j<L.length;j+=2)ctx.rect(L[j]-w/2,L[j+1]-h/2,w,h);ctx.fill();
+      if(s>=4){ctx.strokeStyle=line;ctx.lineWidth=1;ctx.beginPath();for(let j=0;j<L.length;j+=2){for(let q=-1;q<=1;q++){ctx.moveTo(L[j]-w/2+1,L[j+1]+q*h/3);ctx.lineTo(L[j]+w/2-1,L[j+1]+q*h/3);}}ctx.stroke();}}}
   // units
   if(s<2.6){
     const byN=new Map();
@@ -1382,7 +1439,7 @@ function draw(){
   }else{
     const us=G.units.filter(u=>vis(u.x,u.y)).sort((a,b)=>a.y-b.y);
     const base=clamp(s*2.1,10,56);const dust=[],aura=[],hp=[],boats=[];
-    for(const u of us){const n=G.nations[u.n];const sz=(u.type==='hero'?base*1.6:base)*(1+.045*n.lv.hp);const x=SX(u.x),y=SY(u.y);
+    for(const u of us){const n=G.nations[u.n];const sz=(u.type==='hero'?base*1.6:u.type==='farm'?base*.85:u.type==='def'?base*1.1:base)*(1+.045*n.lv.hp);const x=SX(u.x),y=SY(u.y);
       if(u.mv>0&&(n.lv.spd>0||n.boostT>0))dust.push(x,y,sz,u.face);
       if(n.chargeT>0)aura.push(x,y,sz);
       if(u.water)boats.push(x,y,sz);
@@ -1391,7 +1448,7 @@ function draw(){
       for(let j=0;j<dust.length;j+=4){const x=dust[j],y=dust[j+1],sz=dust[j+2],f=dust[j+3];for(let k=1;k<=3;k++){const ex=x-f*sz*(.22+k*.16),ey=y-sz*.02-k*1.2,rx=sz*.24/k;ctx.moveTo(ex+rx,ey);ctx.ellipse(ex,ey,rx,sz*.14/k,0,0,6.283);}}ctx.fill();ctx.globalAlpha=1;}
     if(aura.length){ctx.fillStyle='rgba(255,70,60,.38)';ctx.beginPath();for(let j=0;j<aura.length;j+=3){ctx.moveTo(aura[j]+aura[j+2]*.42,aura[j+1]);ctx.ellipse(aura[j],aura[j+1],aura[j+2]*.42,aura[j+2]*.15,0,0,6.283);}ctx.fill();}
     if(boats.length){ctx.fillStyle='#6b4a2b';ctx.beginPath();for(let j=0;j<boats.length;j+=3){const x=boats[j],y=boats[j+1],z=boats[j+2];ctx.moveTo(x-z*.5,y+z*.12);ctx.lineTo(x+z*.5,y+z*.12);ctx.lineTo(x+z*.35,y+z*.35);ctx.lineTo(x-z*.35,y+z*.35);ctx.closePath();}ctx.fill();}
-    for(const u of us){const n=G.nations[u.n];const sz=(u.type==='hero'?base*1.6:base)*(1+.045*n.lv.hp);
+    for(const u of us){const n=G.nations[u.n];const sz=(u.type==='hero'?base*1.6:u.type==='farm'?base*.85:u.type==='def'?base*1.1:base)*(1+.045*n.lv.hp);
       const mode=u.hit>0?2:(n.flashT>0&&(n.flashT*4|0)%2)?1:0;
       const sp=unitImg(n,u.type,u.face<0,mode,sz);const bob=Math.abs(Math.sin(u.ph))*sz*.05;
       ctx.drawImage(sp,SX(u.x)-sz/2,SY(u.y)-bob-sz*.9,sz,sz);u.mv-=1/60;}
@@ -1468,10 +1525,18 @@ const BTN=[
  ...UPG.map(u=>({id:u.k,ic:u.ic,nm:u.nm,tip:u.desc})),
  {id:'city',ic:'🏗',nm:'도시',tip:'내 땅에 새 도시 건설 (원거리/근접 선택)'},
  {id:'hero',ic:'👑',nm:'영웅',tip:'수도에서 강력한 영웅 소환'},
- {id:'draft',ic:'🪖',nm:'징집',tip:'골드로 병사를 즉시 투입 (상한의 120%까지)'},
  {id:'charge',ic:'📯',nm:'돌격',tip:'8초간 전군 공격·속도 +50%'},
  {id:'auto',ic:'🤖',nm:'자동',tip:'업그레이드·정책·연구·징집을 AI가 대신 운영합니다. 공격 목표는 직접 찍으세요'},
 ];
+$('buy').innerHTML=UNITS.map((U,i)=>`<button class="ub ${U.t}" id="ub${i}" type="button" title="${U.desc} (누르고 있으면 연속 생산)"><span class="ct"></span><span class="ic">${U.ic}</span><span>${U.nm}</span><span class="co"></span></button>`).join('');
+// tap = one unit; hold = keep buying
+UNITS.forEach((U,i)=>{const el=$('ub'+i);let tm=null,rep=null;
+  const once=()=>{const n=myNation();if(!n||!canBuy(n,i))return false;issue(10,i,1);try{navigator.vibrate&&navigator.vibrate(8);}catch(e){}return true;};
+  const stop=()=>{clearTimeout(tm);clearInterval(rep);tm=rep=null;};
+  el.addEventListener('pointerdown',e=>{e.preventDefault();userActed=true;stop();once();tm=setTimeout(()=>{rep=setInterval(()=>{if(!once())stop();},110);},330);});
+  for(const ev of ['pointerup','pointerleave','pointercancel','blur'])el.addEventListener(ev,stop);
+  el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();userActed=true;once();}});
+});
 acts.innerHTML=BTN.map(b=>`<button class="ab" id="ab_${b.id}" type="button" title="${b.tip}"><span class="lv"></span><span class="ic">${b.ic}</span><span>${b.nm}</span><span class="co"></span><i class="cdv" hidden></i></button>`).join('');
 let placing=null;
 $('dockTog').addEventListener('click',e=>{e.stopPropagation();const b=$('bar');b.classList.toggle('min');$('dockTog').textContent=b.classList.contains('min')?'▴':'▾';try{localStorage.setItem('ttm_dock',b.classList.contains('min')?'min':'');}catch(e){}});
@@ -1480,7 +1545,6 @@ $('meName').addEventListener('click',()=>$('bar').classList.toggle('info'));
 let dockH=0;function syncDock(){const b=$('bar');const h=b.hidden?0:b.offsetHeight;if(h!==dockH){dockH=h;document.documentElement.style.setProperty('--dock',h+'px');}}
 $('sciQ').addEventListener('click',()=>{const n=myNation();if(n&&sciReady(n)){userActed=true;issue(8,0);$('sci').hidden=true;}});
 $('sciN').addEventListener('click',()=>{const n=myNation();if(n&&sciReady(n)){userActed=true;issue(8,1);$('sci').hidden=true;}});
-for(let i=0;i<3;i++)$('pol'+i).addEventListener('click',()=>{const n=myNation();if(!n)return;userActed=true;if(n.pol!==i)issue(6,i);});
 for(const b of BTN){$('ab_'+b.id).addEventListener('click',()=>{const n=myNation();if(!n)return;userActed=true;
   const ui=UPG.findIndex(x=>x.k===b.id);
   if(ui>=0){if(canUp(n,UPG[ui]))issue(0,ui);}
@@ -1488,7 +1552,6 @@ for(const b of BTN){$('ab_'+b.id).addEventListener('click',()=>{const n=myNation
     if(placing)toast(placing==='melee'?'🛡 근접 도시: 내 땅을 누르세요 (다시 누르면 🏹)':'🏹 원거리 도시: 내 땅을 누르세요');}
   else if(b.id==='hero'){if(canHero(n))issue(2);}
   else if(b.id==='charge'){if(canCharge(n))issue(3);}
-  else if(b.id==='draft'){if(canDraft(n))issue(7);}
   else if(b.id==='auto'){issue(9,n.auto?0:1);}
   try{navigator.vibrate&&navigator.vibrate(10);}catch(e){}
   updateBar();});}
@@ -1512,16 +1575,18 @@ function updateBar(){
   const ec=$('ab_city'),lc=share(n)<ACT.city.unlock;ec.querySelector('.co').textContent=lc?`🔒${(ACT.city.unlock*100).toFixed(1)}%`:cityCost(n);ec.disabled=lc||(!placing&&n.gold<cityCost(n));ec.classList.toggle('locked',lc);ec.classList.toggle('on',!!placing);ec.classList.toggle('can',!ec.disabled&&!placing);
   ec.querySelector('.lv').textContent=placing==='ranged'?'🏹':placing==='melee'?'🛡':'';
   const eh=$('ab_hero'),lh=share(n)<ACT.hero.unlock;eh.querySelector('.co').textContent=lh?`🔒${(ACT.hero.unlock*100).toFixed(0)}%`:n.heroCD>0?Math.ceil(n.heroCD)+'s':ACT.hero.cost;eh.disabled=!canHero(n);eh.classList.toggle('locked',lh);eh.classList.toggle('can',canHero(n));
-  for(let i=0;i<3;i++)$('pol'+i).setAttribute('aria-checked',n.pol===i?'true':'false');
+  UNITS.forEach((U,i)=>{const el=$('ub'+i),ok=canBuy(n,i);el.disabled=!ok;el.classList.toggle('can',ok);
+    el.querySelector('.co').textContent=unitCost(n,i);
+    let cnt=0;if(U.t==='farm')cnt=n.farmers;else for(const u of G.units)if(u.n===n.id&&u.type===U.t)cnt++;
+    el.querySelector('.ct').textContent=U.t==='farm'?`${n.farmers}/${farmCap(n)}`:cnt;});
   const done=n.era>=ERAS.length,rdy=sciReady(n);
   setText('sciTxt',done?'🔬 연구 완료':`🔬 ${ERAS[n.era]} ${rdy?'· 선택!':Math.floor(n.rp/sciCost(n)*100)+'%'}`);
   $('sciFill').style.width=done?'100%':(n.rp/sciCost(n)*100)+'%';$('sciBar').classList.toggle('ready',rdy);
   const sp=$('sci');sp.hidden=!rdy||n.auto;
   if(rdy){const e=n.era;setText('sciTitle',`🔬 ${ERAS[e]} 시대 연구 완료 · 하나를 고르세요`);setText('sciQi',TECH_Q[e][1]);setText('sciQn',TECH_Q[e][0]);setText('sciNi',TECH_N[e][1]);setText('sciNn',TECH_N[e][0]);
     setText('sciCount',`${Math.max(0,Math.ceil(25-n.sciWait))}초 뒤 자동 선택`);setText('sciFoot',`지금까지 ⚔ 정예 ${n.tq} · 👥 대군 ${n.tn}`);}
-  setHTML('rates',`💰 <b>+${goldRate(n).toFixed(1)}</b>/s · 🌱 <b>${expandRate(n).toFixed(0)}</b>칸/s · 🪖 <b>${prodRate(n).toFixed(1)}</b>명/s`);
-  const ed=$('ab_draft');ed.querySelector('.co').textContent=draftCost(n);ed.querySelector('.lv').textContent='+'+draftSize(n);ed.disabled=!canDraft(n);ed.classList.toggle('can',canDraft(n));
-  if(!NET.hinted2&&n.border.size&&n.nAdj===0&&n.pol!==2&&G.t>40){NET.hinted2=true;feed('💡 중립 땅이 없어요. ⚔ 징병 정책으로 바꾸고 🪖 징집으로 골드를 병력에 쏟으세요','gold');}
+  setHTML('rates',`💰 <b>+${goldRate(n).toFixed(1)}</b>/s <small>(🌾 +${(farmIncome(n)*(n.sup?1.5:1)*TE(n,'gold')*[1,1.5,2,3][G.dm]).toFixed(1)})</small> · 🌱 <b>${expandRate(n).toFixed(0)}</b>칸/s`);
+  if(!NET.hinted2&&n.border.size&&G.t>40){NET.hinted2=true;feed('💡 국경이 맞닿았어요. ⚔ 돌격병으로 밀고 🛡 수비병으로 막으세요. 버튼을 누르고 있으면 연속 생산됩니다','gold');}
   const ea=$('ab_auto');ea.classList.toggle('on',!!n.auto);ea.querySelector('.co').textContent=n.auto?'ON':'OFF';
   $('dockTog').hidden=false;
   const ech=$('ab_charge');ech.querySelector('.co').textContent=n.chargeCD>0?Math.ceil(n.chargeCD)+'s':ACT.charge.cost;ech.disabled=!canCharge(n);ech.classList.toggle('can',canCharge(n));ech.classList.toggle('on',n.chargeT>0);
@@ -1624,9 +1689,9 @@ function mapClick(sx,sy){
   issue(4,c);
 }
 addEventListener('keydown',e=>{if(e.target!==document.body)return;const n=myNation();const k=e.key;
-  const map={'1':'prod','2':'atk','3':'hp','4':'spd','5':'rng','6':'city','7':'hero','8':'charge',' ':'charge','d':'draft'};if(map[k]){e.preventDefault();$('ab_'+map[k]).click();}
+  const map={'1':'prod','2':'atk','3':'hp','4':'spd','5':'rng','6':'city','7':'hero','8':'charge',' ':'charge'};if(map[k]){e.preventDefault();$('ab_'+map[k]).click();}
   if(k==='z'||k==='x'){e.preventDefault();$(k==='z'?'sciQ':'sciN').click();}
-  if(k==='q'||k==='w'||k==='e'){e.preventDefault();$('pol'+'qwe'.indexOf(k)).click();}});
+  const bi='asdf'.indexOf(k);if(bi>=0&&k.length===1){e.preventDefault();const n=myNation();if(n&&canBuy(n,bi))issue(10,bi,e.shiftKey?5:1);}});
 $('bSound').onclick=()=>{soundOn=!soundOn;userActed=true;$('bSound').textContent=soundOn?'🔊':'🔇';$('bSound').setAttribute('aria-pressed',soundOn);if(!soundOn)try{speechSynthesis.cancel()}catch(e){}};
 $('bSpeed').onclick=()=>{G.speed=G.speed===1?2:G.speed===2?4:G.speed===4?8:1;$('bSpeed').textContent='▶ '+G.speed+'×';};
 $('bHelp').onclick=()=>{$('help').hidden=false;};$('helpX').onclick=()=>{$('help').hidden=true;try{localStorage.setItem('ttm_help','1')}catch(e){}};
@@ -1676,7 +1741,7 @@ function hostIntake(){
     const n=G.nations.find(x=>x.human&&x.peer===p.peer);if(!n)continue;
     let last=NET.lastSeq[p.peer]||0;
     for(const c of pr.cmds){if(!Array.isArray(c)||!(c[0]>last))continue;last=c[0];
-      const t=c[1]|0,a=c[2]|0,b=c[3]|0;if(t>=0&&t<=9&&t!==5&&a>=-1&&a<NC)hostSchedule(n.id,t,a,b);}
+      const t=c[1]|0,a=c[2]|0,b=c[3]|0;if(t>=0&&t<=10&&t!==5&&a>=-1&&a<NC)hostSchedule(n.id,t,a,b);}
     NET.lastSeq[p.peer]=last;}
 }
 function emitTk(){
