@@ -1,0 +1,1558 @@
+<title>지구 땅따먹기</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: full-bleed world map, glass HUD pinned to the four corners + command bar at the bottom (OpenFront-style). Single dark look by design. */
+:root{
+  --sea:#0a1626; --panel:rgba(10,18,30,.84); --panel-hi:rgba(22,34,52,.92);
+  --line:rgba(160,190,220,.14); --text:#e9eef4; --muted:#8fa3b8;
+  --gold:#f3c34f; --hot:#ff5b52; --ok:#5fe0a8; --you:#46d4ff;
+  --f-display:"Black Han Sans","IBM Plex Sans KR",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+[hidden]{display:none!important}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%;margin:0;overflow:hidden;background:var(--sea);color:var(--text);font-family:var(--f-body)}
+#map{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+#map.dragging{cursor:grabbing}
+#map.placing{cursor:crosshair}
+#hud{position:fixed;inset:0;pointer-events:none;padding:calc(env(safe-area-inset-top,0px) + 10px) max(10px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 10px) max(10px,env(safe-area-inset-left,0px))}
+.panel{pointer-events:auto;background:var(--panel);border:1px solid var(--line);border-radius:10px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 6px 24px rgba(0,0,0,.35)}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:2px solid var(--you);outline-offset:2px}
+
+/* leaderboard */
+#lb{position:absolute;left:max(10px,env(safe-area-inset-left,0px));top:calc(env(safe-area-inset-top,0px) + 10px);width:236px;padding:8px 8px 6px}
+#lb h3{margin:0 0 6px;font:600 11px/1 var(--f-body);letter-spacing:.12em;color:var(--muted);display:flex;justify-content:space-between;align-items:center}
+#lb h3 button{background:none;border:0;color:var(--muted);font-size:11px;padding:2px 4px}
+#lbRows{display:grid;gap:2px}
+.lr{display:grid;grid-template-columns:18px 22px 1fr 46px 34px;align-items:center;gap:4px;font-size:12px;padding:3px 4px;border-radius:6px;font-variant-numeric:tabular-nums}
+.lr.me{background:rgba(70,212,255,.14);outline:1px solid rgba(70,212,255,.35)}
+.lr.dead{opacity:.38;text-decoration:line-through}
+.lr .rk{color:var(--muted);font-family:var(--f-num);font-size:11px}
+.lr .sw{width:10px;height:10px;border-radius:3px;display:inline-block;margin-right:5px;vertical-align:-1px}
+.lr .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lr .pc,.lr .un{text-align:right;font-family:var(--f-num);font-size:11px}
+.lr .un{color:var(--muted)}
+.sup{color:var(--gold);font-size:10px;margin-left:3px}
+
+/* clock */
+#clock{position:absolute;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 10px);padding:6px 14px 7px;text-align:center;min-width:170px}
+#clockT{font:600 22px/1 var(--f-num);letter-spacing:.02em}
+#clockP{font-size:11px;color:var(--muted);margin-top:3px;letter-spacing:.08em}
+#clock.dm{border-color:rgba(255,91,82,.6);box-shadow:0 0 22px rgba(255,91,82,.35)}
+#clock.dm #clockP{color:var(--hot);font-weight:700}
+#pbar{height:3px;border-radius:2px;background:rgba(255,255,255,.08);margin-top:6px;overflow:hidden;position:relative}
+#pbar i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--ok),var(--gold) 50%,var(--hot) 50%,var(--hot))}
+#pbar b{position:absolute;top:-2px;bottom:-2px;width:1px;background:rgba(255,255,255,.5)}
+
+/* top right */
+#tr{position:absolute;right:max(10px,env(safe-area-inset-right,0px));top:calc(env(safe-area-inset-top,0px) + 10px);display:flex;flex-direction:column;align-items:flex-end;gap:8px;width:260px}
+#tools{display:flex;gap:6px;pointer-events:auto}
+.tb{background:var(--panel);border:1px solid var(--line);border-radius:8px;height:32px;min-width:32px;padding:0 9px;font-size:13px;display:flex;align-items:center;gap:4px}
+.tb[aria-pressed="true"]{border-color:var(--you)}
+#feed{display:flex;flex-direction:column;gap:4px;align-items:flex-end;width:100%}
+.fe{pointer-events:auto;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:5px 9px;font-size:12px;line-height:1.35;max-width:100%;animation:fin .35s ease-out}
+.fe.hot{border-color:rgba(255,91,82,.5)}
+.fe.good{border-color:rgba(95,224,168,.5)}
+.fe.gold{border-color:rgba(243,195,79,.55)}
+@keyframes fin{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:none}}
+
+/* banner (queue / spectate) */
+#banner{position:absolute;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 76px);padding:8px 10px 8px 14px;display:flex;align-items:center;gap:12px;font-size:13px;max-width:calc(100% - 20px)}
+#banner b{color:var(--you)}
+.btn{background:var(--panel-hi);border:1px solid var(--line);border-radius:8px;padding:7px 12px;font-size:13px;font-weight:600;white-space:nowrap}
+.btn.pri{background:var(--you);color:#04202b;border-color:transparent}
+.btn.gold{background:var(--gold);color:#2a1d00;border-color:transparent}
+
+/* command bar */
+#bar{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 10px);display:flex;align-items:stretch;gap:10px;padding:8px;max-width:calc(100% - 20px)}
+#me{display:flex;flex-direction:column;justify-content:center;gap:3px;padding:2px 8px 2px 4px;border-right:1px solid var(--line);min-width:150px}
+#meName{font:20px/1.05 var(--f-display);white-space:nowrap;display:flex;align-items:center;gap:6px}
+#meSay{font-size:12px;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
+#stats{display:grid;grid-template-columns:auto auto;gap:2px 10px;font-size:12px;align-content:center;font-variant-numeric:tabular-nums;padding-right:8px;border-right:1px solid var(--line)}
+#stats span{color:var(--muted);white-space:nowrap}
+#stats b{font-family:var(--f-num);font-weight:600;text-align:right}
+#stats b.g{color:var(--gold)}
+#acts{display:flex;gap:6px;flex-wrap:wrap;align-items:stretch}
+.ab{position:relative;background:var(--panel-hi);border:1px solid var(--line);border-radius:8px;width:66px;padding:5px 3px 4px;display:flex;flex-direction:column;align-items:center;gap:1px;font-size:11px;line-height:1.15}
+.ab .ic{font-size:17px;line-height:1.1}
+.ab .lv{position:absolute;top:2px;right:4px;font:600 9px var(--f-num);color:var(--muted)}
+.ab .co{font:600 10px var(--f-num);color:var(--gold)}
+.ab:disabled{opacity:.42;cursor:not-allowed}
+.ab.locked .co{color:var(--muted)}
+.ab.can{border-color:rgba(243,195,79,.55)}
+.ab.on{border-color:var(--you);background:rgba(70,212,255,.15)}
+.ab .cdv{position:absolute;inset:auto 0 0 0;height:3px;background:var(--you);border-radius:0 0 8px 8px;transform-origin:left}
+#meTrait{font-size:11px;color:var(--ok);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
+#tgt{font-size:11px;color:var(--muted);text-align:center;margin-top:2px;white-space:nowrap}
+
+#zoom{position:absolute;right:max(10px,env(safe-area-inset-right,0px));bottom:calc(env(safe-area-inset-bottom,0px) + 10px);display:flex;flex-direction:column;gap:6px;pointer-events:auto}
+
+/* overlays */
+.overlay{position:fixed;inset:0;display:grid;place-items:center;background:rgba(4,10,18,.55);padding:16px max(16px,env(safe-area-inset-right,0px)) 16px max(16px,env(safe-area-inset-left,0px));z-index:5}
+.overlay.clear{background:transparent;pointer-events:none}
+.card{pointer-events:auto;background:var(--panel-hi);border:1px solid var(--line);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.5);padding:20px 22px;width:min(460px,100%);max-height:calc(100% - 20px);overflow:auto}
+.eyebrow{font-size:11px;letter-spacing:.16em;color:var(--muted);font-weight:600}
+.big{font:40px/1.05 var(--f-display);margin:6px 0 4px;display:flex;align-items:center;gap:10px;text-wrap:balance}
+.flag{font-size:1em;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+#lbSay{font-size:18px;color:var(--gold);font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#lbSay small{color:var(--muted);font-weight:400;font-size:13px}
+#roster{display:flex;gap:14px;align-items:flex-end;margin:14px 0 10px;padding:10px 12px;background:rgba(0,0,0,.25);border-radius:10px}
+#roster figure{margin:0;text-align:center;font-size:11px;color:var(--muted)}
+#roster canvas{display:block;image-rendering:pixelated}
+.perks{display:grid;gap:4px;font-size:13px;margin:6px 0 4px}
+.perks div{display:flex;gap:8px}
+.perks .k{color:var(--muted);min-width:60px}
+.supbadge{display:inline-block;background:var(--gold);color:#2a1d00;font:700 11px var(--f-body);padding:3px 8px;border-radius:99px;letter-spacing:.06em}
+#lbCount{font:600 13px var(--f-num);color:var(--muted)}
+.row{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:14px}
+#perkPick{margin-top:12px;padding:10px 12px;border:1px solid rgba(243,195,79,.5);border-radius:10px;background:rgba(243,195,79,.08)}
+#perkPick p{margin:0 0 8px;font-size:13px}
+#perkPick .row{margin-top:0;justify-content:flex-start}
+.btn[aria-pressed="true"]{outline:2px solid var(--gold)}
+#lbPlayers{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px;font-size:12px}
+#lbPlayers .k{color:var(--muted);min-width:60px;font-size:13px}
+.pchip{background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:99px;padding:3px 9px}
+.pchip.me{border-color:var(--you);color:var(--you)}
+#lbPlayers .hint{width:100%;color:var(--muted);margin-top:2px}
+#help ul{padding-left:18px;margin:8px 0;font-size:13px;line-height:1.6}
+#endList{display:grid;gap:3px;margin-top:12px}
+#toast{position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);font:34px/1.1 var(--f-display);color:var(--hot);text-shadow:0 2px 0 #000,0 0 24px rgba(255,91,82,.6);pointer-events:none;opacity:0;transition:opacity .4s;text-align:center;z-index:4;padding:0 16px}
+#toast.show{opacity:1}
+#loading{position:fixed;inset:0;display:grid;place-items:center;font:20px var(--f-display);color:var(--muted);background:var(--sea);z-index:9}
+
+@media (max-width:760px){
+  #lb{width:186px;padding:6px}
+  .lr{grid-template-columns:14px 18px 1fr 40px;font-size:11px}
+  .lr .un{display:none}
+  #lb.collapsed .lr:nth-child(n+5):not(.me){display:none}
+  #tr{width:auto;max-width:46%}
+  .fe:nth-child(n+3){display:none}
+  #clock{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);left:auto;right:max(10px,env(safe-area-inset-right,0px));transform:none;min-width:0;padding:5px 9px}
+  #clockT{font-size:16px}
+  #bar{bottom:calc(env(safe-area-inset-bottom,0px) + 62px);flex-wrap:wrap;gap:6px;padding:6px;left:max(10px,env(safe-area-inset-left,0px));right:max(10px,env(safe-area-inset-right,0px));transform:none;max-width:none}
+  #me{border:0;min-width:0;flex:1}
+  #meName{font-size:16px}
+  #stats{border:0;grid-template-columns:auto auto auto auto}
+  #acts{width:100%;flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px}
+  .ab{flex:0 0 58px;width:58px}
+  #zoom{right:auto;left:max(10px,env(safe-area-inset-left,0px));flex-direction:row}
+  #feed{max-width:200px}
+  #banner{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 62px);font-size:12px}
+  .big{font-size:30px}
+}
+@media (prefers-reduced-motion:reduce){.fe{animation:none}#toast{transition:none}}
+</style>
+
+<canvas id="map" aria-label="세계 지도 전장"></canvas>
+<div id="loading">지도를 펼치는 중…</div>
+<div id="hud">
+  <div id="lb" class="panel collapsed"><h3><span>순위 · 영토</span><button id="lbTog" type="button" aria-label="순위표 펼치기">▾</button></h3><div id="lbRows"></div></div>
+  <div id="clock" class="panel"><div id="clockT">00:00</div><div id="clockP">확장기</div><div id="pbar"><i id="pfill"></i><b style="left:50%"></b></div></div>
+  <div id="tr">
+    <div id="tools">
+      <button class="tb" id="bNet" type="button" title="지금 이 페이지를 열어 둔 친구 수" hidden>👥 1</button>
+      <button class="tb" id="bSpeed" type="button" title="관전 배속">▶ 1×</button>
+      <button class="tb" id="bSound" type="button" aria-pressed="true" title="병사 목소리">🔊</button>
+      <button class="tb" id="bHelp" type="button" title="게임 방법">?</button>
+    </div>
+    <div id="feed" aria-live="polite"></div>
+  </div>
+  <div id="banner" class="panel" hidden></div>
+  <div id="bar" class="panel" hidden>
+    <div id="me"><div id="meName"></div><div id="meSay"></div><div id="meTrait"></div><div id="tgt"></div></div>
+    <div id="stats">
+      <span>골드</span><b class="g" id="sGold">0</b>
+      <span>영토</span><b id="sLand">0%</b>
+      <span>병력</span><b id="sUnits">0</b>
+      <span>도시</span><b id="sCities">1</b>
+    </div>
+    <div id="acts"></div>
+  </div>
+  <div id="zoom">
+    <button class="tb" id="zIn" type="button" aria-label="확대">＋</button>
+    <button class="tb" id="zOut" type="button" aria-label="축소">－</button>
+    <button class="tb" id="zHome" type="button" aria-label="내 수도로">⌂</button>
+  </div>
+</div>
+<div id="toast"></div>
+
+<div id="lobby" class="overlay" hidden>
+  <div class="card">
+    <div class="row" style="margin:0"><span class="eyebrow" id="lbEyebrow">다음 게임 · 국가 추첨</span><span id="lbCount">10</span></div>
+    <div class="big" id="lbName"></div>
+    <div id="lbSay"></div>
+    <div id="roster"></div>
+    <div class="perks" id="lbPerks"></div>
+    <div id="perkPick" hidden>
+      <p>🏆 지난 판 1등 특전을 골라주세요</p>
+      <div class="row"><button class="btn" id="pkX2" type="button" aria-pressed="false">⚒ 병력 2배 생산</button><button class="btn" id="pkLoc" type="button" aria-pressed="false">📍 시작 위치 지정</button></div>
+      <p id="pkHint" style="margin:8px 0 0;color:var(--muted)" hidden>지도에서 원하는 땅을 누르세요. 그 땅의 나라로 시작합니다.</p>
+    </div>
+    <div class="row"><span style="font-size:12px;color:var(--muted)">16개국 · 10~15분 · 10분부터 데스매치</span><button class="btn pri" id="lbGo" type="button">바로 시작</button></div>
+  </div>
+</div>
+
+<div id="endov" class="overlay" hidden>
+  <div class="card">
+    <div class="eyebrow" id="endEyebrow">게임 종료</div>
+    <div class="big" id="endName"></div>
+    <div id="endSub" style="font-size:14px;color:var(--muted)"></div>
+    <div id="endList"></div>
+    <div class="row"><span id="endCount" style="font:600 13px var(--f-num);color:var(--muted)"></span><button class="btn pri" id="endGo" type="button">다음 게임</button></div>
+  </div>
+</div>
+
+<div id="help" class="overlay" hidden>
+  <div class="card">
+    <div class="eyebrow">게임 방법</div>
+    <div class="big" style="font-size:30px">지구 땅따먹기</div>
+    <ul>
+      <li>매 판 <b>무작위 국가</b>로 시작합니다. 땅이 넓은 나라가 자주 걸리고, 작은 나라는 가끔 걸립니다.</li>
+      <li>바티칸·모나코·산마리노 같은 아주 작은 나라는 <b style="color:var(--gold)">슈퍼 국가</b>입니다. 생산·골드 보너스와 고유 특전이 붙습니다.</li>
+      <li>영토는 자동으로 퍼지고, 도시에서 병사가 계속 나와 싸우러 갑니다. 🏹 도시는 원거리병, 🛡 도시는 근접 탱커를 만듭니다.</li>
+      <li>할 일은 셋뿐입니다. <b>생산</b>·<b>업그레이드</b>에 골드를 쓰고, 지도에서 적 땅을 눌러 <b>공격 목표</b>를 정하세요. 내 땅을 누르면 자동 목표로 돌아갑니다.</li>
+      <li>업그레이드는 이미 싸우고 있는 병사에게도 바로 적용됩니다. 무기는 빛나고, 갑옷은 몸에 입혀지고, 생산은 즉시 지원군을 보냅니다.</li>
+      <li>나라마다 고유 특성이 있습니다. 한국은 화살 3연발, 일본은 치명타, 러시아는 홈 방어, 몽골은 기마 속도.</li>
+      <li>영토가 넓어질수록 기동·사거리·도시 건설·영웅 업그레이드가 열립니다.</li>
+      <li>한 판은 10~15분입니다. 10분부터 데스매치가 3단계로 세지고, 30분이면 영토 1위가 이깁니다. 전체 땅의 60%를 먹으면 즉시 승리합니다.</li>
+      <li>1등을 하면 다음 판에 <b>병력 2배 생산</b> 또는 <b>시작 위치 지정</b> 특전을 받습니다.</li>
+      <li>게임은 계속 돌아갑니다. 진행 중에 들어오거나 탈락하면 관전하며 다음 판을 기다립니다.</li>
+      <li><b>멀티플레이</b>: 친구와 같은 링크를 동시에 열면 자동으로 같은 대기실에 모입니다. 먼저 온 사람이 👑 방장이 되고, 사람이 아닌 자리는 AI 국가가 채웁니다.</li>
+    </ul>
+    <div class="row"><span style="font-size:12px;color:var(--muted)">드래그로 이동 · 휠/핀치로 확대</span><button class="btn pri" id="helpX" type="button">알겠어요</button></div>
+  </div>
+</div>
+
+<script>
+const MAP={"W":720,"H":288,"LAT0":84,"STEP":0.5,"meta":[["짐바브웨","ZW","Zimbabwe"],["잠비아","ZM","Zambia"],["예멘 아랍 공화국","YE","Yemen"],["베트남","VN","Vietnam"],["베네수엘라","VE","Venezuela"],["성좌 (바티칸 시국)","VA","Vatican"],["바누아투","VU","Vanuatu"],["우즈베키스탄","UZ","Uzbekistan"],["우루과이","UY","Uruguay"],["미크로네시아,","FM","Micronesia"],["마샬 군도","MH","Marshall Is."],["북 마리아나 제도","MP","N. Mariana Is."],["미국령 버진 아일랜드","VI","U.S. Virgin Is."],["괌","GU","Guam"],["아메리칸 사모아","AS","American Samoa"],["푸에르토 리코","PR","Puerto Rico"],["미국","US","United States of America"],["사우스 조지아 및 사우스 샌드위치 제도","GS","S. Geo. and the Is."],["영국령 인도양 지역","IO","Br. Indian Ocean Ter."],["세인트 헬레나","SH","Saint Helena"],["핏 케언","PN","Pitcairn Is."],["앵 귈라","AI","Anguilla"],["포클랜드 제도 (말 비나 스)","FK","Falkland Is."],["케이맨 제도","KY","Cayman Is."],["버뮤다","BM","Bermuda"],["영국령 버진 아일랜드","VG","British Virgin Is."],["터크스 케이커스 제도","TC","Turks and Caicos Is."],["몬세 라트","MS","Montserrat"],["저지","JE","Jersey"],["건지 섬","GG","Guernsey"],["아일 오브 맨","IM","Isle of Man"],["영국","GB","United Kingdom"],["아랍 에미리트","AE","United Arab Emirates"],["우크라이나","UA","Ukraine"],["우간다","UG","Uganda"],["투르크 메니스탄","TM","Turkmenistan"],["터키","TR","Turkey"],["튀니지","TN","Tunisia"],["트리니다드 토바고","TT","Trinidad and Tobago"],["통가","TO","Tonga"],["가다","TG","Togo"],["동 티모르","TL","Timor-Leste"],["태국","TH","Thailand"],["탄자니아, 유엔","TZ","Tanzania"],["타지키스탄","TJ","Tajikistan"],["대만","TW","Taiwan"],["시리아","SY","Syria"],["스위스","CH","Switzerland"],["스웨덴","SE","Sweden"],["스와질란드","SZ","eSwatini"],["수리남","SR","Suriname"],["남 수단","SS","S. Sudan"],["수단","SD","Sudan"],["스리랑카","LK","Sri Lanka"],["스페인","ES","Spain"],["대한민국","KR","South Korea"],["남아프리카","ZA","South Africa"],["소말리아","SO","Somalia"],["Somaliland","","Somaliland"],["솔로몬 제도","SB","Solomon Is."],["슬로바키아","SK","Slovakia"],["슬로베니아","SI","Slovenia"],["싱가포르","SG","Singapore"],["시에라 리온","SL","Sierra Leone"],["세이셸","SC","Seychelles"],["세르비아","RS","Serbia"],["세네갈","SN","Senegal"],["사우디 아라비아","SA","Saudi Arabia"],["상투 메 프린시 페","ST","São Tomé and Principe"],["산 마리노","SM","San Marino"],["사모아","WS","Samoa"],["세인트 빈센트 그레나딘","VC","St. Vin. and Gren."],["세인트 루시아","LC","Saint Lucia"],["세인트 키츠 네비스","KN","St. Kitts and Nevis"],["르완다","RW","Rwanda"],["러시아 연방","RU","Russia"],["루마니아","RO","Romania"],["카타르","QA","Qatar"],["포르투갈","PT","Portugal"],["폴란드","PL","Poland"],["필리핀 제도","PH","Philippines"],["페루","PE","Peru"],["파라과이","PY","Paraguay"],["파푸아 뉴기니","PG","Papua New Guinea"],["파나마","PA","Panama"],["팔라우","PW","Palau"],["파키스탄","PK","Pakistan"],["오만","OM","Oman"],["노르웨이","NO","Norway"],["조선 민주주의 인민 공화국","KP","North Korea"],["나이지리아","NG","Nigeria"],["니제르","NE","Niger"],["니카라과","NI","Nicaragua"],["뉴질랜드","NZ","New Zealand"],["니우에","NU","Niue"],["쿡 제도","CK","Cook Is."],["네덜란드","NL","Netherlands"],["아루바","AW","Aruba"],["쿠라 사오","CW","Curaçao"],["네팔","NP","Nepal"],["나우루","NR","Nauru"],["나미비아","NA","Namibia"],["모잠비크","MZ","Mozambique"],["모로코","MA","Morocco"],["서사하라","EH","W. Sahara"],["몬테네그로","ME","Montenegro"],["몽골리아","MN","Mongolia"],["몰도바, 공화국","MD","Moldova"],["모나코","MC","Monaco"],["멕시코","MX","Mexico"],["모리셔스","MU","Mauritius"],["모리타니","MR","Mauritania"],["몰타","MT","Malta"],["말리","ML","Mali"],["몰디브","MV","Maldives"],["말레이시아","MY","Malaysia"],["말라위","MW","Malawi"],["마다가스카르","MG","Madagascar"],["북마케도니아 공화국","MK","Macedonia"],["룩셈부르크","LU","Luxembourg"],["리투아니아","LT","Lithuania"],["리히텐슈타인","LI","Liechtenstein"],["리비아 아랍 자 마히리 야","LY","Libya"],["라이베리아","LR","Liberia"],["레소토","LS","Lesotho"],["레바논","LB","Lebanon"],["라트비아","LV","Latvia"],["라오스 인민 민주주의 공화국","LA","Laos"],["키르기즈스탄","KG","Kyrgyzstan"],["쿠웨이트","KW","Kuwait"],["Kosovo","","Kosovo"],["키리바시","KI","Kiribati"],["케냐","KE","Kenya"],["카자흐스탄","KZ","Kazakhstan"],["요르단","JO","Jordan"],["일본","JP","Japan"],["자메이카","JM","Jamaica"],["이탈리아","IT","Italy"],["이스라엘","IL","Israel"],["팔레스타인 자치구, 점령 자","PS","Palestine"],["아일랜드","IE","Ireland"],["이라크","IQ","Iraq"],["이란, 이슬람 공화국","IR","Iran"],["인도네시아 공화국","ID","Indonesia"],["인도","IN","India"],["아이슬란드","IS","Iceland"],["헝가리","HU","Hungary"],["온두라스","HN","Honduras"],["아이티","HT","Haiti"],["가이아나","GY","Guyana"],["기니 비사우","GW","Guinea-Bissau"],["기니","GN","Guinea"],["과테말라","GT","Guatemala"],["그레나다","GD","Grenada"],["그리스","GR","Greece"],["가나","GH","Ghana"],["독일","DE","Germany"],["조지아","GE","Georgia"],["감비아","GM","Gambia"],["가봉","GA","Gabon"],["프랑스","FR","France"],["생 피에르 미 클롱","PM","St. Pierre and Miquelon"],["월리스 푸 투나","WF","Wallis and Futuna Is."],["세인트 마틴 (프랑스어 부분)","MF","St-Martin"],["생 바르 텔레 미","BL","St-Barthélemy"],["프랑스 령 폴리네시아의","PF","Fr. Polynesia"],["뉴 칼레도니아","NC","New Caledonia"],["프랑스 남부 지역","TF","Fr. S. Antarctic Lands"],["올란드 제도","AX","Åland"],["핀란드","FI","Finland"],["피지","FJ","Fiji"],["에티오피아","ET","Ethiopia"],["에스토니아","EE","Estonia"],["에리트레아","ER","Eritrea"],["적도 기니","GQ","Eq. Guinea"],["엘살바도르","SV","El Salvador"],["이집트","EG","Egypt"],["에콰도르","EC","Ecuador"],["도미니카 공화국","DO","Dominican Rep."],["도미니카 연방","DM","Dominica"],["지부티","DJ","Djibouti"],["그린란드","GL","Greenland"],["페로 제도","FO","Faeroe Is."],["덴마크","DK","Denmark"],["체코 공화국","CZ","Czechia"],["N. Cyprus","","N. Cyprus"],["키프로스","CY","Cyprus"],["쿠바","CU","Cuba"],["크로아티아","HR","Croatia"],["코트 디부 아르","CI","Côte d'Ivoire"],["코스타리카","CR","Costa Rica"],["콩고 민주 공화국","CD","Dem. Rep. Congo"],["콩고","CG","Congo"],["코모로","KM","Comoros"],["콜롬비아","CO","Colombia"],["중국","CN","China"],["마카오","MO","Macao"],["홍콩","HK","Hong Kong"],["칠레","CL","Chile"],["차드","TD","Chad"],["중앙 아프리카 공화국","CF","Central African Rep."],["카보 베르데","CV","Cabo Verde"],["캐나다","CA","Canada"],["카메룬","CM","Cameroon"],["캄보디아","KH","Cambodia"],["미얀마","MM","Myanmar"],["부룬디","BI","Burundi"],["부키 나 파소","BF","Burkina Faso"],["불가리아","BG","Bulgaria"],["브루나이 다루 살람","BN","Brunei"],["브라질","BR","Brazil"],["보츠와나","BW","Botswana"],["보스니아 헤르체고비나","BA","Bosnia and Herz."],["볼리비아","BO","Bolivia"],["부탄","BT","Bhutan"],["베냉","BJ","Benin"],["벨리즈","BZ","Belize"],["벨기에","BE","Belgium"],["벨라루스","BY","Belarus"],["바베이도스","BB","Barbados"],["방글라데시","BD","Bangladesh"],["바레인","BH","Bahrain"],["바하마","BS","Bahamas"],["아제르바이잔","AZ","Azerbaijan"],["오스트리아","AT","Austria"],["호주","AU","Australia"],["Indian Ocean Ter.","","Indian Ocean Ter."],["허드 섬 및 맥도널드 제도","HM","Heard I. and McDonald Is."],["노퍽 섬","NF","Norfolk Island"],["호주","AU","Ashmore and Cartier Is."],["아르메니아","AM","Armenia"],["아르헨티나","AR","Argentina"],["앤티가 바부 다","AG","Antigua and Barb."],["앙골라","AO","Angola"],["안도라","AD","Andorra"],["알제리","DZ","Algeria"],["알바니아","AL","Albania"],["아프가니스탄","AF","Afghanistan"],["Siachen Glacier","","Siachen Glacier"],["신트 마틴 (네덜란드어 부분)","SX","Sint Maarten"]],"rle":"0.k0|0.7l,52.2,0.3,52.3,0.2,52.p,0.bg|0.5i,5n.1,0.2,5n.5,0.2,5n.h,0.2,5n.6,0.10,52.5,0.3,52.13,0.b8|0.58,5n.5,0.3,5n.15,0.c,52.3,0.2,52.1,0.4,52.5,0.4,52.2,0.1,52.11,0.bg|0.4x,5n.1i,0.7,52.5,0.1,52.1v,0.2,52.5,0.9,52.6,0.3z,24.2,0.6q|0.4s,5n.4,0.6,5n.6,0.2,5n.d,0.1,5n.p,0.9,52.26,0.2,52.h,0.3s,24.5,0.22,24.2,0.4o|0.4q,5n.8,0.5,5n.3,0.1,5n.c,0.4,5n.k,0.6,52.2u,0.3e,24.2,0.1,24.1,0.1,24.5,0.6,24.6,0.4,24.5,0.2,24.3,0.1l,24.a,0.4k|0.4o,5n.e,0.1,5n.2,0.2,5n.5,0.2,5n.q,0.6,52.2n,0.1,52.5,0.1z,2h.1,0.1,2h.2,0.3,2h.1,0.2,2h.3,0.17,24.4,0.6,24.4,0.2,24.1,0.1,24.2,0.1,24.2,0.1v,24.a,0.4m|0.4o,5n.i,0.2,5n.8,0.2,5n.f,0.1,5n.3,0.d,52.2i,0.2,52.2,0.1l,2h.7,0.1,2h.1,0.2,2h.4,0.2,2h.2,0.2,2h.b,0.3n,24.2,0.2,24.c,0.4g|0.45,5n.5,0.l,5n.f,0.1,5n.i,0.k,52.2l,0.1o,2h.1,0.1,2h.7,0.1,2h.6,0.8,2h.2,0.3x,24.9,0.5,24.3,0.4a|0.49,5n.7,0.3,5n.3,0.7,5n.c,0.1,5n.p,0.9,52.2q,0.1r,2h.1,0.2,2h.j,0.4e,24.9,0.46|0.4d,5n.4,0.3,5n.5,0.7,5n.3,0.1,5n.1,0.1,5n.1,0.2,5n.o,0.6,52.2u,0.4,52.1,0.1s,2h.1,0.4,2h.7,0.4,2h.3,0.4a,24.7,0.6,24.1,0.43|0.3n,5n.1,0.2,5n.6,0.f,5n.3,0.a,5n.5,0.b,5n.4,0.1,5n.f,0.f,52.2u,0.3,52.1,0.1v,2h.5,0.6,2h.7,0.8m|0.3d,5n.8,0.k,5n.2,0.s,5n.1,0.6,5n.a,0.1,5n.2,0.n,52.2r,0.1,52.1,0.1u,2h.6,0.3z,24.1,0.o,24.8,0.45|0.3b,5n.9,0.3,5n.2,0.8,5n.2,0.n,5n.8,0.5,5n.p,0.h,52.2m,0.1,52.1,0.23,2h.2,0.2q,24.6,0.1s,24.c,0.2c,24.1,0.1p|0.37,5n.7,0.6,5n.4,0.1,5n.1,0.6,5n.4,0.9,5n.2,0.1,5n.2,0.1,5n.6,0.9,5n.8,0.g,5n.2,0.m,52.9,0.1,52.1,0.2,52.2c,0.3,52.1,0.4f,24.2,0.2,24.a,0.1j,24.3,0.5,24.q,0.1,24.1,0.3p|0.3e,5n.2,0.2,5n.b,0.5,5n.7,0.6,5n.9,0.c,5n.6,0.a,5n.6,0.18,52.27,0.4c,24.c,0.1k,24.14,0.1,24.2,0.17,24.1,0.3,24.6,0.1,24.7,0.1z|0.3h,5n.n,0.2,5n.3,0.7,5n.4,0.4,5n.5,0.2,5n.q,0.17,52.23,0.1,52.1,0.1,52.2,0.46,24.8,0.1j,24.1e,0.1b,24.b,0.1,24.4,0.2,24.5,0.1,24.1,0.1p|0.3o,5n.7,0.v,5n.3,0.3,5n.h,0.1,5n.6,0.1a,52.20,0.1,52.2,0.47,24.8,0.1g,24.1,0.1,24.1e,0.1h,24.2,0.29|0.33,5n.9,0.3,5n.2,0.3e,52.21,0.46,24.7,0.1k,24.1b,0.4,24.2,0.1j,24.1,0.26|0.34,5n.g,0.k,5n.2,0.8,5n.8,0.4,5n.9,0.6,5n.5,0.8,5n.1,0.1d,52.1p,0.1,52.9,0.45,24.7,0.1i,24.1,0.1,24.3,0.1,24.16,0.2,24.2,0.1,24.2,0.2,24.1,0.1j,24.4,0.22|0.33,5n.g,0.2,5n.3,0.c,5n.1,0.3,5n.3,0.8,5n.5,0.5,5n.8,0.5,5n.6,0.2,5n.8,0.1,5n.8,0.16,52.1m,0.2,52.4,0.4a,24.5,0.s,24.3,0.i,24.b,0.1,24.13,0.4,24.l,0.a,24.a,0.s,24.2,0.21|0.32,5n.d,0.1,5n.7,0.2,5n.4,0.3,5n.2,0.2,5n.5,0.6,5n.2,0.2,5n.7,0.3,5n.3,0.3,5n.1,0.5,5n.6,0.2,5n.a,0.1d,52.2,0.1,52.1k,0.1,52.8,0.45,24.6,0.r,24.7,0.5,24.1,0.7,24.1,0.2,24.1t,0.1,24.v,0.o,24.2,0.24|0.31,5n.c,0.3,5n.j,0.1,5n.6,0.8,5n.9,0.3,5n.2,0.8,5n.7,0.3,5n.8,0.2,5n.4,0.1,5n.5,0.13,52.1r,0.2,52.2,0.45,24.6,0.q,24.8,0.5,24.1,0.5,24.4,0.4,24.2k,0.1,24.2,0.j,24.a,0.2,24.8,0.1q|0.33,5n.8,0.3,5n.m,0.1,5n.6,0.a,5n.5,0.3,5n.3,0.8,5n.8,0.1,5n.l,0.2,5n.1,0.10,52.4,0.1,52.1q,0.43,24.8,0.q,24.8,0.2,24.4,0.1,24.b,0.2,24.1,0.1,24.2k,0.6,24.1,0.d,24.b,0.2,24.6,0.1q|24.5,0.15,h.2,0.1t,5n.3,0.a,5n.p,0.g,5n.7,0.9,5n.6,0.2,5n.r,0.y,52.1,0.1,52.1j,0.2,52.6,0.44,24.1,0.1,24.5,0.m,24.b,0.2,24.5,0.4,24.9,0.1,24.2l,0.5,24.b,0.1,24.r,0.1j,24.2|0.14,h.1,0.1,h.d,0.1x,5n.s,0.f,5n.8,0.7,5n.10,0.1,5n.3,0.t,52.3,0.3,52.1b,0.1,52.4,0.3,52.5,0.2h,2h.1,0.2,2h.2,0.1,2h.1,0.1,2h.2,0.1,2h.2,0.1e,24.6,0.k,24.a,0.3,24.i,0.1,24.48,0.15|0.11,h.r,0.15,5n.1,0.n,5n.5,0.1,5n.m,0.a,5n.a,0.a,5n.f,0.1,5n.i,0.2,5n.1,0.r,52.2,0.1,52.1g,0.2,52.3,0.2l,2h.2,0.1,2h.3,0.1,2h.b,0.1j,24.2,0.f,24.b,0.3,24.h,0.1,24.4a,0.14|0.y,h.17,0.j,5n.3,0.1,5n.7,0.3,5n.1,0.3,5n.3,0.9,5n.t,0.1,5n.2,0.5,5n.2,0.4,5n.6,0.e,5n.3,0.7,5n.2,0.5,5n.i,0.1,5n.1,0.o,52.6,0.1,52.1,0.1,52.1i,0.2c,2h.2,0.1,2h.c,4q.5,2h.2,0.1,2h.2,0.1,24.3,0.1h,24.6,0.9,24.b,0.2,24.4t,0.g,24.3,0.2,24.c,0.7|0.x,h.19,5n.5,0.5,5n.7,0.1,5n.q,0.a,5n.e,0.1,5n.9,0.7,5n.5,0.3,5n.1,0.1,5n.5,0.3,5n.1,0.7,5n.8,0.5,5n.1,0.2,5n.1,0.3,5n.i,0.v,52.1g,0.2c,2h.8,4q.1,2h.9,4q.6,2h.1,24.a,0.1,24.1,0.q,24.3,0.l,24.9,0.6,24.9,0.3,24.59,0.5,24.h,0.1|24.2,0.q,h.1e,5n.1h,0.2,5n.9,0.4,5n.3,0.7,5n.1,0.6,5n.6,0.4,5n.6,0.1,5n.4,0.6,5n.7,0.a,5n.1,0.3,5n.c,0.z,52.1e,0.29,2h.4,0.2,2h.6,1d.2,4q.2,2h.5,4q.7,24.i,0.m,24.1,0.8,24.2,0.8,24.3,0.2,24.d,0.4,24.8,0.3,24.5,0.1,24.4n,0.1,24.11|24.5,0.n,h.1e,5n.1g,0.d,5n.2,0.2,5n.3,0.d,5n.4,0.4,5n.c,0.3,5n.1,0.1,5n.7,0.c,5n.3,0.3,5n.d,0.1,5n.1,0.r,52.1,0.1,52.17,0.2f,2h.1,0.1,2h.1,0.2,2h.4,1d.a,4q.b,24.l,0.a,24.4,0.9,24.6,0.1,24.1,0.1,24.10,0.3,24.6,0.1,24.5o|24.9,0.m,h.1b,5n.1h,0.5,5n.5,0.3,5n.b,0.3,5n.3,0.1,5n.2,0.2,5n.2,0.1,5n.f,0.3,5n.9,0.9,5n.5,0.5,5n.g,0.m,52.1,0.2,52.1,0.1,52.10,0.2o,2h.3,1d.e,4q.d,24.l,0.7,24.3,0.7,24.1c,0.4,24.5u|24.a,0.m,h.1a,5n.1u,0.1,5n.14,0.1,5n.b,0.9,5n.1,0.9,5n.i,0.i,52.15,0.2q,2h.2,1d.e,4q.c,24.n,0.6,24.3,0.5,24.1c,0.4,24.5w|24.a,0.2,24.5,0.i,h.17,5n.1u,0.1,5n.1a,0.1,5n.4,0.i,5n.n,0.h,52.12,0.2n,2h.5,1d.g,4q.a,24.8,0.2,24.e,0.7,24.1d,0.2,24.3,0.3,24.5y|24.1,0.1,24.i,0.8,h.4,0.6,h.14,5n.32,0.2,5n.1,0.k,5n.e,0.2,5n.8,0.i,52.v,0.1,52.4,0.p,42.2,0.b,42.3,0.1k,2h.1,0.1,2h.3,1d.g,4q.c,24.9,0.6,24.6,0.4,24.3,0.1,24.7k|24.1,0.2,24.g,0.6,h.1h,5n.2u,0.2,5n.5,0.1,5n.3,0.m,5n.b,0.5,5n.6,0.j,52.3,0.1,52.r,0.s,42.4,0.2,42.c,0.1i,2h.4,1d.g,0.4,4q.b,24.a,0.b,24.7r|24.1,0.7,24.7,0.c,h.1f,5n.2z,0.3,5n.4,0.d,5n.l,0.4,5n.3,0.m,52.p,0.z,42.i,0.1h,2h.3,1d.e,0.8,4q.8,24.a,0.b,24.7s|0.b,24.3,0.d,h.9,0.2,h.14,5n.2z,0.2,5n.8,0.9,5n.6,0.1,5n.g,0.1,5n.1,0.r,52.1,0.3,52.j,0.x,42.1,0.2,42.h,0.1f,2h.5,1d.e,0.7,4q.b,24.a,0.3,24.5,0.2,24.7i,0.1,24.2,0.1,24.4,0.2|0.12,h.14,5n.2y,0.3,5n.a,0.9,5n.1,0.7,5n.f,0.s,52.k,0.1,52.1,0.11,42.d,0.1g,2h.7,1d.e,0.6,4q.d,24.b,0.4,24.7t,0.3|0.12,h.14,5n.2p,0.1,5n.4,0.6,5n.6,0.3,5n.4,0.g,5n.g,0.q,52.m,0.14,42.6,0.1g,2h.1,0.1,2h.6,1d.g,0.5,4q.e,24.89,0.3|0.j,h.4,0.c,h.17,5n.2t,0.a,5n.1,0.d,5n.2,0.c,5n.7,0.2,5n.4,0.s,52.k,0.2q,2h.8,1d.e,0.6,4q.i,24.88,0.2|0.u,h.1c,5n.2p,0.i,5n.3,0.m,5n.1,0.2,5n.5,0.3,5n.1,0.t,52.h,0.2q,2h.a,1d.c,0.6,4q.l,24.83,0.1,24.4,0.1|0.t,h.1d,5n.2o,0.j,5n.1,0.6,5n.1,0.3,5n.6,0.1,5n.3,0.9,5n.5,0.x,52.e,0.1z,53.1,0.o,2h.e,1d.a,0.8,4q.j,24.7c,0.2,24.o,0.8|0.s,h.1e,5n.2n,0.r,5n.1,0.3,5n.c,0.19,52.e,0.2n,2h.e,1d.b,0.8,4q.h,24.73,0.6,24.5,0.2,24.k,0.c|0.t,h.t,0.2,h.i,5n.2m,0.x,5n.c,0.1a,52.c,0.2n,2h.g,1d.8,0.9,4q.f,24.73,0.7,24.3,0.5,24.h,0.f|0.u,h.1,0.2,h.n,0.1,h.6,0.4,h.b,5n.2l,0.y,5n.g,0.17,52.1,0.3,52.7,0.2n,2h.f,1d.a,0.8,4q.d,24.74,0.8,24.1,0.5,24.h,0.h|0.q,h.3,0.2,h.o,0.2,h.9,0.5,h.b,5n.2h,0.y,5n.g,0.2,5n.1,0.6,5n.1,0.12,52.2,0.1,52.2,0.2b,w.1,0.c,2h.f,1d.c,0.2,4p.1,0.4,4q.7,0.7,24.70,0.e,24.7,0.2,24.1,0.6,24.1,0.j|0.10,h.i,0.2,h.4,0.i,h.2,0.1,h.2,5n.2f,0.z,5n.g,0.8,5n.3,0.3u,2h.1,0.1,2h.c,1d.e,0.j,24.70,0.d,24.5,0.x|0.10,h.g,0.4,h.2,0.o,h.3,5n.2,h.3,5n.28,0.y,5n.h,0.8,5n.4,0.3t,2h.1,0.1,2h.9,0.1,2h.2,1d.d,0.a,4t.9,24.6d,0.7,24.1,0.b,24.6,0.a,24.6,0.y|0.10,h.1,0.4,h.1,0.1,h.2,0.1,h.7,0.v,h.3,0.1,h.4,5n.27,0.1,5n.1,0.u,5n.h,0.1,5n.2,0.4,5n.7,0.3t,2h.8,0.3,1d.c,0.d,4t.8,24.6d,0.z,24.6,0.2,24.1,0.w|0.19,h.7,0.2,h.2,0.w,h.2,0.1,h.2,5n.29,0.v,5n.t,0.34,w.1,0.2,w.4,0.k,2h.4,0.6,1d.a,0.b,4t.1,0.4,4t.6,24.6a,0.10,24.7,0.10|0.19,h.4,0.3,h.3,0.x,h.1,0.2,h.1,0.1,h.1,5n.29,0.v,5n.u,0.35,w.3,0.v,1d.a,0.4,1d.1,0.b,3j.3,4t.3,24.69,0.y,24.c,0.y|0.17,h.4,0.4,h.3,0.y,h.2,0.1,h.1,0.1,h.2,5n.28,0.w,5n.t,0.33,w.9,0.n,54.2,0.3,1d.9,0.3,1d.1,0.6,3j.3,0.3,3j.7,24.66,0.10,24.c,0.y|0.16,h.3,0.19,h.2,0.3,h.1,5n.2f,0.o,5n.u,0.33,w.7,0.m,54.4,0.4,1d.9,0.8,3j.e,24.65,0.z,24.e,0.y|0.13,h.4,0.1b,h.1,0.2,h.1,0.1,h.4,5n.2d,0.h,5n.2,0.4,5n.u,0.34,w.6,0.l,54.6,0.4,1d.6,0.a,3j.1,3d.7,3j.6,24.64,0.10,24.f,0.x|0.10,h.4,0.1h,h.2,0.2,h.3,5n.2f,0.j,5n.x,0.30,w.1,0.2,w.6,0.k,54.4,0.4,54.1,0.1,1d.2,0.e,3d.b,3j.1,63.7,24.5x,0.11,24.d,0.10|0.y,h.2,0.2,h.1,0.1i,h.7,5n.2l,0.b,5n.z,0.1,5n.1,0.2w,3x.1,0.4,w.7,0.k,54.2,0.1,54.5,0.4,54.1,0.c,24.1,3d.a,63.9,24.23,3q.3,24.1,3q.1,24.3m,0.13,24.d,0.10|0.v,h.3,0.1o,h.1,0.5,5n.2o,0.5,5n.17,0.2r,3x.2,w.4,0.4,w.4,0.k,4d.3,0.2,54.2,0.b,28.2,0.3,24.6,3d.5,63.b,24.20,3q.8,24.3l,0.4,24.1,0.z,24.d,0.b,24.1,0.o|0.2s,5n.2n,0.6,5n.16,0.2p,3x.4,w.5,0.4,w.6,0.j,4d.4,0.2,4d.2,0.6,28.f,3d.5,63.b,24.1t,3q.e,24.2,3q.1,24.7,3q.1,24.3d,0.3,24.1,0.1,24.1,0.5,24.1,0.q,24.8,0.14|0.q,h.1,0.1v,5n.1,0.4,5n.2p,0.6,5n.12,0.2,5n.5,0.2l,3x.8,0.6,w.6,0.h,4d.b,0.1,28.i,63.i,24.1l,3q.p,24.2,3q.5,24.3d,0.2,24.4,0.4,24.1,0.q,24.8,0.14|0.n,h.1,0.1z,5n.1,0.5,5n.1,0.1,5n.2l,0.6,5n.1a,0.2l,3x.7,0.3,w.a,0.a,2p.3,4d.f,28.j,63.h,24.1m,3q.x,24.2e,5g.7,24.y,0.1,24.2,0.q,24.8,0.14|0.2o,5n.1,0.4,5n.1,0.1,5n.2l,0.2,5n.1,0.3,5n.1a,0.2l,3x.7,0.4,w.b,0.6,2p.5,4d.f,28.j,63.f,24.1n,3q.z,24.2b,5g.c,24.v,0.1,24.3,0.p,24.5,0.17|0.b,h.1,0.2d,5n.1,0.7,5n.2j,0.7,5n.1a,0.2i,3x.8,0.4,w.c,0.6,2p.5,4d.f,28.h,63.h,24.2,y.3,24.1i,3q.10,24.2b,5g.c,24.x,0.r,24.4,0.17|0.5,h.2,0.2p,5n.2n,0.3,5n.19,0.2l,3x.3,0.7,w.c,0.6,2p.4,4d.h,28.i,63.1,y.6,63.7,y.8,24.1g,3q.12,24.12,2z.3,24.15,5g.c,24.t,0.2,24.3,0.q,24.3,0.18|0.2x,5n.2n,0.1,5n.16,0.3,5n.2,0.2y,w.9,0.3,62.5,2p.1,4d.i,28.h,y.l,24.w,3q.7,24.g,3q.10,24.2,3q.1,24.y,2z.8,24.10,5g.e,24.r,0.3,24.3,0.q,24.2,0.19|0.2v,5n.2,0.2,5n.3r,0.4,5n.2,0.2v,w.7,0.5,4h.3,62.6,4d.g,55.3,28.h,y.n,24.r,3q.c,24.2,3q.6,24.4,3q.16,24.1,3q.3,24.g,2z.1,24.b,2z.9,24.y,5g.g,24.q,0.3,24.3,0.p,24.1,0.1b|0.2w,5n.3g,0.5,5n.1,0.2,5n.4,0.5,5n.2,0.2u,w.1,0.2,w.1,0.a,4h.5,62.4,4d.d,55.8,28.1,55.1,28.c,y.s,24.k,3q.1,24.1,3q.20,24.c,2z.8,24.7,2z.a,24.3,2z.5,24.e,2z.1,24.a,5g.g,24.q,0.3,24.4,0.m,24.2,0.1c|0.2y,5n.4,0.2,5n.36,0.6,5n.2,0.a,5n.2,0.1,5n.1,0.35,4h.9,62.2,3c.1,4d.c,55.c,28.9,y.x,24.f,3q.24,24.9,2z.f,24.1,2z.l,24.a,2z.7,5g.1,24.3,5g.i,24.q,0.3,24.4,0.20|0.30,5n.4,0.2,5n.32,0.a,5n.2,0.8,5n.5,0.1,5n.3,0.2w,4h.g,4d.d,55.a,1p.8,28.1,y.z,24.e,3q.28,24.2,2z.17,24.3,2z.b,5g.q,24.m,0.3,24.2,0.2,24.1,0.1z|0.32,5n.3,0.2,h.1k,5n.1f,0.2,5n.7,0.c,5n.9,0.2t,4h.1,0.3,4h.j,4d.c,55.2,69.2,55.2,1p.b,y.y,24.e,3q.28,5g.3,2z.1k,5g.t,24.j,0.4,24.2,0.22|0.33,h.1,0.3,h.1p,5n.7,h.1,5n.11,0.1,5n.9,0.b,5n.b,0.2q,4h.o,4d.b,69.8,1p.6,43.5,y.8,25.1,30.2,y.o,24.e,3q.25,5g.6,2z.1j,5g.u,24.6,5g.1,24.b,0.4,24.1,0.23|0.33,h.3,0.1,h.1z,5n.y,0.1,5n.9,0.b,5n.a,0.2,5n.2,0.2q,4h.m,4d.b,69.8,43.b,25.a,30.3,y.j,24.j,3q.23,5g.9,2z.1i,5g.1,2z.3,5g.o,24.3,5g.4,24.a,0.5,24.1,0.23|0.34,h.25,5n.w,h.1,5n.1,h.1,5n.6,0.j,5n.1,0.2,5n.2,0.2u,4h.i,1c.5,69.e,43.b,25.b,30.4,y.i,0.1,24.j,3q.22,5g.a,2z.1m,5g.t,24.a,0.6,24.2,0.22|0.34,h.26,5n.u,h.4,5n.6,0.1,5n.1,0.6,5n.1,0.e,5n.1,0.2u,4h.h,1c.8,3u.4,69.7,1q.1,43.a,25.d,30.4,y.e,0.3,24.l,3q.2,0.6,3q.1o,5g.g,2z.1m,5g.s,24.9,0.7,24.3,0.21|0.35,h.27,5n.m,0.1,5n.5,h.4,5n.7,0.2,5n.2,0.2,5n.3,0.3a,4h.e,1c.1,4h.1,1c.2,3u.1,1c.1,3u.9,1q.5,59.2,43.8,25.e,30.2,y.3,0.2,y.8,0.6,24.l,0.8,3q.1n,5g.h,2z.1f,5g.z,24.8,0.8,24.1,0.23|0.34,h.29,5n.q,h.5,5n.a,0.3,5n.1,0.1,5n.1,0.3a,4h.g,3u.c,0.1,1q.4,59.7,1u.4,25.e,30.1,y.3,0.6,24.4,0.6,24.k,0.a,3q.1n,5g.g,2z.1f,5g.z,24.8,0.o,24.1,0.1o|0.34,h.2b,5n.g,0.1,5n.5,h.8,5n.3,0.4,5n.6,0.3c,4h.g,3u.a,0.3,59.c,1u.3,25.f,y.1,25.1,0.7,24.7,0.1,24.l,0.8,3q.b,8.4,3q.19,5g.1,3q.1,5g.h,2z.1b,5g.y,24.1,5g.2,24.8,0.9,3s.2,0.b,24.1,0.1r|0.34,h.2b,5n.e,h.h,0.3,5n.5,0.3g,4h.g,3u.b,0.5,59.2,5x.7,1u.4,25.f,0.9,24.2,0.6,24.j,0.8,3q.a,8.9,3q.14,5g.r,2z.z,5g.13,24.b,0.b,3s.2,0.8,24.1,0.1t|0.34,h.2b,5n.d,h.e,0.6,5n.3,0.3i,4h.h,3u.3,0.2,3u.6,0.5,59.2,5x.7,1u.6,25.c,0.l,24.g,0.7,3q.b,8.a,3q.13,5g.u,2z.w,5g.13,24.a,0.b,3s.4,0.3,3s.1,0.1x|0.34,h.2c,5n.b,h.d,0.8,5n.2,0.3j,4h.i,0.6,3u.5,0.6,59.2,5x.5,1u.6,5t.4,25.3,5t.5,0.m,24.g,0.7,3q.a,8.b,3q.12,5g.u,2z.x,5g.12,24.9,0.c,3s.7,0.1y|0.33,h.2c,5n.7,h.h,0.3f,1j.f,4h.a,0.4,4h.2,0.8,3u.7,0.6,59.1,5x.2,2y.2,1u.2,3n.1,1u.4,5t.a,0.p,4e.2,24.c,0.8,3q.9,8.j,3q.u,5g.v,2z.u,5g.14,24.2,0.1,24.4,0.e,3s.8,0.1x|0.33,h.2c,5n.7,h.g,0.3g,1j.i,4h.1,1j.1,4h.4,0.e,3u.1,0.1,3u.6,0.8,5x.1,2y.3,3n.3,1u.2,5t.b,0.r,4e.5,24.7,0.a,3q.7,8.k,3q.b,3l.2,3q.2,3l.b,3q.2,5g.z,2z.q,5g.14,24.2,0.3,24.1,0.d,3s.8,0.20|0.33,h.2b,5n.4,h.k,0.3h,1j.n,0.b,4h.2,0.4,3u.6,0.9,2y.1,6l.2,3n.2,3b.2,5t.b,0.r,4e.8,24.5,0.9,3q.2,10.2,3q.3,8.4,10.4,8.c,3q.a,3l.i,3q.1,5g.17,2z.9,5g.19,2i.3,0.j,3s.1,0.4,3s.2,0.21|0.34,h.2a,5n.1,h.o,0.3f,27.5,1j.j,0.b,4h.2,0.6,3u.7,0.7,6l.2,3b.5,5t.7,11.3,0.9,11.6,0.c,4e.9,68.2,24.3,0.8,10.1,0.2,10.2,3q.2,8.2,10.6,8.d,3q.7,8.1,3l.h,5g.1f,2z.1,5g.1a,2i.4,0.k,3s.1,0.27|0.34,h.2u,0.3l,27.4,1j.h,0.n,3u.6,0.6,6l.2,3b.4,4b.5,5t.1,4b.2,11.5,0.5,11.b,0.8,11.4,4e.4,68.1,4e.2,68.2,24.1,68.2,0.b,10.c,8.c,3q.5,8.4,3l.1,8.1,3l.d,5g.2o,2i.6,0.n,3s.1,0.25|0.34,h.2u,0.3l,27.3,1j.g,0.e,3u.3,0.a,3u.6,0.4,6l.3,4b.6,0.1,4b.1,0.2,11.3,0.5,11.r,6f.4,68.8,0.7,10.1,0.2,10.f,8.c,3q.1,8.3,19.1,8.5,3l.7,5g.2h,0.2,5g.7,2i.8,0.l,3s.3,0.25|0.33,h.2t,0.3m,27.4,1j.f,0.g,3u.2,0.b,3u.4,0.2,3u.1,0.2,6l.2,4b.4,0.1,4b.3,0.4,11.y,6f.5,68.7,0.6,10.k,8.d,19.3,8.1,3l.1,8.1,3l.5,5g.2k,0.3,5g.5,2i.8,0.n,3s.4,0.24|0.34,h.2s,0.3m,27.4,1j.e,0.5,1j.2,0.a,3u.2,0.d,3u.1,0.6,4b.1,6l.1,4b.5,0.6,11.11,6f.3,68.7,0.8,10.j,8.b,19.1,3l.a,5g.2j,0.4,5g.4,0.2,2i.6,0.p,3s.4,0.24|0.34,h.2n,0.1,h.1,0.1,h.1,0.3m,27.5,1j.d,0.i,3u.2,0.d,3u.2,0.7,4b.6,0.5,4b.1,11.z,3z.2,68.2,6f.1,68.1,3z.2,68.3,0.8,10.k,8.8,19.9,3l.1,19.2,5g.2j,0.5,5g.1,0.7,2i.4,0.p,3s.4,0.24|0.35,h.2m,0.1,h.2,0.2n,27.1,0.z,27.5,1j.e,0.w,3u.1,0.9,4b.4,0.8,11.z,3z.7,68.2,0.a,10.l,8.7,19.b,5g.2g,0.g,2i.5,0.n,3s.4,0.25|0.36,h.2k,0.2,h.2,0.3o,27.4,1j.d,0.w,3u.2,0.a,4b.1,0.2,4b.3,0.4,11.10,3z.9,0.a,10.5,3z.1,10.h,8.6,19.4,6m.2,19.7,5g.2e,0.e,2i.4,1k.3,0.m,3s.3,0.26|0.38,h.2j,0.1,h.1,0.2s,27.1,0.w,27.3,1j.d,0.r,3u.5,0.b,4b.1,0.1,4b.3,0.7,4b.1,11.z,3z.9,0.a,10.2,3z.6,10.h,8.3,19.5,6m.2,19.7,5g.2g,0.3,5g.1,0.b,1k.5,0.k,3s.4,0.26|0.37,h.2k,0.3r,27.3,1j.b,0.n,12.1,0.7,3u.3,0.d,4b.3,0.9,11.t,1b.1,3y.2,11.3,3z.b,0.7,3z.b,10.c,6m.3,8.2,19.1,6m.1,19.1,6m.4,19.3,6m.1,19.1,6m.1,5g.2h,0.2,5g.5,0.9,1k.5,0.i,3s.5,0.26|0.38,h.2k,0.3v,1j.5,0.2,1j.1,0.b,6k.4,0.1,6k.6,12.5,0.7,3u.1,0.p,11.6,0.2,11.6,0.1,11.1,0.1,11.1,1b.1,11.1,1b.2,11.2,1b.5,3y.6,3z.c,0.4,3z.e,10.9,6m.e,19.1,6m.1,2f.6,5g.2k,0.9,1k.7,0.e,3s.8,0.27|0.38,h.2k,0.3w,1j.1,0.c,6k.g,12.4,0.12,11.1,0.5,11.3,0.4,11.1,1b.a,3y.8,3z.v,10.7,6m.e,2f.9,5g.2h,0.c,1k.6,0.7,3s.1,0.5,3s.9,0.27|0.39,h.2k,0.3v,2w.1,0.a,6k.i,12.5,0.1e,1b.b,3y.a,3z.u,10.3,6m.h,2f.a,5g.2f,0.d,1k.6,0.d,3s.a,0.26|0.3a,h.2h,0.3x,2w.3,0.1,2w.1,0.4,6k.k,12.5,0.p,4b.4,0.1,4b.1,0.d,56.2,0.4,1b.a,3y.a,3z.u,6m.l,2f.b,6n.1,41.1,5g.2b,0.e,1k.6,0.6,3s.d,0.2,3s.1,0.27|0.3b,h.2g,0.3w,2w.9,6k.k,12.7,0.16,57.2,0.5,1b.a,3y.9,3z.v,6m.k,2f.b,41.3,5g.2a,0.f,1k.1,0.a,3s.5,0.1,3s.3,0.2,3s.2,0.2b|0.3d,h.2b,0.3z,2w.a,6k.i,12.5,0.1f,3i.2,1b.8,3y.a,3z.u,6m.l,2f.6,41.a,5g.2b,0.h,3s.1,0.3,3s.3,0.2,3s.6,0.2f|0.3g,h.26,0.3z,2w.c,6k.i,12.7,0.1d,3i.1,1b.7,3y.c,3z.u,6m.j,2f.8,41.a,5g.2b,0.i,3s.1,0.1,3s.1,0.3,3s.4,0.2,3s.1,0.2g|0.3h,h.24,0.3y,2w.e,6k.i,12.7,0.1c,3i.1,3v.1,1b.5,3r.1,3y.e,3z.t,6m.j,2f.8,41.a,5g.2b,0.b,1k.1,0.6,3s.5,0.1,3s.1,0.2m|0.3h,h.23,0.3i,27.1,0.f,2w.f,6k.k,12.6,3f.5,0.e,3f.3,0.p,3v.2,1b.3,3r.3,3y.f,3z.s,6m.i,2f.a,41.9,5g.2c,0.f,3s.1,0.2,3s.4,0.2o|0.3i,32.6,h.1v,0.3y,2w.g,6k.l,12.4,3f.9,0.9,3f.6,0.o,3w.1,3r.8,3y.g,3z.r,6m.h,2f.c,41.6,5g.2e,0.i,3s.2,0.2p|0.3j,32.8,h.9,32.3,h.1f,0.3z,2w.c,6k.p,12.3,3f.a,0.9,3f.a,0.j,3v.1,3w.1,3r.5,1w.6,3y.e,3z.q,6m.e,2f.1,6m.1,2f.b,41.8,5g.2f,0.f,3s.4,0.2p|0.3j,32.3,0.4,32.e,h.1d,0.3z,2w.c,6k.r,12.1,3f.d,0.7,3f.a,4x.5,0.5,4x.5,0.3,3w.1,3v.2,3r.3,1w.9,3y.c,3z.t,6m.b,2f.e,41.9,5g.2d,0.39|0.3k,32.3,0.3,32.g,h.1b,0.3z,2w.c,6k.r,12.1,3f.g,0.4,3f.a,4x.j,3v.2,3r.4,1w.a,3y.b,3z.r,6m.a,2f.f,41.c,5g.2b,0.39|0.3k,32.3,0.3,32.h,h.s,0.1,h.1,0.2,h.1,0.4,h.9,0.40,2w.9,6k.t,3f.u,4x.k,3v.1,3r.5,1w.b,3y.b,3z.p,6m.b,2f.f,41.e,5g.1,2s.1,5g.25,0.1,5g.1,0.39|0.3l,32.3,0.3,32.g,h.4,32.2,h.d,0.1,h.1,0.2,h.7,0.8,h.1,0.3,h.5,0.3y,2w.7,6k.w,3f.v,4x.k,3r.3,1w.f,3y.6,3m.3,0.4,3z.l,6m.a,2f.f,41.e,2s.5,5g.26,0.38|0.3m,32.4,0.2,32.g,h.2,32.4,h.c,0.8,h.2,0.1,h.1,0.c,h.4,0.3x,2w.5,6k.10,3f.u,4x.f,0.1,4x.3,0.1,1w.1,3r.1,1w.h,3y.4,3m.3,0.5,3z.m,2f.n,41.e,2s.7,5g.o,41.1,5g.1g,0.38|0.3n,32.3,0.2,32.n,h.a,0.q,h.4,0.3h,1j.1,0.d,2w.5,6k.11,3f.u,4x.j,0.1,1w.p,3m.2,0.5,3z.l,2f.m,41.f,2s.9,5g.j,41.5,5g.1e,0.39|0.3l,32.1,0.2,32.2,0.3,32.n,h.6,0.t,h.4,0.3j,1j.1,0.a,2w.6,6k.11,3f.u,4x.g,0.1,4x.2,1w.s,0.6,3z.n,2f.i,41.i,2s.9,5g.9,5z.1,5g.5,41.9,5q.1,5g.1a,0.g,3s.1,0.2t|0.3m,32.1,0.1,32.3,0.4,32.l,h.5,0.t,h.5,0.3r,2w.9,6k.11,3f.u,4x.h,0.4,1w.r,0.6,3z.m,2f.e,41.1,2f.1,41.n,2s.b,41.2,5z.5,41.b,5q.2,5g.19,0.3b|0.3n,32.5,0.3,32.m,h.4,0.u,h.5,0.3p,2w.9,2x.1,6k.11,3f.u,4x.i,0.4,1w.r,0.7,3z.k,2f.d,41.u,2s.7,41.2,5z.6,41.8,5q.5,5g.18,0.3b|0.3q,32.3,0.3,32.m,h.3,0.v,h.4,0.3p,2w.4,2x.6,34.1,6k.10,3f.u,4x.i,0.4,1w.s,0.7,3z.3,0.1,3z.1,0.2,3z.c,2f.d,41.v,2s.6,41.3,5z.1,41.b,5q.6,5g.16,0.h,3s.1,0.2v|0.3r,32.2,0.4,32.m,h.2,0.v,h.4,0.3n,2w.6,2x.6,34.3,6k.x,3f.v,4x.i,0.5,1w.r,0.e,3z.a,2f.g,41.11,65.1,41.c,5q.7,5g.16,0.g,3s.1,0.2w|0.3s,32.1,0.4,32.p,0.v,h.3,0.3n,2w.5,34.c,6k.v,3f.v,4x.j,0.5,1w.q,0.2,26.1,0.9,2g.1,0.2,3z.8,2f.h,41.11,65.3,41.a,5q.7,5g.16,0.3d|0.3s,32.2,0.5,32.m,0.x,h.1,0.3n,2w.5,2x.1,34.e,6k.u,3f.u,4x.k,0.4,1w.r,0.1,26.1,0.8,x.1,2g.1,0.9,3z.1,2f.2,0.1,2f.1,0.6,2f.9,41.10,65.2,41.9,5q.7,5g.17,0.3d|0.3s,32.3,0.5,32.l,0.12,67.1,0.3i,2w.5,2x.1,34.b,36.4,6k.t,3f.u,4x.k,0.4,1w.s,26.1,0.6,x.3,2g.1,0.l,2f.8,41.y,65.8,41.5,5q.6,5g.16,0.5,1a.2,0.38|0.3t,32.3,0.5,32.k,0.13,67.1,0.3g,2w.5,2x.2,34.b,36.6,6k.u,3f.r,4x.l,0.4,1w.s,x.1,0.5,x.3,2g.2,0.l,2f.2,41.2,2f.1,41.1,2f.1,41.z,65.7,41.5,5q.6,5g.15,0.5,1a.2,0.39|0.3v,32.2,0.5,32.j,0.4j,2w.4,2x.4,34.b,36.7,6k.u,3f.q,4x.l,0.6,1w.r,x.7,2g.5,0.k,41.15,65.5,41.5,5q.b,5g.11,0.5,1a.3,0.39|0.3w,32.1,0.6,32.h,0.4k,2w.4,2x.3,34.c,36.9,6k.r,2k.3,3f.5,5k.2,3f.h,4x.l,0.6,1w.s,x.6,2g.7,0.j,41.14,65.6,41.1,65.1,41.2,5q.b,5g.c,4.1,5g.m,0.7,1a.3,0.39|0.44,32.g,0.s,58.9,0.a,67.1,0.37,2w.5,2x.2,34.d,36.a,6k.o,2k.7,3f.1,2k.1,5k.5,3f.f,4x.m,0.6,1w.u,x.2,2g.9,0.m,41.11,65.3,0.1,65.3,41.1,5q.d,5g.9,4.6,5g.g,0.a,1a.2,0.3a|0.45,32.f,0.r,58.2,0.3,58.7,0.3g,2w.4,2x.3,34.d,36.c,6k.l,2k.a,5k.7,3f.d,4x.n,0.5,1w.x,2g.9,0.i,41.6,0.1,41.x,65.4,0.2,65.1,41.1,5q.c,5g.5,3k.1,4.9,5g.e,0.e,1a.1,0.3a|0.45,32.g,0.t,58.1,0.5,58.5,0.3d,2w.5,2x.3,34.e,36.c,6k.i,2k.c,5k.9,3f.b,1h.o,0.4,1w.x,2g.8,0.k,41.5,0.1,41.x,65.1,0.5,65.1,5q.f,5g.3,3k.2,4.9,5g.a,0.3s|0.46,32.f,0.f,32.6,0.h,58.4,0.3b,34.m,36.e,6k.e,2k.f,5k.a,3f.9,1h.o,0.4,1w.x,2g.7,0.m,41.4,0.1,41.t,0.a,5q.h,3k.1,5g.2,3k.2,4.9,0.5,5g.1,0.3v|0.1b,h.1,0.2t,32.h,0.d,32.7,0.i,58.4,0.3b,34.l,36.e,6k.d,2k.g,5k.c,3f.7,1h.o,0.5,1w.v,2g.7,0.o,41.1,0.4,41.s,0.b,5q.g,3k.8,4.4,0.7,5g.1,0.3v|0.45,32.h,0.d,32.6,0.k,58.7,0.38,34.k,36.g,6k.9,2k.j,5k.d,3f.5,1h.o,0.6,1w.u,2g.6,0.1,2g.1,0.s,41.r,0.d,5q.d,17.2,3k.8,4.4,0.43|0.1c,h.2,0.2r,32.i,0.c,32.6,0.f,o.1,0.c,45.3,0.1,4z.2,0.30,34.l,36.i,6k.6,2k.j,5k.g,3f.1,1h.r,0.7,1w.q,2g.7,0.u,41.p,0.h,5q.a,17.4,3k.8,4.3,0.7,5g.3,0.3u|0.1c,h.1,0.2t,32.i,0.a,32.7,0.t,45.3,4z.5,0.2x,34.l,36.i,6k.4,2k.l,5k.h,1h.r,0.7,1w.n,2g.b,0.u,41.o,0.h,5q.9,17.6,3k.6,4.4,0.5,5g.4,0.3v|0.48,32.g,0.9,32.8,0.u,45.2,4z.6,0.2x,34.k,36.k,2k.n,5k.h,1h.r,0.7,1w.i,3.4,2g.a,0.w,41.n,0.j,5q.7,17.7,3k.8,4.1,0.6,5g.4,0.3v|0.4a,32.h,0.1,32.b,61.1,0.j,3t.4,0.5,45.5,4z.1,0.1,4z.1,0.2,4z.1,0.3,g.3,0.2r,34.k,36.k,2k.n,5k.h,1h.t,0.6,1w.e,3.8,2g.8,0.x,41.m,0.l,5q.6,17.7,3k.4,17.2,3k.3,4.1,0.t,29.4,0.37|0.4d,32.l,49.4,61.2,0.1a,d.1,0.2p,34.k,36.k,2k.n,5k.h,1h.t,0.7,1w.c,3.9,2g.6,0.z,41.l,0.m,5q.6,17.7,3k.1,17.6,3k.2,4.2,0.s,29.3,0.38|0.4e,32.j,49.5,61.1,0.41,34.l,36.j,2k.n,5k.h,1h.r,4u.3,0.7,1w.1,3.6,1w.3,3.b,2g.4,0.10,41.j,0.o,5q.7,17.e,3k.2,4.2,0.r,29.4,0.37|0.4h,32.h,49.4,61.1,0.40,34.m,36.j,2k.n,5k.h,1h.q,4u.4,0.7,1w.1,3.k,2g.1,0.14,41.i,0.o,5q.3,0.1,5q.1,0.1,5q.2,17.c,3k.4,4.2,0.q,29.4,0.37|0.4j,32.7,0.1,32.8,49.3,61.1,0.1h,4h.2,0.2h,1v.5,34.h,36.j,2k.m,5k.i,1h.q,4u.4,0.8,3.j,0.16,41.f,0.q,5q.4,0.3,5q.3,17.c,3k.4,4.2,0.p,29.3,0.38|0.4m,32.2,0.5,32.3,49.7,0.1,44.8,0.3r,1v.6,34.g,36.j,2k.l,5k.j,1h.p,4u.6,0.6,3.j,0.17,41.e,0.y,5q.2,17.e,3k.3,4.3,0.n,29.3,0.39|0.4u,32.2,49.6,44.a,0.3c,5m.1,0.d,1v.8,34.2,36.r,2k.p,5k.i,1h.r,4u.6,0.6,3.i,0.19,41.c,0.10,17.f,3k.4,4.3,0.m,29.3,0.39|0.4v,32.1,49.6,44.a,2l.1,0.3o,1v.b,36.m,5s.2,2k.r,5k.i,1h.s,4u.9,0.4,3.d,0.1d,41.c,0.10,5q.1,17.e,3k.4,4.3,0.o,29.1,0.39|0.4w,49.5,4w.1,44.7,2l.5,0.3o,1v.a,36.k,5s.5,2k.q,5k.i,1h.s,4s.8,4u.2,0.3,3.c,0.1f,41.b,0.10,5q.1,17.9,5p.4,3k.2,5p.3,4.3,0.n,29.2,0.2,29.1,0.36|0.50,4w.5,44.1,2l.7,0.3q,1v.2,4f.1,1v.6,36.i,5s.7,2k.9,2j.2,2k.f,5k.h,1h.t,4s.9,4u.2,0.1,3.1,0.1,3.8,0.1i,41.b,0.10,5q.2,17.7,5p.a,4.3,0.m,29.1,0.1,29.1,0.1,29.1,0.1,29.3,0.33|0.52,4w.2,0.1,44.1,2l.7,0.18,20.1,0.2g,4f.2,1v.3,4f.1,1v.5,36.f,5s.a,2k.6,2j.5,2k.2,2j.1,2k.4,2j.4,2k.1,2j.3,5k.g,1h.s,4s.b,4u.2,0.1,3.5,0.1m,41.c,0.10,5q.1,17.2,0.2,17.3,5p.a,4.4,0.m,29.2,0.4,29.1,0.34|0.55,2l.8,0.3p,1v.b,36.e,5s.c,2k.5,2j.k,5o.1,5k.f,1h.s,4s.c,4u.2,0.1,3.2,0.1p,41.a,0.p,41.1,0.b,5q.1,17.2,0.2,17.3,5p.a,4.4,0.n,29.1,0.39|0.56,2l.7,0.n,5f.2,0.31,47.5,48.5,36.4,48.1,36.9,5s.d,2k.1,60.1,2k.1,2j.m,5o.1,5k.f,1h.q,4s.d,51.3,0.1r,41.a,0.11,5q.2,17.1,0.5,5p.9,4.4,0.o,29.1,0.3,29.2,0.1,29.2,0.31|0.57,2l.6,0.m,5f.2,0.34,47.4,48.9,36.7,5s.g,60.2,2j.m,5o.1,5k.f,1h.k,1g.1,1h.4,4s.e,51.2,0.f,1m.1,0.1d,41.9,0.p,41.1,0.b,5q.2,17.1,0.6,5p.7,4.5,0.q,29.1,0.5,29.1,0.31|0.58,2l.4,0.k,5f.4,0.3,5.4,0.2x,47.2,48.d,36.6,5s.d,60.5,2j.l,5o.2,5k.g,1h.j,1g.1,1h.4,4s.e,51.2,1n.1,0.a,1n.1,1m.4,0.1e,41.8,0.11,5q.2,0.7,5p.6,4.6,0.q,29.2,0.1,29.1,0.1,29.2,0.31|0.59,5b.4,0.g,5f.6,5.8,0.e,13.1,0.2l,48.c,36.6,5s.5,4c.6,15.2,60.6,2j.j,5o.3,5k.e,5l.2,1h.i,1g.2,1h.3,4s.g,1n.3,0.3,1n.7,1m.4,0.1e,41.8,0.10,5q.2,17.1,0.7,5p.4,4.6,0.s,29.1,0.1,29.1,0.35|0.58,5b.5,0.g,5f.5,5.2,0.1,5.b,0.3,5.4,0.2,13.1,0.2l,48.d,5a.1,36.1,5a.4,5s.4,4c.7,15.1,60.5,2j.k,5o.4,5k.c,5l.4,1h.3,1g.2,1h.b,1g.5,1h.1,4s.h,1n.c,1m.4,0.1e,41.7,0.12,17.1,0.b,4.4,0.p,29.1,0.7,29.2,0.34|0.59,5b.1,0.1,5b.3,0.f,5f.5,5.2,0.2,5.j,0.2o,48.2,1s.3,48.6,5a.a,4c.7,15.2,60.4,2j.j,5o.2,5k.e,5l.5,1h.3,1g.3,1h.6,1g.2,1h.1,1g.6,4s.i,1n.c,1m.4,0.1f,41.5,0.2,1i.1,0.10,17.1,0.c,4.3,0.o,29.1,0.7,29.1,0.2,29.1,0.33|0.5c,5b.2,2d.1,0.5,2d.4,0.4,5f.5,5.3,0.2,5.k,0.2n,48.1,1s.5,48.5,5a.b,4c.6,15.2,60.3,2j.k,5o.3,5k.c,5l.6,1h.2,1g.j,4s.j,1n.b,1m.3,0.1g,41.6,0.1,1i.2,0.z,17.3,0.a,4.2,0.o,29.1,0.9,29.1,0.4,29.1,0.30|0.5d,5b.1,2d.7,0.2,2d.2,0.2,5f.8,5.n,0.2o,1s.5,48.5,5a.b,4c.6,15.2,60.2,2j.k,5o.5,5k.8,5l.9,1h.1,1g.k,4s.l,1n.8,1m.4,0.1g,41.3,0.4,1i.2,0.y,17.4,0.z,29.1,0.e,29.3,0.2z|0.5g,2d.3,0.4,2d.2,5f.a,5.p,46.1,0.2l,1s.5,3g.2,48.2,5a.c,4c.6,15.2,60.2,2j.j,5o.7,5k.7,5l.b,1g.h,4s.q,1n.4,1m.4,0.1i,41.2,0.4,1i.3,0.y,17.4,0.19,29.7,0.2z|0.5h,2d.3,0.3,2d.2,5f.a,5.o,46.3,0.2l,1s.4,3g.2,48.3,5a.a,4c.7,15.2,60.2,2j.j,5o.7,5k.3,5l.g,1g.h,4s.s,1m.5,0.1o,1i.3,0.z,17.2,0.18,29.3,0.1,29.5,0.2z|0.5i,2d.1,0.5,5f.c,5.n,46.4,0.2l,1s.2,3g.5,5a.b,4c.7,15.2,60.3,2j.i,5o.6,5l.l,1g.h,4s.q,1m.5,0.1p,1i.4,0.z,17.2,0.x,38.1,0.9,29.1,0.3,29.3,0.1,29.1,0.2z|0.5p,5f.f,5.i,46.6,0.2l,3g.6,5a.b,4c.7,15.2,60.3,2j.e,5o.2,2j.1,5o.7,5l.m,1g.h,4s.o,1m.5,0.1q,1i.4,0.10,17.3,0.u,38.2,0.d,29.3,0.31|0.5p,5f.g,5.3,5f.1,5.d,46.7,0.2m,3g.5,5a.a,4c.8,15.1,60.1,0.5,2j.a,5o.a,5l.o,1g.h,4s.m,1m.6,0.1q,1i.3,0.11,38.2,17.2,0.s,38.3,0.d,29.3,0.31|0.5p,5f.k,5.d,46.8,1f.6,0.2g,3g.5,5a.9,4c.6,0.a,2j.8,5o.b,5l.p,1g.g,4s.l,1m.7,0.2v,38.4,0.r,38.5,0.d,29.1,0.31|0.5p,5f.j,5.e,46.1,5v.1,46.5,1f.6,4h.4,0.2e,3g.4,5a.8,0.1,4c.4,0.d,2j.7,5o.b,5l.m,5c.1,5l.3,1g.f,3p.2,4s.i,1m.7,0.2l,40.4,0.7,38.5,0.p,38.8,0.3d|0.5p,5f.j,5.e,5v.2,46.4,1f.7,4h.5,0.2f,3g.2,5a.2,0.o,2j.6,5o.c,5l.9,5c.3,5l.6,5c.8,1g.e,3p.3,4s.f,1m.9,0.2n,40.5,0.5,38.6,0.m,5u.1,38.7,0.3f|0.5p,5f.j,5.6,5v.1,5.6,5v.4,46.3,1f.7,4h.6,0.3d,5o.c,5l.7,5c.7,5l.1,5c.f,1g.8,3p.6,4s.7,3p.1,4s.3,1m.b,0.2o,40.5,0.4,38.6,0.l,38.1,5u.1,38.2,40.3,38.1,0.3g|0.5q,5f.j,5.6,5v.a,46.3,1f.8,4h.4,5v.2,0.3b,4v.1,0.1,5o.b,5l.7,5c.o,1g.1,z.2,1g.1,z.3,3p.8,4s.4,3p.3,1m.c,0.2q,40.5,0.4,38.5,0.9,40.1,0.a,38.4,40.4,0.3h|0.5p,5f.k,5.7,5v.8,46.5,1f.7,4h.3,5v.3,0.3e,5o.b,5l.2,5d.4,5c.p,z.7,3p.e,1m.b,0.2s,40.5,0.4,38.4,0.j,38.5,40.4,0.3h|0.5o,5f.l,5.7,5v.8,46.6,1f.6,4h.3,5v.3,0.3e,5o.c,5l.1,5d.4,5c.p,z.8,3p.c,1m.b,0.2q,40.1,0.3,40.5,0.3,38.4,0.g,38.7,40.6,0.3g|0.5n,5f.n,5.7,5v.7,46.6,1f.2,5v.3,4h.1,5v.1,4h.1,5v.5,0.3d,5o.3,4g.3,5o.6,5d.4,5c.q,z.8,3p.c,1m.9,0.2x,40.5,0.3,38.4,0.e,38.8,40.6,0.k,40.1,0.2v|0.19,3o.1,0.4c,5f.m,5v.2,5.6,5v.9,46.4,5v.f,0.3b,4v.4,4g.3,5d.a,5c.q,z.8,3p.c,1m.8,0.2z,40.6,0.3,38.2,0.b,38.1,0.2,38.7,40.7,0.j,40.1,0.2w|0.5m,4y.1,5f.h,5v.6,5.4,5v.c,46.1,5v.h,0.3b,4v.4,4g.3,5d.1,4g.2,5d.7,5c.p,z.9,3p.c,1m.6,0.2y,40.1,0.3,40.7,0.d,40.2,38.4,40.d,0.5,40.1,0.6,40.1,0.5,40.2,0.2v|0.5k,4y.5,5f.h,5v.11,0.3c,4g.a,5d.7,5c.o,z.9,3p.d,1m.5,0.30,40.1,0.2,40.7,0.d,40.i,0.4,40.9,0.6,40.2,0.2v|0.5k,4y.6,5f.1,4y.1,5f.c,5v.13,0.1,5v.1,0.3a,4g.9,5d.8,5c.o,z.8,3p.e,1m.4,0.35,40.6,0.1,40.1,0.b,40.h,0.k,40.1,0.2w|0.4x,4y.2,0.k,4y.a,2a.1,5f.a,5v.11,0.2,5v.4,0.38,4g.9,5d.7,5c.o,z.9,3p.e,1m.3,0.37,40.7,0.b,40.h,0.4,40.1,0.f,40.1,0.6,40.1,0.2p|0.4x,4y.1,0.l,4y.a,2a.2,5f.a,5v.16,0.1,5v.2,0.34,4g.b,5d.6,5c.o,z.9,3p.e,1m.2,0.38,40.7,0.c,40.g,0.4,40.1,0.6,40.1,0.7,40.3,0.6,40.5,0.3,40.1,0.2g|0.5i,4y.b,2a.4,5f.8,5v.15,0.1,5v.5,0.32,4g.b,5d.5,5c.p,z.1,23.1,18.8,3p.e,1m.1,0.35,40.1,0.3,40.8,0.b,40.e,0.5,40.2,0.1,40.3,0.h,40.6,0.2k|0.5i,4y.a,2a.5,5f.8,5v.14,0.1,5v.9,0.30,4g.a,5d.4,5c.p,23.4,18.9,3p.c,0.3a,40.8,0.2,40.1,0.8,40.d,0.6,40.5,0.5,40.1,0.a,40.1,0.3,40.4,0.4,40.2,0.1,40.2,0.2b|0.5i,4y.a,2a.6,5f.2,2a.1,5f.4,5v.1e,0.30,4g.6,5d.1,4g.1,5d.5,5c.q,23.4,18.a,3p.a,0.39,40.1,0.2,40.8,0.a,40.d,0.5,40.6,0.l,40.1,0.7,40.6,0.29|0.5k,4y.6,2a.e,5f.1,5v.1i,0.2x,4g.3,5d.9,5c.q,5r.1,23.1,5r.1,18.d,3p.6,0.3f,40.a,0.2,40.1,0.4,40.d,0.5,40.3,0.1,40.2,0.k,40.1,0.1,40.3,0.3,40.a,2c.1,0.25|0.5k,4y.4,2a.f,5f.1,5v.1p,0.2s,4g.3,5d.8,5c.q,5r.4,18.d,3p.5,0.3f,40.9,0.c,40.2,0.1,40.5,0.6,40.3,0.1,40.3,0.7,40.2,0.3,40.4,0.4,40.5,0.1,40.b,2c.3,0.i,2c.1,0.1k|0.5i,2a.2,4y.3,2a.g,5f.1,5v.1r,0.2r,5d.a,5c.q,5r.3,18.f,3p.4,0.3g,40.8,0.h,40.2,0.1,40.1,0.6,40.2,0.1,40.3,0.8,40.1,0.7,40.1,0.4,40.1,0.1,40.e,2c.6,0.20|0.5i,2a.1,4y.4,2a.f,5v.1,2a.1,5v.1s,0.2r,5d.8,5c.s,5r.1,18.h,3p.2,0.3i,40.7,0.r,40.2,0.2,40.3,0.o,40.c,2c.8,0.d,2c.1,0.1,2c.1,0.1i|0.5h,2a.4,4y.1,2a.d,5v.1y,0.2r,5d.1,6i.1,5c.3,5d.1,5c.t,18.j,0.3l,40.5,0.r,40.2,0.2,40.1,0.t,40.9,2c.9,0.c,2c.2,0.1j|0.5i,2a.g,5v.23,0.2n,6i.1,5c.y,18.j,0.1,18.1,0.3k,40.4,0.r,40.2,0.4,40.1,0.t,40.7,2c.a,0.a,2c.2,0.1k|0.5i,2a.g,5v.24,0.2m,5c.z,18.j,0.3p,40.1,0.1h,40.1,0.2,40.1,0.7,40.6,2c.b,0.4,2c.6,0.6,2c.1,0.1e|0.5i,2a.g,5v.24,0.2n,6i.8,5c.q,18.k,0.3p,40.4,0.1g,40.1,0.8,40.5,2c.d,0.4,2c.2,0.9,2c.1,0.1d|0.5k,2a.d,5v.25,0.2n,6i.9,5c.q,18.j,0.3o,40.6,0.4,40.2,0.19,40.1,0.9,40.4,2c.c,0.h,2c.1,0.1c|0.5l,2a.c,5v.25,0.2o,6i.8,5c.5,6i.2,5c.k,18.i,0.3q,40.c,0.1g,40.5,2c.c,0.k,1o.1,0.19|0.5l,2a.b,5v.26,0.2o,6i.9,5c.4,6i.5,5c.h,18.i,0.3t,40.1,0.2,40.a,0.n,40.1,0.9,40.1,0.d,40.6,2c.6,0.2,2c.5,0.i,1o.1,0.3,1o.1,0.16|0.5m,2a.b,5v.25,0.2p,6i.h,5c.h,2.1,18.h,0.3z,40.9,0.f,40.4,0.p,40.3,0.2,40.2,2c.5,0.5,2c.4,0.i,1o.2,0.18|0.5m,2a.c,5v.24,0.2p,6i.h,5c.e,2.5,18.g,0.47,40.1,0.1,40.1,0.1,40.3,0.3,40.4,0.6,16.4,0.r,40.1,2c.5,0.6,2c.4,0.o,1o.1,0.12|0.5n,2a.b,5v.23,0.2p,6i.i,5c.d,2.8,18.e,0.4p,16.1,40.1,16.1,0.y,2c.1,0.8,2c.4,0.2,2c.1,0.l,1o.1,0.11|0.5n,2a.c,5v.3,2a.1,5v.1x,0.2q,6i.i,5c.d,2.9,39.3,18.a,0.4g,40.2,0.6,40.3,0.19,2c.5,0.k,1o.2,0.12|0.5o,2a.f,5v.7,5y.3,5v.1n,0.2r,6i.i,5c.c,2.a,39.2,18.b,0.4n,40.1,0.1e,2c.4,0.1m|0.5o,2a.f,5v.5,5y.5,5v.1l,0.2t,6i.i,5c.c,2.a,39.2,18.b,2v.1,0.4l,40.1,0.25,1o.1,0.z|0.5p,2a.g,5y.8,5v.1l,0.2u,6i.k,2.1,5c.1,2.1,5c.6,2.a,39.2,18.9,2v.3,0.51,6a.1,0.1,6a.1,0.j,6a.2,0.22|0.5q,2a.g,5y.8,5v.1j,0.2v,6i.k,2.3,5c.6,2.a,39.2,2v.c,0.5,5e.1,0.4t,6a.2,0.3,6a.2,0.h,6a.2,0.22|0.5q,2a.g,5y.9,5v.1h,0.2v,6i.l,2.7,5c.3,2.1,5c.1,2.7,39.2,2v.c,0.h,3a.1,0.4j,6a.1,0.1,6a.8,0.1,6a.1,0.9,6a.3,0.22|0.5r,2a.f,5y.c,5v.1e,0.2u,6i.m,2.9,5c.3,2.6,39.3,2v.c,0.h,3a.1,0.4i,6a.c,0.b,6a.3,0.21|0.5r,2a.f,5y.e,5v.1a,0.2v,6i.j,2.e,5c.2,2.6,39.3,2v.c,0.h,3a.2,0.4g,6a.c,0.b,6a.4,0.21|0.f,1z.1,0.5c,2a.e,5y.h,5v.17,0.2v,6i.j,2.m,39.4,2v.b,0.f,3a.4,0.4g,6a.d,0.a,6a.4,0.21|0.5s,2a.e,5y.h,5v.17,0.2v,6i.j,2.l,2v.2,39.4,2v.a,0.f,3a.4,0.48,6a.3,0.4,6a.d,0.1,6a.1,0.9,6a.4,0.21|0.5s,2a.d,5y.i,5v.17,0.2u,6i.k,2.i,2v.7,39.3,2v.a,0.d,3a.5,0.46,6a.6,0.3,6a.c,0.c,6a.7,0.1y|0.5u,2a.c,5y.h,5v.17,0.2u,6i.k,2.h,2v.8,39.3,2v.9,0.d,3a.7,0.45,6a.6,0.1,6a.f,0.b,6a.8,0.16,7.1,0.q|0.5v,2a.a,5y.j,5v.16,0.2u,6i.k,2.f,1.2,2v.8,39.3,2v.9,0.c,3a.6,0.1,3a.1,0.44,6a.o,0.a,6a.8,0.1x|0.5x,2a.9,5y.i,5v.16,0.2u,6i.k,2.e,1.5,2v.6,39.2,2v.9,0.9,3a.b,0.43,6a.1,0.1,6a.q,0.8,6a.8,0.19,7.1,0.m,4r.1|0.5z,2a.7,5y.l,5v.13,0.2u,6i.l,2.b,1.a,2v.4,39.1,2v.8,0.a,3a.a,0.42,6a.1,0.1,6a.u,0.5,6a.9,0.19,7.1,0.k,4r.1,0.2|0.61,2a.4,5y.m,5v.13,0.2t,2u.4,6i.j,2.9,1.b,2v.a,0.c,3a.b,0.41,6a.y,0.4,6a.a,0.1w|0.1p,4m.1,0.4c,2a.2,5j.1,5y.o,5v.11,0.2t,2u.f,6i.8,2u.4,2.4,1.c,2v.8,0.e,3a.b,0.41,6a.1c,0.1r,4r.2,0.3|0.63,2a.1,5j.2,5y.n,5v.10,0.2v,2u.j,5w.4,2u.1,5w.3,1.f,2v.8,0.e,3a.b,0.41,6a.1d,0.1v|0.63,5j.3,5y.n,5v.10,0.2w,2u.h,5w.a,1.e,2v.7,0.f,3a.a,0.41,6a.1e,0.1v|0.63,5j.4,5y.l,5v.11,0.2w,2u.h,5w.a,1.e,2v.5,0.i,3a.9,0.41,6a.1f,0.1u|0.64,5j.3,5y.d,2b.7,5y.1,5v.10,0.2y,2u.g,5w.b,1.d,2v.3,0.k,3a.9,0.3z,6a.1i,0.1t|0.64,5j.3,5y.d,2b.8,5v.z,0.2z,2u.g,5w.d,1.b,2v.3,0.k,3a.8,0.i,33.1,0.3e,6a.1n,0.1r|0.64,5j.3,5y.c,2b.9,5v.z,0.30,2u.f,5w.d,1.a,2v.5,0.i,3a.9,0.3s,6a.1t,0.v,4n.1,0.4,4n.1,0.p|0.64,5j.4,5y.b,2b.9,5v.y,0.31,2u.f,5w.e,1.9,2v.5,0.h,3a.a,0.e,4h.1,0.3c,6a.1u,0.w,4n.1,0.t|0.64,5j.4,5y.b,2b.9,5v.y,0.32,2u.e,5w.g,1.6,2v.7,0.g,3a.9,0.3q,6a.1x,0.w,4n.2,0.r|0.64,5j.4,5y.3,6g.4,5y.1,6g.3,2b.b,5v.v,0.34,2u.b,5w.i,1l.2,1.3,2v.8,0.g,3a.9,0.3p,6a.1y,0.y,4n.1,0.q|0.63,5j.5,5y.2,6g.a,2b.d,5v.r,0.35,2u.b,5w.g,1l.7,2v.8,0.g,3a.9,0.3n,6a.23,0.1m|0.63,5j.7,6g.b,2b.c,5v.m,0.3a,2u.b,5w.f,1l.8,2v.8,0.g,3a.8,0.3p,6a.22,0.1m|0.63,5j.6,6g.d,2b.b,5v.k,0.3c,2u.b,5w.e,1l.9,2v.8,0.g,3a.8,0.3o,6a.24,0.1l|0.63,5j.5,6g.h,2b.a,5v.f,0.3f,2u.b,5w.e,1l.a,2v.7,0.g,3a.8,0.3o,6a.25,0.1k|0.63,5j.4,6g.j,2b.9,5v.e,0.3g,2u.b,5w.c,1l.c,2v.6,0.i,3a.6,0.3p,6a.26,0.1,6a.1,0.1h|0.63,5j.4,6g.m,2b.6,5v.d,0.3i,2u.a,1l.1,5w.a,1l.d,2v.3,0.m,3a.3,0.3s,6a.25,0.1,6a.1,0.1h|0.63,5j.4,6g.l,2b.7,6g.1,5v.b,0.3j,2u.a,1l.1,5w.5,1l.3,5w.2,1l.d,2v.1,0.4j,6a.26,0.1i|0.63,5j.4,6g.l,2b.7,6g.2,5v.a,0.3j,2u.a,1l.2,5w.3,1l.h,1e.2,2v.2,0.4g,6a.1,0.1,6a.26,0.1i|0.62,5j.5,6g.k,2b.7,6g.2,5v.b,0.3j,2u.a,1l.1,5w.3,1l.i,1e.2,2v.2,0.4h,6a.27,0.1i|0.62,5j.4,6g.l,2b.6,6g.3,5v.b,0.3k,2u.9,1l.n,1e.1,1l.2,0.4i,6a.26,0.1i|0.62,5j.4,6g.s,5v.d,0.3k,2u.9,1l.p,0.4j,6a.27,0.1h|0.62,5j.3,6g.s,5v.e,0.3l,2u.2,1l.1,2u.5,1l.p,0.4k,6a.26,0.1h|0.61,5j.4,6g.r,5v.e,0.3n,1l.2,2u.4,1l.h,3h.2,1l.6,0.4l,6a.26,0.1h|0.61,5j.3,6g.r,5v.e,0.3p,1l.l,3h.4,1l.4,0.4n,6a.25,0.1h|0.61,5j.3,6g.q,5v.e,0.3q,1l.k,3h.4,1l.4,0.4o,6a.25,0.1h|0.61,5j.3,6g.p,5v.1,9.1,5v.a,0.1,5v.2,0.3r,1l.k,3h.2,1l.5,0.4o,6a.24,0.1i|0.61,5j.2,6g.p,9.4,5v.9,0.3u,1l.q,0.4p,6a.24,0.1i|0.61,5j.2,6g.p,9.6,5v.7,0.3v,1l.o,0.4r,6a.23,0.1i|0.61,5j.2,6g.p,9.7,5v.5,0.3w,1l.n,0.4s,6a.r,0.6,6a.16,0.1i|0.61,5j.2,6g.p,9.9,5v.3,0.3x,1l.l,0.4t,6a.o,0.c,6a.12,0.1j|0.61,5j.3,6g.o,9.a,5v.1,0.3x,1l.k,0.4v,6a.j,0.i,6a.10,0.1k|0.61,5j.3,6g.n,9.a,5v.2,0.3x,1l.j,0.4w,6a.h,0.l,6a.6,0.1,6a.r,0.1l|0.60,5j.4,6g.n,9.a,0.40,1l.f,0.4y,6a.h,0.n,6a.4,0.1,6a.s,0.1l|0.60,5j.4,6g.n,0.1,9.9,0.41,1l.6,0.56,6a.9,0.w,6a.2,0.2,6a.r,0.1m|0.60,5j.3,6g.p,0.3,9.4,0.44,1l.1,0.5c,6a.5,0.y,6a.1,0.3,6a.1,0.1,6a.p,0.1m|0.5z,5j.4,6g.q,0.aw,6a.o,0.19,2m.2,0.c|0.5z,5j.4,6g.q,0.as,6a.2,0.3,6a.m,0.1b,2m.2,0.b|0.5y,5j.5,6g.r,0.ax,6a.l,0.1o|0.5y,5j.4,6g.t,0.ax,6a.k,0.1d,2m.1,0.1,2m.1,0.8|0.5x,5j.5,6g.s,0.ay,6a.k,0.1d,2m.3,0.8|0.5x,5j.5,6g.r,0.b0,6a.i,0.1f,2m.3,0.2,2m.2,0.3|0.5x,5j.5,6g.q,0.b3,6a.6,0.1,6a.5,0.1i,2m.8,0.3|0.5x,5j.5,6g.n,0.d0,2m.7,0.4|0.5y,5j.3,6g.i,0.d5,2m.6,0.6|0.5x,5j.4,6g.j,0.d5,2m.5,0.6|0.5x,5j.3,6g.j,0.d7,2m.3,0.7|0.5w,5j.4,6g.j,0.bi,6a.1,0.1o,2m.3,0.7|0.5w,5j.4,6g.e,0.bn,6a.8,0.1b,2m.2,0.1,2m.5,0.8|0.5x,5j.1,0.1,5j.1,6g.e,0.bo,6a.7,0.1a,2m.6,0.b|0.5w,5j.1,0.1,5j.2,6g.h,0.bm,6a.5,0.1b,2m.5,0.c|0.5w,5j.1,0.1,5j.2,6g.e,0.2,6g.1,0.bm,6a.5,0.1a,2m.5,0.d|0.5v,5j.2,0.1,5j.2,6g.e,0.bq,6a.2,0.1a,2m.5,0.f|0.7,2m.1,0.5q,5j.2,6g.d,0.d1,2m.8,0.e|0.5y,5j.2,6g.d,0.cz,2m.7,0.h|0.5v,5j.1,0.1,5j.4,6g.c,0.cy,2m.7,0.i|0.5w,5j.5,6g.9,0.d0,2m.8,0.i|0.5x,5j.3,6g.9,0.d1,2m.7,0.j|0.5u,5j.2,0.1,5j.3,6g.9,0.d2,2m.5,0.k|0.5u,5j.6,6g.a,0.dq|0.5v,5j.5,6g.c,0.do|0.5v,5j.1,0.1,5j.2,6g.d,0.do|0.5u,5j.5,6g.c,0.dp|0.5u,5j.5,6g.b,0.dq|0.5u,5j.4,6g.b,0.7l,4o.1,0.1,4o.1,0.63|0.5t,5j.4,6g.b,0.ds|0.5t,5j.1,0.1,5j.2,6g.a,0.dt|0.5u,5j.5,6g.7,0.du|0.5u,5j.1,0.1,5j.3,6g.7,0.du|0.5w,5j.4,6g.6,0.i,n.4,0.d8|0.5u,5j.1,0.1,5j.9,0.1,5j.1,0.h,n.1,0.db|0.5x,5j.1,0.1,5j.3,0.1,5j.4,0.dt|0.5y,5j.2,0.1,5j.1,0.1,5j.4,0.dt|0.5x,5j.2,0.1,5j.2,0.2,5j.3,6g.2,0.dr|0.61,5j.1,0.3,5j.2,6g.3,0.1o,i.1,0.c1|0.63,5j.1,0.1,5j.2,6g.7,0.1,6g.1,0.1j,i.1,0.c0|0.66,5j.1,0.1,5j.2,0.dq|0.k0|0.k0|0.k0|0.k0|0.k0|0.k0|0.k0|0.k0|0.k0"};
+(()=>{
+"use strict";
+// ================= utilities
+const R=Math.random, rnd=(a,b)=>a+R()*(b-a), ri=n=>(R()*n)|0, clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const $=id=>document.getElementById(id);
+const fmtT=s=>{s=Math.max(0,s|0);return String(s/60|0).padStart(2,'0')+':'+String(s%60).padStart(2,'0')};
+const flagOf=a2=>a2&&a2.length===2?String.fromCodePoint(...[...a2].map(c=>0x1F1E6+c.charCodeAt(0)-65)):'🏳️';
+const hash=s=>{let h=2166136261;for(const c of s)h=Math.imul(h^c.charCodeAt(0),16777619);return h>>>0};
+const TICK=0.1;
+// deterministic simulation helpers: every client runs the same simulation from the same seed (lockstep multiplayer)
+let SEED=1;
+function SR(){SEED=SEED+0x6D2B79F5|0;let t=Math.imul(SEED^SEED>>>15,1|SEED);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}
+const srnd=(a,b)=>a+SR()*(b-a), sri=n=>(SR()*n)|0;
+const hyp=(x,y)=>Math.sqrt(x*x+y*y);
+const powi=(b,e)=>{let r=1;for(let i=0;i<e;i++)r*=b;return r;};
+const pw125=x=>x*Math.sqrt(Math.sqrt(x));
+const pw0625=x=>Math.sqrt(x)*Math.sqrt(Math.sqrt(Math.sqrt(x)));
+
+// ================= map decode
+const W=MAP.W,H=MAP.H,NC=W*H;
+const ctry=new Uint16Array(NC);
+MAP.rle.split('|').forEach((row,y)=>{let x=0;for(const t of row.split(',')){const p=t.indexOf('.');const v=parseInt(t.slice(0,p),36),n=parseInt(t.slice(p+1),36);ctry.fill(v,y*W+x,y*W+x+n);x+=n;}});
+const KO_FIX={RU:'러시아',US:'미국',GB:'영국',KR:'대한민국',KP:'북한',MN:'몽골',YE:'예멘',VA:'바티칸',FM:'미크로네시아',TZ:'탄자니아',SA:'사우디아라비아',AE:'아랍에미리트',TM:'투르크메니스탄',PG:'파푸아뉴기니',MD:'몰도바',MK:'북마케도니아',LY:'리비아',LA:'라오스',PS:'팔레스타인',IR:'이란',ID:'인도네시아',DO:'도미니카공화국',CI:'코트디부아르',CD:'콩고민주공화국',CF:'중앙아프리카',BF:'부르키나파소',BN:'브루나이',BA:'보스니아',FK:'포클랜드',TT:'트리니다드토바고',PR:'푸에르토리코',ST:'상투메프린시페',NC:'뉴칼레도니아',PF:'프랑스령 폴리네시아',TF:'프랑스 남부령',HM:'허드 맥도널드',GS:'사우스조지아',IO:'영국령 인도양',SH:'세인트헬레나',VI:'미국령 버진',VG:'영국령 버진',TC:'터크스케이커스',MP:'북마리아나',AS:'아메리칸사모아',IM:'맨섬',VC:'세인트빈센트',LC:'세인트루시아',KN:'세인트키츠',AG:'앤티가바부다',PM:'생피에르',WF:'왈리스 푸투나',MF:'생마르탱',BL:'생바르텔레미',SX:'신트마르턴',SM:'산마리노',LI:'리히텐슈타인',MC:'모나코',AD:'안도라',MT:'몰타',SG:'싱가포르',NR:'나우루',TW:'대만',CZ:'체코',SY:'시리아',VE:'베네수엘라',BO:'볼리비아',GL:'그린란드',CG:'콩고',EH:'서사하라',SS:'남수단',CN:'중국',JP:'일본',IN:'인도',BR:'브라질'};
+const EN_KO={'Somaliland':'소말릴란드','Kosovo':'코소보','N. Cyprus':'북키프로스','Indian Ocean Ter.':'인도양 영토','Siachen Glacier':'시아첸 빙하'};
+const META=MAP.meta.map(([ko,a2,en])=>({ko:KO_FIX[a2]||EN_KO[en]||ko,a2,en,cells:[]}));
+
+// super nations: tiny countries stamped onto the grid
+const SUPERS=[
+ {a2:'VA',lat:41.9,lon:12.45,perk:'신성한 가호',pd:'병사 체력이 계속 회복됩니다'},
+ {a2:'MC',lat:43.73,lon:7.42,perk:'카지노 왕국',pd:"골드 수입 +60%"},
+ {a2:'SM',lat:43.94,lon:12.46,perk:'석궁의 요새',pd:"원거리 사거리 +40%"},
+ {a2:"LI",lat:47.16,lon:9.55,perk:"알프스 금고",pd:"병사 체력 +50%"},
+ {a2:'AD',lat:42.5,lon:1.52,perk:'피레네 질주',pd:"이동 속도 +35%"},
+ {a2:'MT',lat:35.9,lon:14.45,perk:'몰타 기사단',pd:"공격력 +30%"},
+ {a2:'SG',lat:1.35,lon:103.8,perk:'무역 허브',pd:"생산 속도 추가 +30%"},
+ {a2:'NR',lat:-0.53,lon:166.93,perk:'태평양 요새',pd:'시작 영토 2배 · 바다 이동 감속 없음'},
+];
+const SUPER_BY_CI={};
+for(const s of SUPERS){
+  s.ci=META.findIndex(m=>m.a2===s.a2); if(s.ci<0)continue;
+  const cx=Math.floor((s.lon+180)/MAP.STEP), cy=Math.floor((MAP.LAT0-s.lat)/MAP.STEP);
+  for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++)ctry[(cy+dy)*W+cx+dx]=s.ci+1;
+  s.cell=cy*W+cx; SUPER_BY_CI[s.ci]=s;
+}
+const landIdx=[]; for(let i=0;i<NC;i++)if(ctry[i]){landIdx.push(i);META[ctry[i]-1].cells.push(i);}
+const TOTAL_LAND=landIdx.length;
+
+// ================= real cities (Natural Earth 1:50m): [cell, 한국어 이름, 수도 여부, 인구 등급]
+const CITIES=[[69759,"도쿄",1,76],[93041,"멕시코시티",1,73],[86940,"다카",1,71],[170883,"부에노스아이레스",1,71],[77462,"카이로",1,71],[63952,"베이징",1,70],[99240,"마닐라",1,70],[40755,"모스크바",1,70],[50764,"파리",1,70],[66853,"서울",1,70],[130173,"자카르타",1,70],[46439,"런던",1,69],[137726,"리마",1,69],[69582,"테헤란",1,69],[127110,"킨샤사",1,69],[113971,"보고타",1,69],[85562,"타이베이",1,68],[101361,"방콕",1,68],[62132,"뉴욕",0,73],[92665,"뭄바이",0,73],[155066,"상파울루",0,73],[168698,"산티아고",1,68],[62992,"마드리드",1,67],[79714,"델리",0,72],[118646,"싱가포르",1,67],[132867,"루안다",1,67],[73168,"바그다드",1,67],[76202,"상하이",0,72],[88376,"콜카타",0,72],[98345,"하르툼",1,67],[85413,"리야드",1,66],[90571,"하노이",1,66],[65005,"워싱턴 D.C.",1,66],[71403,"로스앤젤레스",0,71],[84733,"카라치",0,71],[153633,"리우데자네이루",0,71],[113391,"아비장",1,66],[71191,"오사카",0,71],[143544,"브라질리아",1,66],[63785,"앙카라",1,66],[45026,"베를린",1,65],[68046,"알제",1,65],[61617,"이스탄불",0,70],[60143,"로마",1,65],[64691,"평양",1,65],[71058,"카불",1,65],[65926,"아테네",1,65],[168876,"케이프타운",1,65],[111245,"라고스",0,70],[107717,"아디스아바바",1,65],[122833,"나이로비",1,65],[60664,"시카고",0,70],[106065,"카라카스",1,65],[87706,"광저우",0,69],[130758,"다르에스살람",1,65],[65141,"리스본",1,64],[48661,"키예프",1,64],[99685,"다카르",1,64],[88428,"선전",0,69],[72432,"다마스쿠스",1,64],[76908,"우한",0,69],[68060,"튀니스",1,64],[88427,"홍콩",0,69],[51512,"빈",1,64],[64674,"톈진",0,69],[102040,"첸나이",0,69],[102755,"벵갈루루",0,68],[75388,"라호르",0,68],[73826,"트리폴리",1,63],[61698,"타슈켄트",1,63],[88034,"아바나",1,63],[93819,"산토도밍고",1,63],[78333,"충칭",0,68],[96276,"하이데라바드",0,68],[62378,"바쿠",1,63],[112679,"아크라",1,63],[78935,"쿠웨이트",1,63],[99088,"사나",1,63],[93815,"포르토프랭스",1,63],[57292,"부쿠레슈티",1,63],[97001,"아마라바티",0,68],[157204,"아순시온",1,63],[83719,"마이애미",0,67],[149312,"벨루오리존치",0,67],[72431,"베이루트",1,63],[63569,"필라델피아",0,67],[43615,"민스크",1,63],[87625,"아마다바드",0,67],[105693,"호찌민",0,67],[47888,"브뤼셀",1,62],[57801,"토론토",0,67],[45762,"바르샤바",1,62],[70907,"라바트",1,62],[121162,"키토",1,62],[148055,"안타나나리보",1,62],[52238,"부다페스트",1,62],[60843,"바르셀로나",0,67],[115583,"야운데",1,62],[73606,"댈러스",0,67],[61086,"선양",0,67],[144223,"라파스",1,62],[107654,"아부자",1,62],[146582,"하라레",1,62],[94107,"푸네",0,67],[169862,"시드니",0,67],[34980,"상트페테르부르크",0,67],[170887,"몬테비데오",1,62],[88382,"치타공",0,67],[87707,"둥관",0,67],[72191,"애틀랜타",0,67],[102583,"바마코",1,62],[106171,"코나크리",1,62],[59977,"보스턴",0,67],[77929,"휴스턴",0,66],[104249,"프놈펜",1,62],[111962,"로메",1,62],[83982,"도하",1,62],[116483,"쿠알라룸푸르",1,62],[157384,"마푸투",1,62],[100981,"산살바도르",1,62],[120665,"캄팔라",1,62],[90873,"과달라하라",0,66],[175609,"멜버른",0,66],[76020,"알렉산드리아",0,66],[76888,"청두",0,66],[59953,"디트로이트",0,66],[96311,"양곤",0,66],[158096,"프리토리아",1,61],[71857,"시안",0,66],[142976,"루사카",1,61],[163696,"포르투알레그리",0,66],[106751,"산호세",1,61],[108200,"파나마시티",1,61],[90505,"수라트",0,66],[35676,"스톡홀름",1,61],[83679,"몬테레이",0,66],[74757,"난징",0,66],[54932,"몬트리올",0,66],[82653,"구이양",0,66],[132049,"헤시피",0,66],[55333,"하얼빈",0,66],[126282,"포르탈레자",0,66],[58135,"우루무치",0,66],[59446,"소피아",1,61],[72855,"피닉스",0,66],[48628,"프라하",1,61],[139243,"사우바도르",0,65],[70458,"부산",0,65],[65634,"샌프란시스코",0,65],[103316,"와가두구",1,61],[55648,"오타와",1,61],[158816,"요하네스버그",0,65],[34249,"헬싱키",1,60],[63089,"예레반",1,60],[117810,"모가디슈",1,60],[60929,"트빌리시",1,60],[56560,"베오그라드",1,60],[111808,"메데인",0,65],[65297,"두샨베",1,60],[39986,"코펜하겐",1,60],[70473,"나고야",0,65],[58210,"창춘",0,65],[72345,"카사블랑카",0,65],[75311,"암만",1,60],[44267,"더블린",1,60],[64683,"다롄",0,65],[83320,"칸푸르",0,65],[103337,"카노",0,65],[111217,"몬로비아",1,60],[73870,"텔아비브",0,65],[45729,"암스테르담",1,60],[75310,"예루살렘",1,60],[157221,"쿠리치바",0,65],[51955,"시애틀",0,65],[99538,"과테말라 시티",1,60],[68275,"쯔보",0,65],[89718,"지다",0,65],[77640,"항저우",0,65],[103350,"은자메나",1,60],[55818,"밀라노",0,65],[84805,"쿤밍",0,65],[82591,"자이푸르",0,65],[73565,"샌디에이고",0,65],[66825,"타이위안",0,65],[48617,"프랑크푸르트",0,65],[69000,"칭다오",0,65],[131624,"수라바야",0,65],[100265,"테구시갈파",1,60],[94525,"킹스턴",1,60],[68273,"지난",0,64],[72619,"후쿠오카",0,64],[153625,"캄피나스",0,64],[92712,"네피도",1,60],[88440,"가오슝",0,64],[103405,"지부티",1,60],[103147,"마나과",1,60],[101164,"니아메",1,60],[68834,"알레포",0,64],[163141,"더반",0,64],[82601,"러크나우",0,64],[61599,"티라나",1,60],[81170,"카트만두",1,60],[52413,"울란바토르",1,59],[71147,"정저우",0,64],[86281,"타이중",0,64],[110527,"이바단",0,64],[56333,"미니애폴리스",0,64],[83398,"푸저우",0,64],[80505,"창사",0,64],[65934,"이즈미르",0,64],[123540,"키갈리",1,59],[68967,"란저우",0,64],[58243,"삿포로",0,64],[85555,"샤먼",0,64],[124040,"과야킬",0,64],[59549,"비슈케크",1,59],[34941,"오슬로",1,59],[112881,"조지타운",0,64],[114877,"방기",1,59],[108334,"프리타운",1,59],[94547,"산후안",0,64],[68879,"마슈하드",0,64],[90518,"나그푸르",0,64],[62521,"진시",0,64],[66108,"스자좡",0,64],[58213,"지린",0,64],[98344,"옴두르만",0,64],[130895,"반둥",0,64],[80521,"원저우",0,64],[79791,"난창",0,64],[72506,"이슬라마바드",1,59],[80835,"탬파",0,64],[49072,"밴쿠버",0,64],[63510,"덴버",0,64],[111243,"코토누",1,59],[45716,"버밍엄",0,64],[95605,"비엔티안",1,59],[64286,"볼티모어",0,64],[116126,"칼리",0,64],[66161,"센다이",0,64],[61587,"나폴리",0,64],[44275,"맨체스터",0,63],[39288,"리가",1,59],[94648,"누악쇼트",1,59],[86875,"무스카트",1,59],[64979,"세인트루이스",0,63],[93043,"푸에블라",0,63],[66716,"아시가바트",1,59],[76892,"난충",0,63],[55111,"자그레브",1,59],[88416,"난닝",0,63],[122663,"벨렝",0,63],[84050,"파트나",0,63],[71155,"짜오좡",0,63],[66841,"옌타이",0,63],[115757,"메단",0,63],[146393,"산타크루스데라시에라",0,63],[71874,"쉬저우",0,63],[57996,"사라예보",1,58],[70436,"린이",0,63],[105336,"마라카이보",0,63],[52977,"키시너우",1,58],[71904,"히로시마",0,63],[62499,"바오터우",0,63],[75474,"허페이",0,63],[88351,"인도르",0,63],[144981,"고이아니아",0,63],[90572,"하이퐁",0,63],[72593,"쑤저우",0,63],[73305,"난양",0,63],[140827,"릴롱궤",1,58],[78363,"닝보",0,63],[114859,"두알라",0,63],[61396,"클리블랜드",0,63],[54834,"포틀랜드",0,63],[99077,"아스마라",1,58],[159785,"브리즈번",0,63],[62839,"피츠버그",0,63],[68529,"라스베이거스",0,63],[85429,"아부다비",1,58],[70471,"교토",0,63],[105330,"바랑키야",0,63],[150235,"포트루이스",1,58],[106064,"발렌시아",0,62],[43579,"함부르크",0,62],[89066,"바도다라",0,62],[125519,"마나우스",0,62],[75480,"우시",0,62],[125129,"팔렘방",0,62],[71405,"샌버너디노",0,62],[119899,"리브르빌",1,58],[87634,"보팔",0,62],[62503,"후허하오터",0,62],[104913,"코임바토르",0,62],[53889,"다칭",0,62],[67076,"산호세",0,62],[55815,"토리노",0,62],[76201,"쑤저우",0,62],[76831,"루디아나",0,62],[53167,"치치하얼",0,62],[61805,"안산",0,62],[64271,"신시내티",0,62],[68268,"한단",0,62],[73903,"이스파한",0,62],[42170,"빌뉴스",1,57],[64917,"새크라멘토",0,62],[86992,"산터우",0,62],[81876,"아그라",0,62],[90580,"잔장",0,62],[88379,"쿨나",0,62],[92378,"산티아고데로스카바예로스",0,62],[166911,"퍼스",0,62],[95566,"비샤카파트남",0,62],[77542,"물탄",0,62],[106352,"코치",0,62],[74668,"구지란왈라",0,62],[57982,"피렌체",0,62],[63058,"부르사",0,62],[90156,"레온",0,62],[60162,"스코페",1,57],[91947,"나시크",0,62],[78643,"샌안토니오",0,62],[64250,"캔자스시티",0,62],[69014,"대전",0,62],[78330,"네이장",0,62],[84836,"취안저우",0,62],[48672,"하르키우",0,62],[84736,"하이데라바드",0,62],[165831,"코르도바",0,62],[74033,"화이난",0,62],[105494,"카두나",0,62],[73605,"포트워스",0,62],[70453,"광주",0,62],[63547,"인디애나폴리스",0,62],[107008,"하르게이사",1,57],[55089,"리옹",0,62],[65972,"타브리즈",0,62],[45009,"헤이그",0,61],[110050,"다바오",0,61],[57969,"마르세유",0,61],[78995,"메루트",0,61],[76169,"몐양",0,61],[130901,"스마랑",0,61],[59442,"프리슈티나",1,57],[80434,"파리다바드",0,61],[163132,"블룸폰테인",1,57],[41565,"노보시비르스크",0,61],[58504,"밀워키",0,61],[90439,"메카",0,61],[84711,"두바이",0,61],[174229,"오클랜드",0,61],[137934,"루붐바시",0,61],[84765,"바라나시",0,61],[79397,"올랜도",0,61],[86933,"아산솔",0,61],[68846,"모술",0,61],[39361,"예카테린부르크",0,61],[71783,"페샤와르",0,61],[89832,"만달레이",0,61],[88372,"잠셰드푸르",0,61],[130007,"음부지마이",0,61],[107076,"마두라이",0,61],[68110,"아다나",0,61],[87639,"자발푸르",0,61],[40047,"니즈니노브고로드",0,61],[60357,"츠펑",0,61],[51503,"뮌헨",0,61],[51514,"브라티슬라바",1,56],[72598,"화이안",0,61],[128039,"마카사르",0,61],[89061,"라지코트",0,61],[86932,"단바드",0,61],[78225,"시라즈",0,61],[54372,"제네바",0,61],[71131,"톈수이",0,61],[82649,"류판수이",0,61],[67308,"세비야",0,61],[75389,"암리차르",0,61],[103287,"비사우",1,56],[149318,"빌라벨랴",0,61],[58833,"알마티",0,61],[167998,"로사리오",0,61],[84763,"알라하바드",0,61],[111971,"베닌시티",0,61],[134207,"마세이오",0,61],[35689,"탈린",1,56],[180709,"웰링턴",1,56],[74560,"벵가지",0,61],[69322,"롤리",0,61],[77204,"오스틴",0,61],[40671,"글래스고",0,61],[171277,"애들레이드",0,61],[83673,"토레온",0,61],[71789,"스리나가르",0,61],[44380,"사마라",0,61],[42266,"옴스크",0,61],[88420,"위린",0,61],[40778,"카잔",0,60],[92670,"아우랑가바드",0,60],[46931,"캘거리",0,60],[52937,"취리히",0,60],[68069,"발레타",1,56],[74018,"안캉",0,60],[139351,"우암부",0,60],[90522,"빌라이",0,60],[41522,"첼랴빈스크",0,60],[129169,"나타우",0,60],[163134,"마세루",1,56],[70019,"멤피스",0,60],[43332,"에드먼턴",0,60],[95551,"솔라푸르",0,60],[52999,"로스토프나도누",0,60],[51549,"드니프로",0,60],[68243,"시닝",0,60],[67887,"노퍽",0,60],[47886,"릴",0,60],[87650,"란치",0,60],[124831,"상루이스",0,60],[47302,"누르술탄",1,55],[160822,"플로리아노폴리스",0,60],[169611,"포트엘리자베스",0,60],[114134,"포트하커트",0,60],[53900,"자무쓰",0,60],[61413,"브리지포트",0,60],[42232,"우파",0,60],[82665,"헝양",0,60],[59242,"버펄로",0,60],[85399,"메디나",0,60],[71629,"페스",0,60],[97775,"다낭",0,60],[84798,"바오산",0,60],[101969,"아덴",0,60],[37192,"페름",0,60],[76057,"아바즈",0,60],[125698,"부줌부라",1,55],[83306,"조드푸르",0,60],[88717,"산루이스포토시",0,60],[53700,"오데사",0,60],[66092,"인촨",0,60],[77236,"잭슨빌",0,60],[51555,"도네츠크",0,60],[84820,"구이린",0,60],[50848,"볼고그라드",0,60],[172018,"캔버라",1,55],[83343,"구와하티",0,60],[76833,"찬디가르",0,60],[83316,"괄리오르",0,60],[62056,"솔트레이크시티",0,60],[56061,"지시",0,60],[90900,"메리다",0,60],[81227,"핑샹",0,60],[108513,"티루바난타푸람",0,60],[104191,"코지코드",0,60],[109088,"오그보모쇼",0,60],[105637,"티루치라팔리",0,60],[112210,"제너럴산토스",0,60],[68568,"털사",0,60],[54389,"류블랴나",1,55],[40145,"크라스노야르스크",0,60],[66664,"코니아",0,60],[66445,"리치먼드",0,60],[128434,"테레지나",0,60],[83415,"나하",0,60],[69986,"앨버커키",0,60],[104066,"마이두구리",0,60],[167982,"멘도사",0,60],[99150,"후블리",0,59],[173014,"콘셉시온",0,59],[114349,"반다르스리브가완",1,55],[103473,"마이소르",0,59],[105329,"카르타헤나",0,59],[73569,"멕시칼리",0,59],[105357,"포트오브스페인",1,55],[58204,"퉁랴오",0,59],[126438,"몸바사",0,59],[61367,"오마하",0,59],[68586,"내슈빌",0,59],[58674,"빌바오",0,59],[90523,"라이푸르",0,59],[104196,"살렘",0,59],[75223,"마라케시",0,59],[76775,"바스라",0,59],[128730,"반다르람풍",0,59],[66625,"팔레르모",0,59],[46432,"카디프",0,59],[88003,"탐피코",0,59],[76111,"잘란다르",0,59],[122240,"파당",0,59],[167977,"발파라이소",0,59],[66034,"야르칸드현",0,59],[134574,"포트모르즈비",1,55],[57962,"툴루즈",0,59],[46518,"보로네시",0,59],[91971,"부바네스와르",0,59],[46532,"사라토프",0,59],[112691,"와리",0,59],[159349,"산미겔데투쿠만",0,59],[62325,"테살로니키",0,59],[84751,"코타",0,59],[79066,"웨양",0,59],[53654,"베른",1,54],[74298,"투손",0,59],[144216,"아레키파",0,59],[106447,"세부",0,59],[86217,"라지샤히",0,59],[85105,"쿨리아칸",0,59],[63718,"발렌시아",0,59],[143527,"쿠이아바",0,59],[81156,"알리가르",0,59],[132345,"말랑",0,59],[153754,"빈트후크",1,54],[49368,"리비우",0,59],[56518,"보르도",0,59],[69479,"오랑",0,59],[111123,"조지타운",1,54],[79347,"치와와",0,59],[73949,"잠무",0,59],[70004,"오클라호마시티",0,59],[79717,"모라다바드",0,59],[77939,"뉴올리언스",0,59],[150010,"캄푸그란지",0,59],[102029,"망갈로르",0,59],[110764,"삼보앙가",0,59],[77534,"퀘타",0,59],[131961,"트루히요",0,59],[129284,"카낭가",0,59],[112569,"파라마리보",1,54],[48639,"크라쿠프",0,59],[58524,"로체스터",0,59],[75026,"엘패소",0,59],[101248,"타이즈",0,59],[96988,"콜라푸르",0,59],[108954,"시우다드과야나",0,59],[42877,"그단스크",0,59],[101890,"소코토",0,59],[85547,"사오관",0,59],[95919,"아카풀코",0,59],[75371,"칸다하르",0,59],[63853,"사마르칸트",0,59],[133811,"딜리",1,54],[150177,"불라와요",0,58],[111974,"에누구",0,58],[85163,"나소",1,54],[66629,"카타니아",0,58],[148549,"수크레",1,54],[70266,"니코시아",1,54],[74608,"나자프",0,58],[58527,"시러큐스",0,58],[127103,"푸앵트누아르",0,58],[69312,"녹스빌",0,58],[110680,"콜롬보",1,53],[62424,"안디잔",0,58],[55878,"크라스노다르",0,58],[56536,"제노바",0,58],[42936,"울리야놉스크",0,58],[128557,"키퀴트",0,58],[49125,"위니펙",0,58],[156651,"가보로네",1,53],[53497,"퀘벡",0,58],[76024,"포트사이드",0,58],[93394,"난데드",0,58],[111229,"야무수크로",1,53],[47187,"드레스덴",0,58],[67800,"프레즈노",0,58],[61632,"삼순",0,58],[83945,"룩소르",0,58],[37879,"야로슬라블",0,58],[68773,"콩스탕틴",0,58],[125869,"반자르마신",0,58],[70288,"키르쿠크",0,58],[44447,"바르나울",0,58],[78618,"에르모시요",0,58],[68316,"나가노",0,58],[58943,"블라디보스토크",0,58],[45928,"이르쿠츠크",0,58],[143709,"블랜타이어",0,58],[59587,"이저우",0,58],[51750,"하바롭스크",0,58],[93047,"베라크루스",0,58],[119930,"키상가니",0,58],[99536,"케트살테낭고",0,58],[118659,"쿠칭",0,58],[88426,"마카오",0,58],[109789,"부아케",0,58],[147863,"우베를란지아",0,58],[154345,"소로카바",0,58],[175203,"마르델플라타",0,57],[91648,"산티아고데쿠바",0,57],[132341,"수라카르타",0,57],[151464,"히베이랑프레투",0,57],[46550,"오렌부르크",0,57],[80353,"타부크",0,57],[58122,"이닝",0,57],[90185,"캉쿤",0,57],[168423,"뉴캐슬",0,57],[43734,"노보쿠즈네츠크",0,57],[83684,"마타모로스",0,57],[40129,"톰스크",0,57],[72625,"마쓰야마",0,57],[50042,"루앙",0,57],[95926,"오아하카",0,57],[148748,"베이라",0,57],[71017,"하마단",0,57],[161946,"골드코스트",0,57],[146875,"수바",1,52],[42199,"랴잔",0,57],[38651,"튜멘",0,57],[113590,"반다아체",0,57],[156469,"살타",0,57],[44369,"펜자",0,57],[77465,"수에즈",0,57],[64591,"카슈가르",0,57],[75309,"가자",0,57],[40673,"에든버러",0,57],[68055,"안나바",0,57],[91234,"아콜라",0,57],[54456,"아스트라한",0,57],[61592,"바리",0,57],[120497,"마카파",0,57],[28396,"레이캬비크",1,52],[124985,"므완자",0,57],[64950,"콜로라도스프링스",0,57],[66805,"우웨이",0,57],[92594,"포트수단",0,57],[166558,"산타페",0,57],[56542,"볼로냐",0,57],[78275,"사하란푸르",0,57],[96273,"굴바르가",0,57],[138522,"페이라지산타나",0,57],[96653,"툭스틀라구티에레스",0,57],[71764,"헤라트",0,57],[75348,"야즈드",0,57],[41572,"케메로보",0,57],[115577,"말라보",1,52],[60259,"쉼켄트",0,57],[81832,"반다르아바스",0,57],[126213,"이키토스",0,57],[68174,"마자르이샤리프",0,57],[36459,"키로프",0,57],[49466,"카라간다",0,57],[42108,"벨파스트",0,57],[97801,"바기오",0,57],[166542,"산후안",0,57],[122993,"발릭파판",0,56],[112700,"바멘다",0,56],[87702,"우저우",0,56],[50775,"스트라스부르",0,56],[109655,"산크리스토발",0,56],[52916,"낭트",0,56],[60158,"포드고리차",1,52],[107666,"가루아",0,56],[73339,"나가사키",0,56],[42160,"칼리닌그라드",0,56],[80800,"러레이도",0,56],[160973,"웰콤",0,56],[44348,"브랸스크",0,56],[77217,"배턴루지",0,56],[81782,"아시우트",0,56],[136490,"콜웨지",0,56],[44397,"마그니토고르스크",0,56],[138449,"우앙카요",0,56],[70916,"우지다",0,56],[67479,"허톈",0,56],[139376,"키트웨",0,56],[130038,"잔지바르",0,56],[119228,"엠발레",0,56],[99072,"카살라",0,56],[39311,"트베리",0,56],[32906,"수르구트",0,56],[72197,"컬럼비아",0,56],[94157,"치앙마이",0,56],[128358,"피우라",0,56],[101940,"엘오베이드",0,56],[103369,"니알라",0,56],[142998,"남풀라",0,56],[105004,"일로일로",0,56],[74550,"미스라타",0,56],[137966,"모로니",1,51],[119005,"파스토",0,56],[162977,"카시아스두술",0,56],[37919,"니즈니타길",0,56],[60652,"디모인",0,56],[81204,"시창",0,56],[56587,"세바스토폴",0,56],[59382,"비고",0,56],[113248,"마니살레스",0,56],[87267,"마사틀란",0,56],[120126,"고론탈로",0,56],[81136,"라르카나",0,56],[184305,"크라이스트처치",0,56],[55883,"스타브로폴",0,56],[84773,"바갈푸르",0,56],[140616,"쿠스코",0,56],[46655,"울란우데",0,56],[104751,"보보디울라소",0,56],[56392,"핼리팩스",0,56],[59542,"타라즈",0,56],[160088,"포사다스",0,56],[27801,"아르한겔스크",0,56],[125897,"암본",0,56],[74501,"사피",0,55],[119950,"엘도레트",0,55],[133402,"침보테",0,55],[81520,"누에보라레도",0,55],[51965,"스포캔",0,55],[108217,"메리다",0,55],[125713,"아루샤",0,55],[147302,"치팅귀자",0,55],[98952,"프라이아",1,51],[168175,"이스트런던",0,55],[57727,"보이시",0,55],[72627,"고치",0,55],[99204,"나콘랏차시마",0,55],[144992,"몬테스 클라로스",0,55],[64694,"원산",0,55],[45873,"파블로다르",0,55],[63480,"리노",0,55],[58039,"소치",0,55],[57967,"몽펠리에",0,55],[69501,"수스",0,55],[52975,"이아시",0,55],[75502,"미야자키",0,55],[49332,"룩셈부르크",1,50],[66590,"코르도바",0,55],[42184,"스몰렌스크",0,55],[157930,"시우다드델에스테",0,55],[166575,"펠로타스",0,55],[105508,"마루아",0,55],[63848,"부하라",0,55],[22026,"무르만스크",0,55],[49485,"외스케멘",0,55],[78901,"파이윰",0,55],[86105,"아스완",0,55],[48760,"세메이",0,55],[132690,"푸카이파",0,55],[155019,"안토파가스타",0,55],[45946,"치타",0,55],[142118,"비토리아 다 콩키스타",0,55],[58767,"날치크",0,55],[133432,"포르투벨류",0,55],[56576,"콘스탄차",0,55],[60400,"하코다테",0,55],[120666,"진자",0,55],[45767,"브레스트",0,55],[56650,"키질로르다",0,55],[111244,"포르토노보",0,55],[81899,"팀부",1,50],[35719,"볼로그다",0,55],[109817,"마쿠르디",0,55],[157219,"폰타그로사",0,55],[133626,"므베야",0,55],[64458,"칼리아리",0,55],[50512,"빅토리아",0,55],[63248,"신의주",0,55],[124762,"쿠엥카",0,55],[120658,"부템보",0,55],[135967,"쿠팡",0,55],[48657,"지토미르",0,55],[176635,"바이아블랑카",0,54],[147099,"타크나",0,54],[141328,"이카",0,54],[100407,"카올라크",0,54],[80084,"코퍼스크리스티",0,54],[120636,"음반다카",0,54],[55103,"베네치아",0,54],[158822,"음바바네",1,50],[40706,"말뫼",0,54],[50772,"낭시",0,54],[32108,"페트로자보츠크",0,54],[48714,"악퇴베",0,54],[134198,"페트롤리나",0,54],[32460,"앵커리지",0,54],[32087,"탐페레",0,54],[134864,"히우브랑쿠",0,54],[101210,"알파시르",0,54],[107003,"디레다와",0,54],[130755,"모로고로",0,54],[74339,"잭슨",0,54],[116341,"아루아",0,54],[73612,"슈리브포트",0,54],[40163,"브라츠크",0,54],[129266,"마타디",0,54],[45207,"안가르스크",0,54],[106290,"베르베라",0,54],[49321,"르아브르",0,54],[176623,"네우켄",0,54],[54604,"우란하오터",0,54],[31579,"야쿠츠크",0,54],[116878,"보아비스타",0,54],[64567,"투르크메나바트",0,54],[55086,"클레르몽페랑",0,54],[101894,"마라디",0,54],[50279,"하이라얼",0,54],[65360,"장예",0,54],[124090,"산타렝",0,54],[101177,"잔데르",0,54],[60239,"누쿠스",0,54],[56273,"세일럼",0,54],[135320,"호니아라",1,49],[149260,"이키케",0,54],[104199,"퐁디셰리",0,54],[58771,"그로즈니",0,54],[55839,"노비사드",0,54],[142281,"나칼라",0,54],[93032,"콜리마",0,53],[56554,"바냐루카",0,53],[158643,"포르모사",0,53],[48855,"블라고베셴스크",0,53],[77231,"탤러해시",0,53],[78302,"라싸",0,53],[130031,"도도마",0,53],[52203,"오를레앙",0,53],[55107,"트리에스테",0,53],[34210,"베르겐",0,53],[51476,"렌",0,53],[94921,"라오아그",0,53],[104114,"바히르다르",0,53],[129298,"칼레미",0,53],[92339,"캄페체",0,53],[73766,"푼샬",0,53],[37856,"프스코프",0,53],[45506,"새스커툰",0,53],[58967,"구시로",0,53],[74347,"몽고메리",0,53],[50048,"랭스",0,53],[115794,"타라칸",0,53],[50039,"캉",0,53],[151671,"생드니",0,53],[85819,"라파스",0,53],[141536,"카브웨",0,53],[146593,"켈리마느",0,53],[107645,"파라쿠",0,53],[81693,"엘아윤",0,53],[119415,"트르나테",0,53],[44597,"페트로파블롭스크캄차츠키",0,53],[68028,"지브롤터",0,53],[147819,"아리카",0,53],[140415,"아피아",1,48],[151654,"피아나란초아",0,53],[53023,"아티라우",0,53],[69996,"애머릴로",0,53],[70679,"샌타바버라",0,53],[73824,"주와라",0,53],[74357,"서배너",0,53],[91265,"시트웨",0,53],[66723,"마리",0,53],[75738,"노갤러스",0,53],[53925,"유즈노사할린스크",0,52],[48390,"리자이나",0,52],[86973,"바이청",0,52],[180214,"푸에르토몬트",0,52],[169604,"조지",0,52],[52930,"디종",0,52],[125201,"자야푸라",0,52],[109782,"은제레코레",0,52],[43742,"아바칸",0,52],[128421,"마라바",0,52],[21416,"노릴스크",0,52],[146571,"리빙스턴",0,52],[101924,"알주나이나",0,52],[53446,"파고",0,52],[59403,"안도라라베야",1,47],[70763,"윌밍턴",0,52],[106983,"말라칼",0,52],[117764,"붐바",0,52],[178053,"발디비아",0,52],[152150,"타리하",0,52],[101201,"아베셰",0,52],[138509,"바헤이라스",0,52],[107838,"수랏타니",0,52],[52674,"올림피아",0,52],[108392,"문두",0,52],[102674,"곤다르",0,52],[66099,"위린",0,52],[57766,"수폴스",0,52],[60923,"바투미",0,52],[51733,"베이안",0,52],[102086,"바탐방",0,52],[143733,"마하장가",0,52],[163657,"라세레나",0,52],[144650,"케언스",0,52],[55082,"리모주",0,52],[139346,"벵겔라",0,52],[58704,"페루자",0,52],[87686,"거주",0,52],[101757,"킹스타운",1,47],[63916,"자위관",0,52],[175670,"해밀턴",0,52],[29900,"트론헤임",0,52],[117064,"굴루",0,52],[104620,"빌렘스타트",0,52],[174455,"로스앙헬레스",0,52],[123538,"고마",0,52],[49324,"아미앵",0,52],[52376,"아러타이",0,52],[185984,"코모도로리바다비아",0,51],[63189,"둔황",0,51],[148973,"타운즈빌",0,51],[64653,"스쭈이산",0,51],[127713,"카시아스",0,51],[142944,"모사메드스",0,51],[145416,"포트빌라",1,46],[64248,"토피카",0,51],[146221,"파페에테",0,51],[52094,"세인트존스",0,51],[130973,"라에",0,51],[144427,"테트",0,51],[101846,"반줄",1,46],[160059,"코피아포",0,51],[156666,"샤이샤이",0,51],[52932,"브장송",0,51],[46590,"에키바스투즈",0,51],[169598,"우스터",0,51],[109855,"와우",0,51],[135032,"말란즈",0,51],[142226,"루방구",0,51],[74527,"가르다이아",0,51],[45126,"루드니",0,51],[65716,"찰스턴",0,51],[101867,"세구",0,51],[125674,"반둔두",0,51],[96855,"아가데즈",0,51],[187180,"더니딘",0,51],[196777,"푼타아레나스",0,51],[97559,"가오",0,51],[122058,"포르장티",0,51],[99730,"타우아",0,51],[154527,"톨리아라",0,51],[106181,"캉칸",0,51],[114183,"주바",0,50],[110681,"캔디",0,50],[173751,"산타로사",0,50],[138680,"펨바",0,50],[137228,"음주주",0,50],[108194,"다비드",0,50],[102087,"시엠레아프",0,50],[57974,"모나코",1,46],[52939,"파두츠",1,46],[46628,"키질",0,50],[54382,"트렌토",0,50],[68949,"거얼무",0,50],[97436,"세인트존스",1,46],[133796,"라바",0,50],[101245,"아사브",0,50],[54862,"빌링스",0,50],[80057,"과이마스",0,50],[69702,"허우마",0,50],[57985,"안코나",0,50],[65439,"사카타",0,50],[38005,"우스티일림스크",0,50],[81748,"세바",0,50],[51301,"선더베이",0,50],[148564,"코룸바",0,50],[101958,"메켈레",0,50],[180217,"산카를로스데바릴로체",0,50],[35221,"마가단",0,50],[64472,"카탄차로",0,50],[57093,"벌링턴",0,50],[138140,"다윈",0,50],[152611,"누메아",0,50],[69268,"샌타페이",0,50],[151615,"프랜시스타운",0,50],[57984,"산마리노",1,45],[117022,"에볼로와",0,49],[127319,"파레파레",0,49],[90326,"누아디부",0,49],[140825,"치파타",0,49],[53640,"푸아티에",0,49],[195341,"리오가예고스",0,49],[105312,"리몬",0,49],[142070,"트리니다드",0,49],[54191,"수세인트마리",0,49],[122101,"음바라라",0,49],[138698,"안치라나나",0,49],[174168,"벤디고",0,49],[58762,"수후미",0,49],[182814,"호바트",0,49],[109802,"아타크파메",0,49],[24248,"보르쿠타",0,49],[79017,"르카쩌",0,49],[50248,"에르데네트",0,49],[100417,"케이스",0,49],[88211,"타만라세트",0,49],[119945,"봄보",0,49],[136307,"리베랄타",0,49],[31354,"순스발",0,49],[168351,"만두라",0,49],[61350,"샤이엔",0,49],[53412,"미줄라",0,49],[161682,"어핑턴",0,49],[62311,"포텐차",0,48],[96833,"팀북투",0,48],[103177,"오라녜스타트",0,48],[60146,"라퀼라",0,48],[63105,"투르크멘바시",0,48],[117203,"푸트라자야",0,48],[51977,"그레이트폴스",0,48],[154741,"록햄프턴",0,48],[121383,"마사카",0,48],[136316,"지 파라나",0,48],[69976,"플래그스태프",0,48],[53438,"비즈마크",0,48],[37095,"크리스티안산",0,48],[139199,"빌헤나",0,48],[127133,"카송고",0,48],[127106,"케이스",0,48],[125135,"탄중판단",0,48],[112721,"밤바리",0,48],[114015,"카옌",0,48],[66549,"폰타델가다",0,48],[59187,"캐스퍼",0,48],[126940,"레티시아",0,48],[129528,"마운트하겐",0,48],[177833,"네이피어",0,48],[29924,"바사",0,48],[27424,"페어뱅크스",0,48],[131974,"크루제이로 두 술",0,48],[60857,"아작시오",0,47],[112544,"푸에르토아야쿠초",0,47],[20557,"트롬쇠",0,47],[92209,"힐로",0,47],[153749,"월비스베이",0,47],[60869,"캄포바소",0,47],[154493,"마할라피에",0,47],[54201,"노스 베이",0,47],[26324,"룰레오",0,47],[153053,"세로웨",0,47],[120675,"메루",0,47],[186695,"코이아이케",0,47],[95942,"벨모판",1,42],[91053,"아타르",0,46],[123507,"프랑스빌",0,46],[119940,"포트포털",0,46],[54233,"샬럿타운",0,46],[61312,"유리카",0,46],[134888,"알타 플로레스타",0,46],[30827,"미르니",0,46],[130250,"고로카",0,46],[51277,"마이놋",0,46],[169138,"오렌지",0,46],[53415,"헬레나",0,46],[54239,"시드니",0,46],[165482,"캘굴리",0,46],[41390,"더글러스",0,46],[51317,"티민스",0,45],[24891,"로바니에미",0,45],[55094,"아오스타",0,45],[168726,"두라스노",0,45],[51709,"처이발상",0,45],[151118,"마운트아이자",0,45],[101150,"젠네",0,45],[167697,"더보",0,45],[71795,"레",0,45],[36811,"주노",0,45],[51663,"허브드",0,45],[181427,"블레넘",0,45],[115451,"코티카",0,45],[49120,"브랜든",0,45],[155427,"앨리스스프링스",0,44],[162589,"제럴턴",0,44],[136329,"콜리더",0,44],[43845,"오하",0,44],[171234,"올버니",0,44],[93300,"동골라",0,44],[183109,"라우손",0,44],[33709,"렌스크",0,44],[150153,"오티와롱고",0,44],[36610,"알단",0,44],[113291,"생로랑뒤마로니",0,44],[86086,"알자우프",0,44],[149436,"그루트폰테인",0,44],[57100,"오거스타",0,44],[33209,"화이트호스",0,44],[165543,"아미데일",0,44],[168394,"화이앨라",0,44],[39017,"포트맥머리",0,43],[97533,"카에디",0,43],[180652,"데본포트",0,43],[62048,"엘코",0,43],[31091,"옐로나이프",0,43],[39718,"포트 세인트 존",0,43],[166730,"미델부르크",0,43],[159516,"케이트만스호프",0,43],[166962,"브로큰힐",0,42],[151073,"카르타",0,42],[170572,"그리피스",0,42],[50573,"인터네셔널 폴스",0,42],[159510,"뤼데리츠",0,42],[58168,"달란자드가드",0,42],[27616,"누크",0,42],[41860,"프린스루퍼트",0,42],[150358,"포트헤들랜드",0,42],[173452,"왕가라타",0,41],[57039,"피어",0,41],[40484,"탐슨",0,41],[171271,"포트링컨",0,41],[146764,"브룸",0,41],[142235,"메농그",0,41],[113453,"오보",0,41],[176323,"포틀랜드",0,41],[109121,"엔델레",0,41],[121138,"산타 크루즈",0,41],[34239,"마리에함",0,40],[163835,"스프링보크",0,40],[28074,"아나디리",0,40],[44866,"래브라도 시티",0,40],[138501,"알보라다",0,40],[169790,"부셀톤",0,40],[141744,"캐서린",0,40],[19126,"함메르페스트",0,40],[36774,"코디액",0,40],[28006,"우스 네라",0,40],[38249,"싯카",0,40],[56791,"달네고르스크",0,39],[127383,"라바울",0,39],[193175,"엘칼라파테",0,39],[33156,"베설",0,38],[29022,"이칼루이트",0,38],[119019,"미투",0,38],[17897,"틱시",0,38],[35205,"오호츠크",0,37],[39725,"피스 리버",0,37],[24012,"시시미우트",0,37],[18046,"배로",0,36],[23669,"바타가이",0,36],[32467,"발데즈",0,36],[35960,"팔라나",0,36],[27389,"놈",0,35],[45233,"부카차차",0,35],[28075,"우골니예 코피",0,35],[188867,"푸에르토 데시도",0,35],[25086,"지간스크",0,35],[17124,"카탕가",0,35],[19375,"초쿠르다크",0,34],[19502,"프루도 베이",0,34],[195363,"스탠리",0,33],[32571,"아리밧",0,33],[21076,"이글루릭",0,32],[21029,"캠브리지 베이",0,32],[96820,"아윤엘아트루스",0,32],[28161,"도슨시티",0,31],[23169,"쿠글룩투크",0,31],[36943,"쿠주아크",0,31],[41244,"쿠주아라픽",0,31],[8311,"롱이어비엔",0,31],[39116,"나인",0,31],[16088,"우페르나빅",0,31],[15641,"딕손",0,31],[36170,"처칠",0,30],[24667,"나우자트",0,30],[20332,"탈로요크",0,29],[8860,"카낙",0,28],[14588,"악틱 베이",0,28],[25302,"포트 굿 호프",0,28],[33976,"포트 스미스",0,27],[83140,"비르레흘루",0,27],[83191,"트마사",0,27],[21628,"포인트 호프",0,27],[18632,"니즈네얀스크",0,26],[29698,"체스터필드 인렛",0,26],[117069,"모로토",0,26],[13130,"리솔루트",0,24],[41074,"콜드베이",0,23],[157605,"윈도라",0,22],[32669,"나르사수아크",0,22],[40504,"포트 세번",0,21],[68956,"둘란",0,20],[21563,"암바르치크",0,10]];
+const SUPER_CAP={VA:'바티칸',MC:'모나코',SM:'산마리노',LI:'파두츠',AD:'안도라라베야',MT:'발레타',SG:'싱가포르',NR:'야렌'};
+const RC=CITIES.map(([c,ko,cap,rk])=>({c,ko,cap,rk,x:c%W,y:c/W|0,ci:ctry[c]-1})).filter(q=>!SUPER_BY_CI[q.ci]);
+const RC_AT=new Map(RC.map(q=>[q.c,q]));
+for(const s of SUPERS)if(s.ci>=0)RC_AT.set(s.cell,{c:s.cell,ko:SUPER_CAP[s.a2],cap:1,rk:50,x:s.cell%W,y:s.cell/W|0,ci:s.ci});
+function nearestRC(cell,r,ok){const x=cell%W,y=cell/W|0;let best=null,bd=r*r;for(const q of RC){const d=(q.x-x)**2+(q.y-y)**2;if(d<=bd&&(!ok||ok(q))){bd=d;best=q;}}return best;}
+function placeName(cell){const q=nearestRC(cell,14);return q?q.ko+' 인근':META[ctry[cell]-1].ko+' 개척지';}
+function cityNameAt(cell){const q=RC_AT.get(cell);return q?q.ko:placeName(cell);}
+
+// ================= cultures
+// [hat, coat, accent, lang, phrase, meaning, melee name, ranged name, ranged weapon, bonus, melee weapon]
+const CUL={
+KR:['gat','#f4f1ea','#2b4c9b','ko-KR','가즈아!','가자!','화랑','신기전 궁수','bow','rng'],
+KP:['cap','#3d4a30','#c8102e','ko-KR','앞으로!','전진!','보병','저격수','gun','hp'],
+JP:['kabuto','#2a2a2a','#c8102e','ja-JP','いざ、参る!','자, 간다!','사무라이','닌자','shuriken','atk','katana'],
+CN:['topknot','#8b1a1a','#e0b23a','zh-CN','冲啊!','돌격!','병마용 전사','연노병','crossbow','prod','spear'],
+TW:['cap','#1f3c88','#e63946','zh-TW','衝啊!','돌격!','수비대','석궁병','crossbow','hp'],
+MN:['mongol','#2c5aa0','#c4272f','mn-MN','Хурай!','만세!','몽골 창기병','기마 궁수','bow','spd','spear'],
+KZ:['mongol','#1aa6c4','#f5c518','kk-KZ','Алға!','앞으로!','바투르','초원 궁수','bow','spd'],
+RU:['ushanka','#4b5a3c','#c8102e','ru-RU','Ура!','우라!','코사크','머스킷병','gun','hp'],
+UA:['papakha','#1f5fbf','#ffd500','uk-UA','Вперед!','앞으로!','자포로제 코사크','소총수','gun','spd'],
+US:['cowboy','#2f4f8f','#b22234','en-US',"Let's roll!",'가보자고!','카우보이','보안관 사수','gun','spd'],
+CA:['mountie','#c8102e','#1a1a1a','en-CA','Sorry, eh!','미안, 근데 간다!','기마경찰','퍽 투척수','sling','hp','club'],
+MX:['sombrero','#1f7a3f','#ce1126','es-MX','¡Ándale, ándale!','어서, 어서!','차로','투석꾼','sling','spd'],
+CU:['bandana','#556b2f','#d52b1e','es-US','¡Dale!','가자!','게릴라','저격수','gun','atk'],
+BR:['headband','#009c3b','#ffdf00','pt-BR','Bora, bora!','가자, 가자!','카포에이라 전사','볼라 투척수','bola','spd'],
+AR:['beret','#75aadb','#f6b40e','es-AR','¡Vamos, che!','가자, 친구!','가우초','볼레아도라 투척수','bola','atk'],
+CL:['straw','#d52b1e','#0039a6','es-US','¡Vamos, po!','가자고!','우아소','투석꾼','sling','hp'],
+CO:['straw','#fcd116','#003893','es-US','¡Hágale pues!','해버려!','야네로','투석꾼','sling','spd'],
+PE:['chullo','#d91023','#f5f5f5','es-US','¡Vamos, causa!','가자, 친구!','잉카 전사','투석꾼','sling','hp'],
+BO:['chullo','#007934','#f9e300','es-US','¡Vamos!','가자!','안데스 전사','투석꾼','sling','hp'],
+VE:['straw','#ffcc00','#cf142b','es-US','¡Épale!','어이!','야네로','투석꾼','sling','spd'],
+GB:['bearskin','#c8102e','#1b1f3b','en-GB','Jolly good!','아주 좋아!','근위병','장궁병','bow','rng'],
+IE:['flatcap','#169b62','#ff883e','en-IE','Up the lads!','가자, 친구들!','갤로글래스','투석꾼','sling','hp'],
+FR:['bicorne','#1f3a93','#f5f5f5','fr-FR','En avant!','앞으로!','척탄병','머스킷병','gun','atk'],
+DE:['pickel','#5c5f62','#1a1a1a','de-DE','Vorwärts!','전진!','란츠크네히트','소총병','gun','hp'],
+IT:['galea','#b22234','#d4af37','it-IT','Andiamo!','가자!','레기온','투창병','jav','atk'],
+ES:['morion','#aa151b','#f1bf00','es-ES','¡Vamos!','가자!','콘키스타도르','화승총병','gun','atk'],
+PT:['tricorn','#046a38','#da291c','pt-PT','Força!','힘내!','항해 기사','화승총병','gun','spd'],
+NL:['tricorn','#ff7f00','#21468b','nl-NL','Hup, hup!','힘내!','머스킷병','석궁병','crossbow','gold'],
+SE:['viking','#006aa7','#fecc00','sv-SE','Heja!','파이팅!','바이킹','투창병','jav','atk','axe'],
+NO:['viking','#ba0c2f','#00205b','nb-NO','Heia!','파이팅!','바이킹','투창병','jav','hp','axe'],
+DK:['viking','#c8102e','#f5f5f5','da-DK','Kom så!','덤벼!','바이킹','궁수','bow','atk','axe'],
+IS:['viking','#02529c','#dc1e35','is-IS','Húh!','후!','바이킹','궁수','bow','hp','axe'],
+FI:['ushanka','#f5f5f5','#002f6c','fi-FI','Mennään!','가자!','스키 레인저','저격수','gun','rng'],
+PL:['hussar','#dc143c','#f5f5f5','pl-PL','Naprzód!','전진!','윙드 후사르','석궁병','crossbow','atk','spear'],
+GR:['spartan','#0d5eaf','#f5f5f5','el-GR','Αέρα!','바람처럼!','호플리테스','투석병','sling','hp','spear'],
+TR:['fez','#c8102e','#f5f5f5','tr-TR','Haydi!','가자!','예니체리','궁기병','bow','atk'],
+IR:['tiara','#239f40','#da0000','fa-IR','بزن بریم!','가자!','이모탈','궁수','bow','rng'],
+SA:['keffiyeh','#006c35','#f5f5f5','ar-SA','يلا!','얄라!','베두인 기병','궁수','bow','spd'],
+EG:['nemes','#c9a227','#1a3d8f','ar-EG','يلا يا شباب!','가자, 얘들아!','파라오 전차병','투창병','jav','hp'],
+IL:['helmet','#0038b8','#f5f5f5','he-IL','קדימה!','앞으로!','보병','투석꾼','sling','atk'],
+IN:['turban','#ff9933','#138808','hi-IN','चलो!','가자!','라지푸트','차크람 투척수','chakram','hp'],
+PK:['pakol','#01411c','#f5f5f5','ur-PK','چلو!','가자!','파탄 전사','궁수','bow','atk'],
+AF:['pakol','#3a3a3a','#d32011','fa-IR','بریم!','가자!','산악 전사','궁수','bow','hp'],
+ID:['peci','#ce1126','#f5f5f5','id-ID','Ayo, maju!','자, 전진!','크리스 전사','블로우건 사수','jav','spd'],
+MY:['peci','#010066','#cc0001','ms-MY','Jom!','가자!','실랏 전사','블로우건 사수','jav','spd'],
+PH:['salakot','#0038a8','#ce1126','fil-PH','Tara na!','가자!','칼리 전사','투창병','jav','atk'],
+VN:['nonla','#da251d','#ffcd00','vi-VN','Tiến lên!','전진!','농민군','석궁병','crossbow','hp'],
+TH:['chada','#2d2a4a','#a51931','th-TH','สู้ๆ!','힘내!','무에타이 전사','궁수','bow','atk'],
+AU:['akubra','#00843d','#ffcd00','en-AU','No worries, mate!','걱정 마, 친구!','디거','부메랑 투척수','boomerang','spd'],
+NZ:['akubra','#1a1a1a','#f5f5f5','en-NZ','Kia kaha!','강해져라!','전사','투창병','jav','atk'],
+ZA:['headband','#007a4d','#ffb612','en-ZA','Sharp, sharp!','좋아, 좋아!','줄루 전사','투창병','jav','atk','spear'],
+NG:['fila','#008751','#f5f5f5','en-NG','Oya!','가자!','에도 전사','궁수','bow','prod'],
+KE:['maasai','#bb0000','#1a1a1a','sw-KE','Twende!','가자!','마사이 전사','투창병','jav','spd','spear'],
+TZ:['maasai','#1eb53a','#00a3dd','sw-TZ','Twende!','가자!','마사이 전사','투창병','jav','spd','spear'],
+ET:['lionmane','#078930','#fcdd09','am-ET','እንሂድ!','가자!','사자 전사','궁수','bow','hp','spear'],
+GL:['inuit','#d00c33','#f5f5f5','da-DK','Ajunngilaq!','괜찮아!','이누이트 사냥꾼','작살 투척수','jav','hp','spear'],
+MA:['fez','#c1272d','#006233','ar-MA','يلا!','얄라!','베르베르 전사','궁수','bow','spd'],
+// super nations
+VA:['swissguard','#f1c232','#1f4ea8','it-IT','Deo volente!','신의 뜻대로!','스위스 근위대','석궁 근위병','crossbow','hp','spear'],
+MC:['bicorne','#e8112d','#f5f5f5','fr-FR','Allez Monaco!','가자, 모나코!','왕실 근위병','머스킷병','gun','gold'],
+SM:['alpine','#5eb6e4','#f5f5f5','it-IT','Avanti, San Marino!','전진, 산마리노!','요새 수비대','석궁 명사수','crossbow','rng'],
+LI:['alpine','#002b7f','#ce1126','de-DE','Hopp Liechtenstein!','힘내, 리히텐슈타인!','알프스 경비대','저격수','gun','hp'],
+AD:['barretina','#d0103a','#fedf00','ca-ES','Som-hi!','가자!','피레네 산악병','투석꾼','sling','spd'],
+MT:['knight','#cf142b','#f5f5f5','mt-MT','Ejja!','가자!','몰타 기사','석궁병','crossbow','atk','sword'],
+SG:['cap','#f5f5f5','#ef3340','en-SG','Can lah!','할 수 있어!','라이온 시티 가드','저격수','gun','gold'],
+NR:['lei','#002b7f','#ffc61e','en-AU','Ekamawir omo!','환영해!','섬 전사','투창병','jav','spd'],
+};
+// regional fallbacks: [codes, hat, lang, phrase, meaning, melee, ranged, weapon]
+const GROUPS=[
+ ['DZ LY TN IQ SY JO YE OM AE KW QA BH SD MR LB EH PS','keffiyeh','ar-SA','يلا!','얄라!','베두인 전사','궁수','bow'],
+ ['CD CG CM SN ML NE TD CI BF GA GN BJ TG CF MG RW BI DJ KM','kufi','fr-FR',"On y va!",'가자!','전사','궁수','bow'],
+ ['EC PY UY GT HN SV NI CR PA DO PR','straw','es-US','¡Vamos!','가자!','전사','투석꾼','sling'],
+ ['AO MZ GW TL CV ST GQ','headband','pt-PT','Bora lá!','가자!','전사','투창병','jav'],
+ ['BY UZ TM KG TJ AZ AM GE MD','papakha','ru-RU','Вперёд!','앞으로!','기병','궁수','bow'],
+ ['AT CH','alpine','de-DE',"Auf geht's!",'가자!','미늘창병','석궁병','crossbow'],
+ ['BE LU','helmet','fr-FR','Allez!','가자!','보병','석궁병','crossbow'],
+ ['RS HR BA SI MK ME AL XK BG','helmet','sr-RS','Ajde!','가자!','보병','궁수','bow'],
+ ['CZ SK','helmet','cs-CZ','Jdeme!','가자!','보병','석궁병','crossbow'],
+ ['HU','hussar','hu-HU','Hajrá!','파이팅!','후사르','궁기병','bow'],
+ ['RO','papakha','ro-RO','Hai!','가자!','기병','궁수','bow'],
+ ['LT LV EE','helmet','lt-LT','Pirmyn!','앞으로!','기사','석궁병','crossbow'],
+ ['CY','spartan','el-GR','Πάμε!','가자!','호플리테스','투석병','sling'],
+ ['BD','headband','bn-BD','চলো!','가자!','전사','궁수','bow'],
+ ['NP BT','kufi','ne-NP','जाऔं!','가자!','구르카','궁수','bow'],
+ ['LK','headband','si-LK','යමු!','가자!','전사','궁수','bow'],
+ ['KH LA MM','nonla','km-KH','Tov!','가자!','전사','석궁병','crossbow'],
+ ['SO SS ER UG ZM ZW MW BW NA GH LR SL GM LS SZ','headband','sw-KE','Twende!','가자!','전사','투창병','jav'],
+ ['PG FJ SB VU NC','lei','en-AU','Yumi go!','같이 가자!','섬 전사','투창병','jav'],
+ ['JM HT BS GY SR BZ TT','bandana','en-US','Wah gwaan!','어때!','전사','투석꾼','sling'],
+];
+const GROUP_OF={}; for(const g of GROUPS)for(const c of g[0].split(' '))GROUP_OF[c]=g;
+const PALS=[['#7b2d26','#e9c46a'],['#264653','#e76f51'],['#3d5a80','#ee6c4d'],['#2a9d8f','#f4a261'],['#6a4c93','#ffca3a'],['#1d3557','#e63946'],['#386641','#f2e8cf'],['#9c6644','#ede0d4']];
+// national traits: [name, description, effects]
+// effects: atk hp spd rng prod gold cap expand aspd (multipliers) · crit home rangedDef splash splashR regen (fractions) · multi killGold (counts) · sea chargePow chargeDur capProd
+const TRAITS={
+KR:['신기전 일제사격','원거리병이 화살 3발을 동시에 발사 · 사거리 +15%',{multi:2,rng:1.15}],
+KP:['천리마 총동원','병력 상한 +35% · 생산 +15%',{cap:1.35,prod:1.15}],
+JP:['무사도','공격 30%가 치명타(2배 피해) · 공격 +10%',{crit:.3,atk:1.1}],
+CN:['인해전술','병력 상한 +60% · 생산 +30% · 체력 -15%',{cap:1.6,prod:1.3,hp:.85}],
+TW:['철벽 방어','자국 땅에서 받는 피해 -35% · 체력 +10%',{home:.35,hp:1.1}],
+MN:['기마 군단','이동 속도 +50% · 공격 +10%',{spd:1.5,atk:1.1}],
+KZ:['초원의 바람','이동 +35% · 영토 확장 +35%',{spd:1.35,expand:1.35}],
+RU:['동장군','자국 땅에서 받는 피해 -45% · 체력 +20%',{home:.45,hp:1.2}],
+UA:['흑토 곡창','생산 +25% · 골드 +15%',{prod:1.25,gold:1.15}],
+US:['자유 시장','골드 +40% · 이동 +15%',{gold:1.4,spd:1.15}],
+CA:['끝없는 대지','영토 확장 +45% · 체력 +15%',{expand:1.45,hp:1.15}],
+MX:['피에스타','적 처치마다 골드 +5 · 이동 +15%',{killGold:5,spd:1.15}],
+CU:['게릴라','자국 땅 피해 -30% · 공격 +15%',{home:.3,atk:1.15}],
+BR:['카포에이라','근접 공격이 주변 적까지 휩쓸기 · 이동 +25%',{splash:.6,spd:1.25}],
+AR:['탱고 돌격','돌격 지속 시간 2배 · 공격 +10%',{chargeDur:2,atk:1.1}],
+CL:['안데스 산악병','체력 +25% · 자국 땅 피해 -20%',{hp:1.25,home:.2}],
+CO:['커피 파워','공격 속도 +25% · 이동 +15%',{aspd:1.25,spd:1.15}],
+PE:['잉카 투석','원거리 공격이 범위 피해 · 체력 +10%',{splashR:.5,hp:1.1}],
+BO:['고산 적응','체력 +30%',{hp:1.3}],
+VE:['오일 머니','골드 +50%',{gold:1.5}],
+GB:['장궁의 비','사거리 +45%',{rng:1.45}],
+IE:['켈트의 투지','병사 체력 자동 회복 · 체력 +10%',{regen:.035,hp:1.1}],
+FR:['나폴레옹 돌격','돌격 위력 2배(공격·속도 +100%) · 공격 +10%',{chargePow:2,atk:1.1}],
+DE:['전격전','이동 +25% · 공격 +15%',{spd:1.25,atk:1.15}],
+IT:['로마 군단','체력 +20% · 공격 +10%',{hp:1.2,atk:1.1}],
+ES:['무적함대','바다 감속 없음 · 공격 +15%',{sea:1,atk:1.15}],
+PT:['대항해 시대','바다 감속 없음 · 골드 +25%',{sea:1,gold:1.25}],
+NL:['동인도 회사','골드 +50%',{gold:1.5}],
+SE:['바이킹 약탈','처치마다 골드 +6 · 바다 감속 없음 · 공격 +15%',{killGold:6,sea:1,atk:1.15}],
+NO:['바이킹 약탈','처치마다 골드 +6 · 바다 감속 없음 · 공격 +15%',{killGold:6,sea:1,atk:1.15}],
+DK:['바이킹 약탈','처치마다 골드 +6 · 바다 감속 없음 · 공격 +15%',{killGold:6,sea:1,atk:1.15}],
+IS:['바이킹 약탈','처치마다 골드 +6 · 바다 감속 없음 · 공격 +15%',{killGold:6,sea:1,atk:1.15}],
+FI:['시수','체력 +30% · 자국 땅 피해 -20%',{hp:1.3,home:.2}],
+PL:['날개 기병','공격 +20% · 이동 +20%',{atk:1.2,spd:1.2}],
+GR:['팔랑크스','체력 +40%',{hp:1.4}],
+TR:['오스만 대포','원거리 공격이 범위 피해 · 공격 +10%',{splashR:.6,atk:1.1}],
+IR:['불사 부대','병사 체력 자동 회복 · 체력 +15%',{regen:.04,hp:1.15}],
+SA:['오일 머니','골드 +50%',{gold:1.5}],
+EG:['피라미드','수도 생산 2배 · 체력 +10%',{capProd:2,hp:1.1}],
+IL:['아이언 돔','원거리 공격으로 받는 피해 -45%',{rangedDef:.45}],
+IN:['차크람 관통','원거리 공격이 적 2명을 관통 · 생산 +15%',{multi:1,prod:1.15}],
+PK:['산악 요새','자국 땅 피해 -30% · 공격 +10%',{home:.3,atk:1.1}],
+AF:['제국의 무덤','자국 땅에서 받는 피해 -55%',{home:.55}],
+ID:['만 개의 섬','바다 감속 없음 · 영토 확장 +35%',{sea:1,expand:1.35}],
+MY:['정글 실랏','이동 +25% · 치명타 15%',{spd:1.25,crit:.15}],
+PH:['칼리 연타','공격 속도 +35%',{aspd:1.35}],
+VN:['정글 게릴라','자국 땅 피해 -35% · 공격 +10%',{home:.35,atk:1.1}],
+TH:['무에타이','공격 속도 +35%',{aspd:1.35}],
+AU:['부메랑','원거리 공격이 2명 타격 · 이동 +15%',{multi:1,spd:1.15}],
+NZ:['하카','돌격 지속 1.5배 · 체력 자동 회복',{chargeDur:1.5,regen:.025}],
+ZA:['줄루 뿔 진형','근접 공격이 주변 적까지 휩쓸기 · 공격 +10%',{splash:.6,atk:1.1}],
+NG:['아프리카의 거인','병력 상한 +40% · 생산 +10%',{cap:1.4,prod:1.1}],
+KE:['마라토너','이동 속도 +45%',{spd:1.45}],
+TZ:['마라토너','이동 속도 +45%',{spd:1.45}],
+ET:['정복되지 않는 땅','자국 땅 피해 -40% · 체력 +10%',{home:.4,hp:1.1}],
+GL:['빙하의 인내','체력 +45%',{hp:1.45}],
+MA:['사막의 매','이동 +25% · 사거리 +15%',{spd:1.25,rng:1.15}],
+VA:['신성한 가호','병사 체력 자동 회복 · 체력 +20%',{regen:.045,hp:1.2}],
+MC:['카지노 왕국','골드 +80%',{gold:1.8}],
+SM:['석궁의 요새','사거리 +50%',{rng:1.5}],
+LI:['알프스 금고','체력 +60%',{hp:1.6}],
+AD:['피레네 질주','이동 속도 +45%',{spd:1.45}],
+MT:['몰타 기사단','공격 +30% · 치명타 15%',{atk:1.3,crit:.15}],
+SG:['무역 허브','생산 +35% · 골드 +25%',{prod:1.35,gold:1.25}],
+NR:['태평양 요새','바다 감속 없음 · 영토 확장 +60%',{sea:1,expand:1.6}],
+};
+const GTRAIT={DZ:['사막의 기병','이동 +20% · 골드 +15%',{spd:1.2,gold:1.15}],CD:['사바나 전사','체력 +15% · 공격 +10%',{hp:1.15,atk:1.1}],EC:['아미고','생산 +15% · 이동 +10%',{prod:1.15,spd:1.1}],
+ AO:['대서양 연대','골드 +20% · 바다 감속 없음',{gold:1.2,sea:1}],BY:['스텝 기병','이동 +20% · 체력 +10%',{spd:1.2,hp:1.1}],AT:['알프스 요새','자국 땅 피해 -35%',{home:.35}],
+ BE:['플랑드르 무역','골드 +35%',{gold:1.35}],RS:['산악 투사','공격 +15% · 체력 +10%',{atk:1.15,hp:1.1}],CZ:['보헤미아 석궁','사거리 +25%',{rng:1.25}],HU:['후사르','이동 +25% · 공격 +10%',{spd:1.25,atk:1.1}],
+ RO:['드라큘라','병사 체력 자동 회복',{regen:.035}],LT:['발트 방패','자국 땅 피해 -35%',{home:.35}],CY:['팔랑크스','체력 +35%',{hp:1.35}],BD:['인구 대국','병력 상한 +35%',{cap:1.35}],
+ NP:['구르카','공격 +25%',{atk:1.25}],LK:['실론 차','생산 +20%',{prod:1.2}],KH:['정글 요새','자국 땅 피해 -35%',{home:.35}],SO:['마라토너','이동 +35%',{spd:1.35}],
+ PG:['섬 전사','바다 감속 없음 · 공격 +10%',{sea:1,atk:1.1}],JM:['레게 리듬','공격 속도 +25%',{aspd:1.25}]};
+const GENERIC_TRAITS=[['결사대','공격 +20%',{atk:1.2}],['철옹성','체력 +25%',{hp:1.25}],['질풍','이동 +30%',{spd:1.3}],['명사수','사거리 +25%',{rng:1.25}],['근면','생산 +20%',{prod:1.2}]];
+function getTrait(ci){const m=META[ci],a2=m.a2||'';const t=TRAITS[a2]||(GROUP_OF[a2]&&GTRAIT[GROUP_OF[a2][0].split(' ')[0]])||GENERIC_TRAITS[hash(m.en)%GENERIC_TRAITS.length];return {name:t[0],desc:t[1],e:t[2]};}
+const TE=(n,k,d=1)=>{const v=n.tr.e[k];return v===undefined?d:v;};
+const tierOf=l=>l<=0?0:l<=2?1:l<=5?2:3;
+const TIER_C=[null,'#dfe6ea','#ffd84d','#ff5ad9'];
+const HATS_FALLBACK=['helmet','kufi','headband','straw','cap'];
+function getCulture(ci){
+  const m=META[ci], a2=m.a2||'';
+  let c=CUL[a2];
+  if(c) return {key:a2,hat:c[0],c1:c[1],c2:c[2],lang:c[3],say:c[4],sayKo:c[5],mel:c[6],rng:c[7],wpn:c[8],bonus:c[9],mw:c[10]||'sword'};
+  const h=hash(m.en), pal=PALS[h%PALS.length], g=GROUP_OF[a2];
+  if(g) return {key:a2||m.en,hat:g[1],c1:pal[0],c2:pal[1],lang:g[2],say:g[3],sayKo:g[4],mel:g[5],rng:g[6],wpn:g[7],bonus:['atk','hp','spd','rng','prod'][h%5],mw:'sword'};
+  return {key:a2||m.en,hat:HATS_FALLBACK[h%HATS_FALLBACK.length],c1:pal[0],c2:pal[1],lang:'en-US',say:"Let's go!",sayKo:'가자!',mel:'전사',rng:'궁수',wpn:'bow',bonus:['atk','hp','spd','rng','prod'][h%5],mw:'sword'};
+}
+const PROJ_OF={bow:'arrow',crossbow:'arrow',gun:'bullet',sling:'stone',bola:'stone',shuriken:'star',chakram:'ring',boomerang:'boom',jav:'jav'};
+
+// ================= sprites
+const SKIN='#e8b98f';
+function hatBack(g,t,cu){
+  if(t==='hussar'){g.strokeStyle='#f3f3f3';g.lineWidth=2;for(const s of[-1,1]){g.beginPath();g.moveTo(16+s*6,24);g.quadraticCurveTo(16+s*11,10,16+s*5,-1);g.stroke();g.lineWidth=1;for(let k=0;k<5;k++){const yy=20-k*4.5;g.beginPath();g.moveTo(16+s*(8.5-k*.2),yy);g.lineTo(16+s*(11-k*.5),yy-2);g.stroke();}g.lineWidth=2;}}
+  if(t==='lionmane'){g.fillStyle='#9c5a2c';g.beginPath();g.arc(16,10,7.6,0,7);g.fill();g.fillStyle='#c27a3e';for(let a=0;a<12;a++){const r=a/12*6.283;g.beginPath();g.arc(16+Math.cos(r)*7,10+Math.sin(r)*7,1.8,0,7);g.fill();}}
+  if(t==='inuit'){g.fillStyle='#6d4c41';g.beginPath();g.arc(16,10,6.9,0,7);g.fill();g.fillStyle='#e0d6cf';g.beginPath();g.arc(16,10,5.7,0,7);g.fill();}
+  if(t==='keffiyeh'||t==='nemes'){/* drawn in front */}
+}
+function hat(g,t,cu){
+  const F=(c)=>{g.fillStyle=c},E=(x,y,rx,ry,c,a0=0,a1=6.2832)=>{F(c);g.beginPath();g.ellipse(x,y,rx,ry,0,a0,a1);g.fill()},
+    Rr=(x,y,w,h,c,r=1)=>{F(c);g.beginPath();g.roundRect(x,y,w,h,r);g.fill()},
+    P=(pts,c)=>{F(c);g.beginPath();pts.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]));g.closePath();g.fill()},
+    C=(x,y,r,c)=>{F(c);g.beginPath();g.arc(x,y,r,0,6.2832);g.fill()},
+    dome=(c,r=4.9)=>E(16,9.4,r,r,c,Math.PI,0);
+  switch(t){
+  case 'helmet':dome('#6b7a6a',5);Rr(10.8,8.6,10.4,1.4,'#4f5a4e');break;
+  case 'cowboy':E(16,6.3,8.2,1.8,'#8b5a2b');Rr(12.4,1.6,7.2,5,'#8b5a2b',2);Rr(12.4,4.9,7.2,1.1,'#3b2412',0);break;
+  case 'mountie':E(16,6.3,8.4,1.5,'#7a5230');P([[12,6.2],[13,1.4],[16,3],[19,1.4],[20,6.2]],'#7a5230');Rr(12,5,8,1,'#3b2412',0);break;
+  case 'sombrero':E(16,6.6,11.5,2.5,'#d9a441');P([[12.6,6.4],[14.2,0.2],[17.8,0.2],[19.4,6.4]],'#e3b155');Rr(13.2,4,5.6,1.3,'#c0392b',0);break;
+  case 'straw':E(16,6.4,8.6,1.8,'#e2c275');Rr(12.8,2.6,6.4,4,'#e8cf8a',2);Rr(12.8,5,6.4,1,'#2b2b2b',0);break;
+  case 'beret':E(16.8,5.6,5.8,2.5,'#1f1f1f');C(16.5,3.2,.8,'#1f1f1f');break;
+  case 'headband':Rr(11.4,6.4,9.2,1.9,cu.c2,1);P([[11.6,7],[8.6,9.5],[9,10.6],[11.8,8.2]],cu.c2);break;
+  case 'bandana':dome(cu.c2,4.8);P([[11,8],[8.5,11],[10,11.4],[12,9]],cu.c2);break;
+  case 'chullo':dome('#c0392b',5);Rr(11,7.6,2.2,5,'#c0392b');Rr(18.8,7.6,2.2,5,'#c0392b');Rr(11.2,6.2,9.6,1.2,'#f1c40f',0);C(16,4,1.4,'#f1c40f');break;
+  case 'ushanka':Rr(10.5,2.4,11,5,'#5d4a3a',2.5);Rr(10,6,2.6,6,'#6e5948',1.2);Rr(19.4,6,2.6,6,'#6e5948',1.2);C(16,4.8,1.1,'#d52b1e');break;
+  case 'papakha':Rr(11,1.2,10,5.8,'#a3a3a3',2);for(let k=0;k<5;k++)C(12+k*2,1.6,1.3,'#bdbdbd');Rr(13,2,6,1.4,'#c0392b',0.5);break;
+  case 'topknot':dome('#1a1a1a',4.7);C(16,4,2.2,'#1a1a1a');Rr(14.7,4.9,2.6,1.1,'#b22222',0);break;
+  case 'kabuto':dome('#222',5.3);E(16,8.6,7,1.4,'#2e2e2e');P([[10.5,0.5],[16,5.2],[21.5,0.5],[20.4,0.3],[16,3.8],[11.6,0.3]],'#e0b23a');break;
+  case 'gat':g.globalAlpha=.88;E(16,6.6,9.4,1.3,'#141414');g.globalAlpha=.78;Rr(13.2,1.2,5.6,5.6,'#141414',1);g.globalAlpha=1;g.strokeStyle='#141414';g.lineWidth=.7;g.beginPath();g.moveTo(12.5,7);g.lineTo(13.5,14);g.moveTo(19.5,7);g.lineTo(18.5,14);g.stroke();break;
+  case 'cap':Rr(11,3.6,10,3.3,cu.key==='SG'?'#f5f5f5':'#3d4a30',1.5);E(17.6,7,4.6,1.1,'#111');C(16,5.2,.95,'#e0b23a');break;
+  case 'turban':E(16,5.4,5.8,3.6,cu.key==='IN'?'#ff9933':'#f2f2f2');g.strokeStyle='rgba(0,0,0,.18)';g.lineWidth=.8;g.beginPath();g.moveTo(11,6);g.quadraticCurveTo(16,2,21,6);g.stroke();C(16,5.6,1.1,'#e74c3c');P([[16,4.6],[18,0],[17.2,4.6]],'#f5f5f5');break;
+  case 'pakol':E(16,5.8,5.4,2.4,'#a68a64');Rr(10.6,5,10.8,2.4,'#8c7350',1.2);break;
+  case 'peci':Rr(11.6,2.8,8.8,4,'#111',1.6);break;
+  case 'nonla':case 'kasa':P([[6.6,7.4],[16,0.2],[25.4,7.4]],'#d8c48a');g.strokeStyle='#a99560';g.lineWidth=.7;g.beginPath();g.moveTo(10,7);g.lineTo(16,1.4);g.lineTo(22,7);g.stroke();break;
+  case 'salakot':E(16,6.4,9,3.6,'#b5884e',Math.PI,0);E(16,6.4,9,1,'#8d6a3c');C(16,2.6,1,'#8d6a3c');break;
+  case 'chada':P([[11.6,6.8],[16,-2.5],[20.4,6.8]],'#d4af37');for(let k=0;k<3;k++)Rr(12.6+k*.9,5-k*2.4,6.8-k*1.8,1,'#a8841f',0);break;
+  case 'mongol':P([[12,5.3],[16,-0.2],[20,5.3]],cu.c2);Rr(10.8,5,10.4,2.6,'#7a5a32',1.3);C(16,0.4,.9,'#c4272f');break;
+  case 'fez':P([[12.5,6.4],[13.4,1.4],[18.6,1.4],[19.5,6.4]],'#b71c1c');g.strokeStyle='#111';g.lineWidth=.8;g.beginPath();g.moveTo(16,1.5);g.lineTo(19.8,4.8);g.stroke();break;
+  case 'tiara':Rr(12,0.4,8,6.4,'#e8d8b0',3.5);Rr(12,5.2,8,1.4,'#239f40',0);break;
+  case 'keffiyeh':P([[10.2,14],[10.6,6],[16,3.9],[21.4,6],[21.8,14],[19.6,9.6],[12.4,9.6]],'#f5f5f5');F('rgba(200,30,30,.55)');for(let k=0;k<6;k++)g.fillRect(11+k*1.8,6.2+(k%2),0.9,0.9);E(16,5.7,5.4,1.1,'#111');break;
+  case 'nemes':P([[9.8,15],[10.8,5.2],[16,3.4],[21.2,5.2],[22.2,15],[19.4,9.6],[12.6,9.6]],'#d4af37');F('#1a3d8f');for(let k=0;k<4;k++){g.fillRect(10.6,7+k*2,2,0.9);g.fillRect(19.4,7+k*2,2,0.9);}C(16,4.4,.9,'#2e86c1');break;
+  case 'bearskin':Rr(11.2,-2.6,9.6,10,'#111',4.5);g.strokeStyle='#e0b23a';g.lineWidth=.7;g.beginPath();g.moveTo(11.6,7);g.lineTo(13,13.5);g.stroke();break;
+  case 'bicorne':E(16,5.6,9.4,3.8,'#111',Math.PI,0);C(14,3.6,1.3,'#f5f5f5');C(14,3.6,.8,cu.key==='MC'?'#e8112d':'#1f3a93');break;
+  case 'pickel':dome('#2b2b2b',5.1);P([[15,4.6],[16,-1.6],[17,4.6]],'#c9a227');Rr(10.5,8.6,11,1.3,'#1c1c1c',0);break;
+  case 'galea':dome('#c9a227',5);E(16,3.4,6.2,2.6,'#c0392b',Math.PI,0);Rr(10.6,8.4,1.6,4,'#a8841f',0.5);Rr(19.8,8.4,1.6,4,'#a8841f',0.5);break;
+  case 'morion':case 'swissguard':dome('#b0b7bf',4.8);E(16,8.4,7.6,1.5,'#9aa1a9');Rr(15.3,0.6,1.4,4.6,'#9aa1a9',0.6);if(t==='swissguard'){E(18.5,1.4,3.4,2.2,'#c0392b');}break;
+  case 'tricorn':P([[9.2,5.6],[16,1.2],[22.8,5.6],[16,7.8]],'#1a1a1a');g.strokeStyle='#e0b23a';g.lineWidth=.6;g.beginPath();g.moveTo(9.2,5.6);g.lineTo(16,1.2);g.lineTo(22.8,5.6);g.stroke();break;
+  case 'viking':dome('#8d8d8d',5);P([[11.2,6],[7.4,1.2],[8.6,0.4],[12.6,4.6]],'#efe6d0');P([[20.8,6],[24.6,1.2],[23.4,0.4],[19.4,4.6]],'#efe6d0');Rr(15.4,8,1.2,4,'#7a7a7a',0);break;
+  case 'hussar':dome('#9aa0a6',5);Rr(15.4,8,1.2,4.4,'#7f858b',0);break;
+  case 'spartan':dome('#c9a227',5.3);Rr(10.8,8,2.4,6,'#c9a227',1);Rr(18.8,8,2.4,6,'#c9a227',1);E(16,3,6.6,3,'#b71c1c',Math.PI,0);break;
+  case 'flatcap':P([[10.8,6.6],[12,3.4],[19.6,3],[23,6.8]],'#556b2f');break;
+  case 'akubra':E(16,6.4,8.6,1.6,'#6d5a3f');Rr(12.4,2.6,7.2,4,'#6d5a3f',2);P([[7.6,6.4],[9,1.8],[12.6,5.2]],'#6d5a3f');Rr(12.4,5,7.2,1,'#3b2f1f',0);break;
+  case 'fila':P([[11.4,6.4],[12.6,2.6],[21.2,3.6],[20.6,6.4]],cu.c2);break;
+  case 'kufi':dome(cu.c2,4.9);F('rgba(0,0,0,.25)');for(let k=0;k<4;k++)g.fillRect(12+k*2.3,6.6,1.1,1.1);break;
+  case 'maasai':dome('#b5502a',4.6);Rr(11.2,6.6,9.6,1.7,'#e74c3c',0.8);F('#f1c40f');for(let k=0;k<5;k++)g.fillRect(12+k*1.9,7,0.9,0.9);break;
+  case 'lionmane':break;
+  case 'inuit':break;
+  case 'alpine':E(16,6.4,7.2,1.4,cu.key==='SM'?'#3a5f8f':'#2e5e3a');Rr(12.4,2.4,7.2,4.4,cu.key==='SM'?'#3a5f8f':'#2e5e3a',2);g.strokeStyle='#f5f5f5';g.lineWidth=1;g.beginPath();g.moveTo(19,4);g.quadraticCurveTo(22,1,22.4,-1.5);g.stroke();break;
+  case 'barretina':P([[11.2,6.6],[12,3],[16,1.4],[22,2],[24.4,5.2],[21.6,4.4],[20.8,6.6]],'#c0392b');break;
+  case 'knight':Rr(10.8,3.4,10.4,9.6,'#bfc5cc',2);Rr(11.6,8,8.8,1.2,'#1a1a1a',0);Rr(15.3,4,1.4,4,'#cf142b',0);Rr(13.4,5.2,5.2,1.2,'#cf142b',0);break;
+  case 'lei':for(let k=0;k<7;k++){const a=Math.PI+k/6*Math.PI;C(16+Math.cos(a)*5,6.6+Math.sin(a)*2.2,1.3,['#ff6b9a','#ffd23f','#ff8c42','#f5f5f5'][k%4]);}break;
+  }
+}
+const spriteCache=new Map();
+function sprite(cu,type,color,wt=0,at=0){
+  const key=cu.key+'|'+type+'|'+color+'|'+wt+'|'+at;
+  let c=spriteCache.get(key); if(c)return c;
+  c=document.createElement('canvas'); c.width=c.height=64; const g=c.getContext('2d'); g.scale(2,2);
+  // team disc
+  g.fillStyle=color; g.globalAlpha=.95; g.beginPath(); g.ellipse(16,29,9.5,3,0,0,6.283); g.fill(); g.globalAlpha=1;
+  if(type==='hero'){g.fillStyle='#d4af37';g.beginPath();g.moveTo(10,14);g.lineTo(6,29);g.lineTo(26,29);g.lineTo(22,14);g.fill();}
+  hatBack(g,cu.hat,cu);
+  g.fillStyle='#262626'; g.fillRect(12.4,23,2.8,6); g.fillRect(16.8,23,2.8,6);
+  g.fillStyle=cu.c1; g.beginPath(); g.roundRect(10.4,13.4,11.2,11,3); g.fill();
+  g.strokeStyle='rgba(0,0,0,.35)'; g.lineWidth=.7; g.stroke();
+  g.fillStyle=cu.c2; g.fillRect(10.4,19,11.2,2);
+  if(at>=1){const tc=TIER_C[at];g.fillStyle=tc;g.beginPath();g.roundRect(12.6,15.2,6.8,3.6,1.4);g.fill();g.strokeStyle='rgba(0,0,0,.45)';g.lineWidth=.6;g.stroke();
+    g.fillStyle='rgba(255,255,255,.55)';g.fillRect(13,15.4,2,1.2);
+    if(at>=2){g.fillStyle=tc;g.beginPath();g.arc(10.8,15,2,0,6.283);g.arc(21.2,15,2,0,6.283);g.fill();g.stroke();}
+    if(at>=3){g.save();g.shadowColor=tc;g.shadowBlur=4;g.strokeStyle=tc;g.lineWidth=.8;g.beginPath();g.roundRect(10.2,13.2,11.6,11.4,3);g.stroke();g.restore();}}
+  g.fillStyle=color; g.fillRect(11.4,12.8,9.2,2.1);
+  if(!['knight'].includes(cu.hat)){g.fillStyle=SKIN; g.beginPath(); g.arc(16,10,4.4,0,6.283); g.fill();
+    g.fillStyle='#222'; g.fillRect(14.2,9.5,1.2,1.4); g.fillRect(16.8,9.5,1.2,1.4);}
+  hat(g,cu.hat,cu);
+  g.lineCap='round';
+  const bl=wt>=2?TIER_C[wt]:'#e3e7ea';
+  if(wt>=1){g.shadowColor=TIER_C[wt];g.shadowBlur=1.5+wt*1.8;}
+  if(type==='melee'||type==='hero'){
+    const mw=cu.mw;
+    if(mw==='spear'){g.strokeStyle='#7a5230';g.lineWidth=1.3;g.beginPath();g.moveTo(24,28);g.lineTo(25.5,3);g.stroke();g.fillStyle=bl;g.beginPath();g.moveTo(24.6,4);g.lineTo(25.7,-0.5);g.lineTo(26.6,4.2);g.fill();}
+    else if(mw==='axe'){g.strokeStyle='#7a5230';g.lineWidth=1.4;g.beginPath();g.moveTo(23,24);g.lineTo(25.5,9);g.stroke();g.fillStyle=bl;g.beginPath();g.moveTo(25,9);g.quadraticCurveTo(30,8,29.5,14);g.lineTo(24.6,12);g.fill();}
+    else if(mw==='katana'){g.strokeStyle=bl;g.lineWidth=1.3;g.beginPath();g.moveTo(22.5,21);g.quadraticCurveTo(26.5,13,26,5);g.stroke();g.strokeStyle='#111';g.lineWidth=1.8;g.beginPath();g.moveTo(22,22.5);g.lineTo(23,20.5);g.stroke();}
+    else if(mw==='club'){g.strokeStyle='#8b5a2b';g.lineWidth=1.6;g.beginPath();g.moveTo(23,10);g.lineTo(25,25);g.lineTo(28.5,25.5);g.stroke();}
+    else{g.strokeStyle=bl;g.lineWidth=1.6;g.beginPath();g.moveTo(22.6,21);g.lineTo(26,9.5);g.stroke();g.strokeStyle='#8a6d1f';g.lineWidth=1.4;g.beginPath();g.moveTo(21,19.6);g.lineTo(24.8,20.8);g.stroke();}
+    g.shadowBlur=0;g.fillStyle=cu.c2; g.beginPath(); g.arc(9.4,18.8,4.3,0,6.283); g.fill(); g.strokeStyle=at>=1?TIER_C[at]:'rgba(0,0,0,.45)'; g.lineWidth=at>=1?1.3:.9; g.stroke();
+    g.fillStyle=color; g.beginPath(); g.arc(9.4,18.8,1.5,0,6.283); g.fill();
+  } else {
+    const w=cu.wpn;
+    if(w==='bow'){g.strokeStyle='#8b5a2b';g.lineWidth=1.4;g.beginPath();g.arc(21.5,17,6.5,-1.25,1.25);g.stroke();g.strokeStyle='#ddd';g.lineWidth=.5;g.beginPath();g.moveTo(23.6,10.8);g.lineTo(23.6,23.2);g.stroke();}
+    else if(w==='crossbow'){g.strokeStyle='#6d4c2f';g.lineWidth=1.6;g.beginPath();g.moveTo(17,19);g.lineTo(27,16);g.stroke();g.strokeStyle='#444';g.lineWidth=1.2;g.beginPath();g.moveTo(24.2,12);g.quadraticCurveTo(27.5,16,25.4,20.6);g.stroke();}
+    else if(w==='gun'){g.strokeStyle='#4a3420';g.lineWidth=1.8;g.beginPath();g.moveTo(16.5,20);g.lineTo(28.5,12.5);g.stroke();g.strokeStyle='#cfd4d8';g.lineWidth=.8;g.beginPath();g.moveTo(28.5,12.5);g.lineTo(30.5,11.2);g.stroke();}
+    else if(w==='sling'||w==='bola'){g.strokeStyle='#8b6b47';g.lineWidth=.8;g.beginPath();g.moveTo(21,17);g.lineTo(24,8);g.stroke();g.fillStyle='#777';g.beginPath();g.arc(24.4,7.4,1.7,0,6.283);g.fill();if(w==='bola'){g.beginPath();g.arc(27,10,1.4,0,6.283);g.fill();}}
+    else if(w==='shuriken'){g.fillStyle='#c9ced3';g.save();g.translate(24.5,16);for(let k=0;k<4;k++){g.rotate(Math.PI/2);g.beginPath();g.moveTo(0,0);g.lineTo(1.1,-1);g.lineTo(0,-4);g.fill();}g.restore();}
+    else if(w==='chakram'){g.strokeStyle='#e0b23a';g.lineWidth=1.5;g.beginPath();g.arc(24.5,15,3.2,0,6.283);g.stroke();}
+    else if(w==='boomerang'){g.strokeStyle='#a0522d';g.lineWidth=1.8;g.beginPath();g.moveTo(21.5,12);g.lineTo(25,16);g.lineTo(21.5,20);g.stroke();}
+    else {g.strokeStyle='#7a5230';g.lineWidth=1.2;g.beginPath();g.moveTo(19,25);g.lineTo(27.5,4);g.stroke();g.fillStyle='#ddd';g.beginPath();g.moveTo(26.6,5.2);g.lineTo(28,1.6);g.lineTo(28.6,6);g.fill();}
+  }
+  g.shadowBlur=0;
+  if(wt>=1){g.fillStyle=TIER_C[wt];for(let k=0;k<wt;k++){g.beginPath();g.arc(4+k*3,3,1.1,0,6.283);g.fill();}}
+  if(type==='hero'){g.fillStyle='#ffd84d';g.beginPath();[[11,1.5],[12.5,-2.5],[14.3,0],[16,-3.2],[17.7,0],[19.5,-2.5],[21,1.5]].forEach((p,i)=>i?g.lineTo(p[0],p[1]-1):g.moveTo(p[0],p[1]-1));g.fill();}
+  spriteCache.set(key,c); return c;
+}
+
+// ================= game state
+const owner=new Int16Array(NC);
+const G={state:'idle',t:0,nations:[],units:[],projs:[],fx:[],bubbles:[],cities:[],cityAt:new Map(),dm:0,borderT:0,cityT:0,checkT:0,winner:null,endT:0,lobbyT:0,speed:1,feedQ:[]};
+const ME={status:'queued',nid:-1,perkEarned:false,perk:null,locCell:-1,pick:null,lastRank:0,wins:0};
+const NATION_COLORS=['#46d4ff','#ff6b6b','#ffd166','#06d6a0','#c77dff','#ff9f1c','#8ac926','#f15bb5','#4d96ff','#e76f51','#2ec4b6','#b5838d','#fca311','#9b5de5','#00bbf9','#e9c46a'];
+const hexRGB=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+
+function makeNation(id,ci,cell,isPlayer){
+  const m=META[ci], sup=SUPER_BY_CI[ci]||null;
+  const color=isPlayer?NATION_COLORS[0]:NATION_COLORS[1+((id-1+16)%15)];
+  return {id,ci,cul:getCulture(ci),name:m.ko,flag:flagOf(m.a2),color,rgb:hexRGB(color),isPlayer,sup,sp:sup?sup.a2:null,
+    cells:0,gold:130,tr:getTrait(ci),st:{},wt:0,at:0,boostT:0,flashT:0,lv:{prod:0,atk:0,hp:0,spd:0,rng:0},built:0,front:[],units:0,kills:0,alive:true,
+    target:null,tgtT:0,tgtCells:[],neuCells:[],manual:null,chargeT:0,chargeCD:0,heroCD:0,aiT:srnd(1,4),sayT:srnd(2,10),
+    spawn:cell,lx:cell%W,ly:cell/W|0,border:new Map(),nAdj:0,expAcc:0,x2:false,rank:0,wars:new Set(),deadAt:0,peak:0};
+}
+function cellXY(c){return [c%W,(c/W)|0]}
+function dist2(a,b){const ax=a%W,ay=a/W|0,bx=b%W,by=b/W|0;return (ax-bx)**2+(ay-by)**2}
+
+function pickStart(used,spawns,forcedCell){
+  const far=c=>spawns.every(s=>dist2(s,c)>24*24);
+  // snap a start point onto a real city of the same country when one is close
+  const snap=(ci,cell,r)=>{const q=nearestRC(cell,r,q=>q.ci===ci&&far(q.c));return {ci,cell:q?q.c:cell};};
+  if(forcedCell>=0){const ci=ctry[forcedCell]-1;return SUPER_BY_CI[ci]?{ci,cell:SUPER_BY_CI[ci].cell}:snap(ci,forcedCell,5);}
+  if(R()<0.06&&!(spawns.some(c=>SUPER_BY_CI[ctry[c]-1]))){const av=SUPERS.filter(s=>s.ci>=0&&!used.has(s.ci)&&far(s.cell));if(av.length){const s=av[ri(av.length)];return {ci:s.ci,cell:s.cell};}}
+  for(let k=0;k<400;k++){const c=landIdx[ri(TOTAL_LAND)],ci=ctry[c]-1;if(SUPER_BY_CI[ci]||used.has(ci))continue;if(k<300&&!far(c))continue;return snap(ci,c,14);}
+  const c=landIdx[ri(TOTAL_LAND)];return {ci:ctry[c]-1,cell:c};
+}
+
+// ================= core mechanics
+const dirty=[],dirtyF=new Uint8Array(NC);
+function markDirty(c){if(!dirtyF[c]){dirtyF[c]=1;dirty.push(c);}}
+function markAround(c){markDirty(c);const x=c%W;if(x>0)markDirty(c-1);if(x<W-1)markDirty(c+1);if(c>=W)markDirty(c-W);if(c<NC-W)markDirty(c+W);}
+function claim(c,id){
+  const old=owner[c]; if(old===id||old===-2)return false;
+  owner[c]=id; const n=G.nations[id]; n.cells++; if(old>=0)G.nations[old].cells--;
+  markAround(c); n.front.push(c);
+  const city=G.cityAt.get(c); if(city)transferCity(city,id,old);
+  return true;
+}
+function neutralNb(c){
+  const x=c%W, o=sri(4);
+  for(let k=0;k<4;k++){const d=(o+k)&3;let nb=-1;
+    if(d===0&&x<W-1)nb=c+1;else if(d===1&&x>0)nb=c-1;else if(d===2&&c>=W)nb=c-W;else if(d===3&&c<NC-W)nb=c+W;
+    if(nb>=0&&owner[nb]===-1)return nb;}
+  return -1;
+}
+function claimDisk(cx,cy,r,id,neutralOnly){
+  let n=0;const r2=r*r,ir=Math.ceil(r);
+  for(let dy=-ir;dy<=ir;dy++){const y=cy+dy;if(y<0||y>=H)continue;
+    for(let dx=-ir;dx<=ir;dx++){if(dx*dx+dy*dy>r2)continue;const x=cx+dx;if(x<0||x>=W)continue;const c=y*W+x;
+      if(owner[c]===-2||owner[c]===id)continue;if(neutralOnly&&owner[c]!==-1)continue;if(claim(c,id))n++;}}
+  return n;
+}
+function addCity(c,id,type){
+  const [x,y]=cellXY(c); const city={cell:c,x,y,owner:id,type,timer:srnd(0,1),alt:0,name:cityNameAt(c),real:RC_AT.has(c)};
+  G.cities.push(city); G.cityAt.set(c,city); return city;
+}
+function citiesOf(id){return G.cities.filter(c=>c.owner===id)}
+function transferCity(city,nid,old){
+  const wasCap=city.type==='capital';
+  city.owner=nid;
+  const nn=G.nations[nid],on0=old>=0?G.nations[old]:null;
+  if(!wasCap&&on0&&(nn.isPlayer||on0.isPlayer)&&G.t-(G.cityFeedT||-9)>2.5){G.cityFeedT=G.t;
+    feed(nn.isPlayer?`🏙 ${city.name} 점령! (${on0.flag} ${on0.name})`:`🏙 ${city.name}을(를) ${nn.flag} ${nn.name}에게 빼앗겼습니다`,nn.isPlayer?'good':'hot');}
+  if(wasCap){
+    city.type=SR()<.5?'melee':'ranged';
+    const on=old>=0?G.nations[old]:null;
+    if(on){
+      const n=G.nations[nid];
+      const mine=on.isPlayer||n.isPlayer;if(mine||G.t-(G.capFeedT||-99)>10){if(!mine)G.capFeedT=G.t;feed(`🏰 ${city.name} 함락! ${n.flag} ${n.name}이(가) ${on.flag} ${on.name}의 수도를 점령`,mine?'hot':'');}
+      if(on.isPlayer)toast(`${city.name} 함락! 수도를 옮깁니다`);
+      if(n.isPlayer){say(n,true);}
+      relocateCapital(on);
+    }
+  }
+}
+function relocateCapital(n){
+  if(n.cells<=0)return;
+  const cs=citiesOf(n.id);let cap=null;
+  if(cs.length){cap=cs.reduce((a,b)=>((b.real?1:0)-(a.real?1:0))>0?b:a);cap.type='capital';}
+  else{const c=randomOwnCells(n.id,1)[0];if(c!==undefined&&!G.cityAt.has(c))cap=addCity(c,n.id,'capital');}
+  if(cap&&n.isPlayer)feed(`🏰 새 수도: ${cap.name}`,'gold');
+}
+function randomOwnCells(id,k){
+  const out=[];const n=G.nations[id];
+  const tries=Math.min(6000,Math.ceil(k*TOTAL_LAND/Math.max(1,n.cells))*2);
+  for(let t=0;t<tries&&out.length<k;t++){const c=landIdx[sri(TOTAL_LAND)];if(owner[c]===id)out.push(c);}
+  if(!out.length){for(let t=0;t<n.front.length&&out.length<k;t++){const c=n.front[sri(n.front.length)];if(owner[c]===id)out.push(c);}}
+  return out;
+}
+
+// --- border scan: who touches whom, label centroids, attack targets
+function computeBorders(){
+  const ns=G.nations, L=ns.length;
+  const B=ns.map(()=>new Map()), nAdj=new Int32Array(L), sx=new Float64Array(L), sy=new Float64Array(L), cnt=new Int32Array(L);
+  const add=(a,b,c)=>{let r=B[a].get(b);if(!r){r={n:0,s:[]};B[a].set(b,r);}r.n++;if(r.s.length<90)r.s.push(c);else if(SR()<90/r.n)r.s[sri(90)]=c;};
+  for(let y=0;y<H;y++){for(let x=0;x<W;x++){const i=y*W+x,oa=owner[i];
+    if(oa>=0){sx[oa]+=x;sy[oa]+=y;cnt[oa]++;}
+    if(oa===-2)continue;
+    if(x<W-1){const ob=owner[i+1];if(ob!==oa&&ob!==-2){if(oa>=0&&ob>=0){add(oa,ob,i+1);add(ob,oa,i);}else if(oa>=0)nAdj[oa]++;else nAdj[ob]++;}}
+    if(y<H-1){const ob=owner[i+W];if(ob!==oa&&ob!==-2){if(oa>=0&&ob>=0){add(oa,ob,i+W);add(ob,oa,i);}else if(oa>=0)nAdj[oa]++;else nAdj[ob]++;}}
+  }}
+  for(const n of ns){n.border=B[n.id];n.nAdj=nAdj[n.id];if(cnt[n.id]){n.lx=sx[n.id]/cnt[n.id];n.ly=sy[n.id]/cnt[n.id];}
+    if(n.alive){for(const b of n.border.keys()){if(!n.wars.has(b)){n.wars.add(b);const o=ns[b];if(n.isPlayer)feed(`⚔ ${o.flag} ${o.name}과(와) 국경 충돌! 전투 시작`,'hot');}}}
+  }
+}
+function updateTargets(n){
+  n.tgtT-=2;
+  let tc=[];
+  const m=n.manual;
+  if(m){
+    if(m.kind==='nation'){const tn=G.nations[m.id];
+      if(!tn.alive){n.manual=null;}
+      else{const rec=n.border.get(m.id);
+        if(rec){const s=rec.s.slice().sort((a,b)=>dist2(a,m.cell)-dist2(b,m.cell));tc=s.slice(0,14);}
+        else{tc=owner[m.cell]===m.id?[m.cell]:randomOwnCells(m.id,4);}}
+    }else{ if(owner[m.cell]===n.id||owner[m.cell]===-2)n.manual=null; else tc=[m.cell]; }
+  }
+  if(!tc.length){
+    if(n.tgtT<=0||n.target===null||!n.border.has(n.target)){
+      n.target=null;const opts=[...n.border.keys()].filter(b=>G.nations[b].alive);
+      if(opts.length){let best=-1,bs=-1;const me=strength(n);
+        for(const b of opts){const s=(n.border.get(b).n+20)/pw125(strength(G.nations[b])/me+0.2)*srnd(.6,1.4);if(s>bs){bs=s;best=b;}}
+        n.target=best;}
+      n.tgtT=srnd(14,30);
+    }
+    if(n.target!==null)tc=n.border.get(n.target).s;
+  }
+  n.tgtCells=tc;
+  // neutral frontier targets
+  const neu=[];
+  if(n.nAdj>0){for(let k=0;k<30&&n.front.length;k++){const c=n.front[sri(n.front.length)];if(owner[c]!==n.id)continue;const nb=neutralNb(c);if(nb>=0)neu.push(nb);}}
+  if(!tc.length&&!neu.length){ // overseas: nearest foreign land
+    let best=-1,bd=1e9;const cx=n.lx,cy=n.ly;
+    for(let k=0;k<500;k++){const c=landIdx[sri(TOTAL_LAND)];if(owner[c]===n.id)continue;const d=(c%W-cx)**2+((c/W|0)-cy)**2;if(d<bd){bd=d;best=c;}}
+    if(best>=0)neu.push(best);
+  }
+  n.neuCells=neu;
+}
+function strength(n){return n.units*(1+.15*n.lv.atk)*(1+.2*n.lv.hp)+n.cells*.03+5}
+function prodMult(n){return (1+.3*n.lv.prod)*(n.sup?1.4:1)*(n.x2?2:1)*TE(n,'prod')*[1,1.5,2,3][G.dm]}
+function unitCap(n){return Math.floor((14+n.cells/34)*TE(n,'cap'))}
+function calcStats(n){
+  const lv=n.lv;
+  for(const t of ['melee','ranged','hero']){const b=BASE[t];
+    n.st[t]={hp:b.hp*(1+.25*lv.hp)*TE(n,'hp'),atk:b.atk*(1+.2*lv.atk)*TE(n,'atk'),spd:b.spd*(1+.15*lv.spd)*TE(n,'spd'),
+      rng:t==='ranged'?b.rng*(1+.18*lv.rng)*TE(n,'rng'):b.rng,cd:b.cd/TE(n,'aspd')};}
+  n.wt=tierOf(lv.atk);n.at=tierOf(lv.hp);
+  for(const u of G.units)if(u.n===n.id){const m=n.st[u.type].hp;u.hp*=m/u.mhp;u.mhp=m;}
+}
+
+function assignTarget(u,n){
+  let pool;
+  if(n.manual&&n.tgtCells.length)pool=n.tgtCells;
+  else if(n.tgtCells.length&&n.neuCells.length)pool=SR()<(G.t<90?0.35:0.65)?n.tgtCells:n.neuCells;
+  else pool=n.tgtCells.length?n.tgtCells:n.neuCells;
+  if(!pool.length){u.tx=u.x+srnd(-2,2);u.ty=u.y+srnd(-2,2);u.idle=true;return;}
+  const c=pool[sri(pool.length)];u.tx=c%W+.5+srnd(-.3,.3);u.ty=(c/W|0)+.5+srnd(-.3,.3);u.tOwner=owner[c];u.idle=false;
+}
+const BASE={melee:{hp:42,atk:7,rng:.9,cd:.75,spd:4.6,cap:3},ranged:{hp:22,atk:6,rng:3.4,cd:1,spd:4.3,cap:2},hero:{hp:420,atk:24,rng:1.3,cd:.6,spd:4.2,cap:40}};
+function spawnUnit(n,city,type){
+  const b=BASE[type],hp=n.st[type].hp;
+  const u={n:n.id,type,x:city.x+.5+srnd(-.7,.7),y:city.y+.5+srnd(-.7,.7),hp,mhp:hp,cd:srnd(0,b.cd),cap:b.cap,tx:0,ty:0,tOwner:-1,alive:true,face:1,ph:SR()*6.28,idle:false,hit:0};
+  assignTarget(u,n); G.units.push(u); n.units++; return u;
+}
+function localTarget(u,n){
+  const cx=u.x|0,cy=u.y|0;let best=-1,bp=-1;
+  for(let r=1;r<=5;r++){
+    for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){if(Math.max(Math.abs(dx),Math.abs(dy))!==r)continue;
+      const x=cx+dx,y=cy+dy;if(x<0||y<0||x>=W||y>=H)continue;const c=y*W+x,o=owner[c];
+      if(o===-2||o===n.id)continue;const p=(o===u.tOwner?3:o>=0?2:1)+SR()*.5;if(p>bp){bp=p;best=c;}}
+    if(best>=0)break;
+  }
+  if(best<0)return false;u.tx=best%W+.5;u.ty=(best/W|0)+.5;u.tOwner=owner[best];return true;
+}
+
+// spatial hash
+const HS=6,HW=Math.ceil(W/HS),HH=Math.ceil(H/HS);
+const head=new Int32Array(HW*HH);let nxt=new Int32Array(4096);
+function buildHash(){head.fill(-1);const us=G.units;if(nxt.length<us.length)nxt=new Int32Array(us.length*2);
+  for(let i=0;i<us.length;i++){const u=us[i];const b=clamp(u.y/HS|0,0,HH-1)*HW+clamp(u.x/HS|0,0,HW-1);nxt[i]=head[b];head[b]=i;}}
+function nearestEnemy(u,sight){
+  const us=G.units,bx=u.x/HS|0,by=u.y/HS|0;let best=null,bd=sight*sight;
+  for(let yy=by-1;yy<=by+1;yy++){if(yy<0||yy>=HH)continue;for(let xx=bx-1;xx<=bx+1;xx++){if(xx<0||xx>=HW)continue;
+    for(let i=head[yy*HW+xx];i>=0;i=nxt[i]){const v=us[i];if(v.n===u.n||!v.alive)continue;const d=(v.x-u.x)**2+(v.y-u.y)**2;if(d<bd){bd=d;best=v;}}}}
+  return best;
+}
+
+function stepUnits(dt){
+  const us=G.units, ns=G.nations, capR=1.4+G.dm*.45;
+  buildHash();
+  for(const u of us){
+    if(!u.alive)continue;const n=ns[u.n];
+    u.cd-=dt; u.ph+=dt*8; if(u.hit>0)u.hit-=dt;
+    const S=n.st[u.type],rg=TE(n,'regen',0);
+    if(rg&&u.hp<u.mhp)u.hp=Math.min(u.mhp,u.hp+u.mhp*rg*dt);
+    const charge=n.chargeT>0?TE(n,'chargePow',1.5):1;
+    const e=nearestEnemy(u,u.type==='ranged'?5:4.5);
+    let mx,my;
+    if(e){
+      const d=hyp(e.x-u.x,e.y-u.y);
+      if(d<=S.rng+.15){
+        if(u.cd<=0){u.cd=S.cd/(n.flashT>0?1.3:1);let dmg=S.atk*charge*(1+.3*G.dm)*srnd(.85,1.15);
+          const crit=SR()<TE(n,'crit',0);if(crit){dmg*=2;G.fx.push({x:e.x,y:e.y-1,r:0,life:.6,max:.6,c:'#ff5b52',k:'txt',t:'치명타!'});}
+          if(u.type==='hero'){for(const v of [e,...nearbyEnemies(u,1.6)])hurt(u,n,v,dmg*(v===e?1:.6));G.fx.push({x:u.x,y:u.y,r:1.8,life:.3,max:.3,c:'#ffd84d',k:'ring'});}
+          else if(u.type==='ranged'){
+            const lv=n.lv.rng,glow=lv>=1?TIER_C[tierOf(lv)]:null,pk=PROJ_OF[n.cul.wpn]||'arrow';
+            const tg=[e];const mul=TE(n,'multi',0);if(mul){for(const v of nearbyEnemies(e,2.6)){if(tg.length>mul)break;if(v!==e)tg.push(v);}}
+            const spl=TE(n,'splashR',0);
+            tg.forEach((v,i)=>{hurt(u,n,v,dmg*(i?.75:1));G.projs.push({x:u.x,y:u.y-.3,tx:v.x,ty:v.y-.3,t:-i*.06,d:Math.max(.08,hyp(v.x-u.x,v.y-u.y)/16),k:pk,g:glow});
+              if(spl){for(const w of nearbyEnemies(v,1.1))if(w!==v)hurt(u,n,w,dmg*spl);G.fx.push({x:v.x,y:v.y,r:1.1,life:.3,max:.3,c:'#ffb35c',k:'ring'});}});
+          }else{
+            hurt(u,n,e,dmg);const sp=TE(n,'splash',0);
+            if(sp){for(const w of nearbyEnemies(e,1.2))if(w!==e)hurt(u,n,w,dmg*sp);G.fx.push({x:e.x,y:e.y,r:1.2,life:.25,max:.25,c:n.color,k:'ring'});}
+            G.fx.push({x:(u.x+e.x)/2,y:(u.y+e.y)/2-.3,r:.4,life:.15,max:.15,c:n.wt>=2?TIER_C[n.wt]:'#fff',k:'spark'});}
+        }
+        u.face=e.x>=u.x?1:-1; continue;
+      }
+      mx=e.x;my=e.y;
+    }else{
+      const d=hyp(u.tx-u.x,u.ty-u.y);
+      if(d<.6){
+        const c=(u.ty|0)*W+(u.tx|0),o=owner[c];
+        if(o!==n.id&&o!==-2&&!u.idle){const got=claimDisk(u.tx|0,u.ty|0,capR+(u.type==='hero'?1:0),n.id,false);
+          if(got>0){u.cap--;G.fx.push({x:u.tx,y:u.ty,r:capR,life:.5,max:.5,c:n.color,k:'cap'});if(u.cap<=0){u.alive=false;continue;}}}
+        if(!localTarget(u,n))assignTarget(u,n);
+        continue;
+      }
+      mx=u.tx;my=u.ty;
+    }
+    const dx=mx-u.x,dy=my-u.y,dd=hyp(dx,dy)||1;
+    const ci=(u.y|0)*W+(u.x|0);const water=ci>=0&&ci<NC&&owner[ci]===-2;
+    const sp=S.spd*charge*(n.boostT>0?1.35:1)*(water&&!TE(n,'sea',0)?.6:1)*dt;
+    u.x+=dx/dd*Math.min(sp,dd);u.y+=dy/dd*Math.min(sp,dd);u.face=dx>=0?1:-1;u.water=water;u.mv=.15;
+  }
+  // purge
+  let j=0;for(let i=0;i<us.length;i++){const u=us[i];if(u.alive&&ns[u.n].alive)us[j++]=u;}us.length=j;
+  for(const n of ns)n.units=0;for(const u of us)if(u.type!=='hero')ns[u.n].units++;
+}
+function hurt(u,n,v,dmg){
+  if(!v.alive)return;const vn=G.nations[v.n];
+  if(owner[(v.y|0)*W+(v.x|0)]===v.n)dmg*=1-.2-TE(vn,'home',0);
+  if(u.type==='ranged')dmg*=1-TE(vn,'rangedDef',0);
+  v.hp-=dmg;v.hit=.15;
+  if(v.hp<=0){v.alive=false;n.kills++;const kg=TE(n,'killGold',0);if(kg)n.gold+=kg;G.fx.push({x:v.x,y:v.y,r:.8,life:.4,max:.4,c:vn.color,k:'poof'});}
+}
+function nearbyEnemies(u,r){const out=[];const us=G.units,bx=u.x/HS|0,by=u.y/HS|0;
+  for(let yy=by-1;yy<=by+1;yy++){if(yy<0||yy>=HH)continue;for(let xx=bx-1;xx<=bx+1;xx++){if(xx<0||xx>=HW)continue;
+    for(let i=head[yy*HW+xx];i>=0;i=nxt[i]){const v=us[i];if(v.n!==u.n&&v.alive&&(v.x-u.x)**2+(v.y-u.y)**2<r*r)out.push(v);}}}return out;}
+
+// --- upgrades & actions
+const UPG=[
+ {k:'prod',ic:'⚒',nm:'생산',base:80,unlock:0,step:30,desc:'병력 생산 +30% · 모든 도시에서 즉시 지원군'},
+ {k:'atk',ic:'⚔',nm:'무기',base:100,unlock:0,step:20,desc:'공격력 +20% · 무기가 빛납니다'},
+ {k:'hp',ic:'🛡',nm:'갑옷',base:100,unlock:0,step:25,desc:'체력 +25% · 전군 즉시 회복 · 갑옷 착용'},
+ {k:'spd',ic:'🐎',nm:'기동',base:120,unlock:.02,step:15,desc:'이동 속도 +15% · 4초간 질주'},
+ {k:'rng',ic:'🎯',nm:'사거리',base:120,unlock:.035,step:18,desc:'원거리 사거리 +18% · 불화살'},
+];
+const MAXLV=8;
+const upCost=(n,u)=>Math.round(u.base*powi(1.45,n.lv[u.k]));
+const cityCost=n=>Math.round(220*powi(1.4,n.built));
+const share=n=>n.cells/TOTAL_LAND;
+function canUp(n,u){return n.lv[u.k]<MAXLV&&share(n)>=u.unlock&&n.gold>=upCost(n,u)}
+function doUp(n,u){if(!canUp(n,u))return false;n.gold-=upCost(n,u);n.lv[u.k]++;calcStats(n);upgradeFX(n,u);return true;}
+const UP_FX={prod:'#5fe0a8',atk:'#ffd84d',hp:'#9fd3ff',spd:'#ffffff',rng:'#ff8a3d'};
+function upgradeFX(n,u){
+  const k=u.k,c=UP_FX[k],lv=n.lv[k],txt=`${u.ic} +${u.step*lv}%`;
+  const P=n.isPlayer;
+  for(const city of citiesOf(n.id)){
+    if(P){G.fx.push({x:city.x+.5,y:city.y+.5,r:4,life:.9,max:.9,c,k:'ring'});G.fx.push({x:city.x+.5,y:city.y-.6,r:0,life:1.6,max:1.6,c,k:'txt',t:txt});}
+    if(k==='prod'){spawnUnit(n,city,city.type==='capital'?'melee':city.type);}}
+  const mine=G.units.filter(x=>x.n===n.id);
+  if(P)for(let i=0;i<Math.min(70,mine.length);i++){const x=mine[ri(mine.length)];G.fx.push({x:x.x,y:x.y-.8,r:0,life:1,max:1,c,k:'up',t:u.ic});}
+  if(k==='hp')for(const x of mine)x.hp=x.mhp;
+  if(k==='atk')n.flashT=3;
+  if(k==='spd')n.boostT=4;
+  if(n.isPlayer){toast(`${u.ic} ${u.nm} Lv${lv} · ${u.nm==='생산'?'생산':u.nm==='사거리'?'사거리':u.nm==='기동'?'이동':u.nm==='갑옷'?'체력':'공격력'} +${u.step*lv}%`,c);chime(lv);}
+}
+let actx=null;
+function chime(lv){if(!soundOn||!userActed)return;try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();const t=actx.currentTime;
+  [523,659,784+lv*20].forEach((f,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.type='triangle';o.frequency.value=f;g.gain.setValueAtTime(0,t+i*.07);g.gain.linearRampToValueAtTime(.06,t+i*.07+.01);g.gain.exponentialRampToValueAtTime(.0001,t+i*.07+.35);o.connect(g).connect(actx.destination);o.start(t+i*.07);o.stop(t+i*.07+.4);});}catch(e){}}
+const ACT={city:{unlock:.015},hero:{unlock:.07,cost:500,cd:60},charge:{cost:70,cd:40,dur:8}};
+function canCity(n){return share(n)>=ACT.city.unlock&&n.gold>=cityCost(n)}
+function buildCity(n,c,type){if(!canCity(n)||owner[c]!==n.id||G.cityAt.has(c))return false;n.gold-=cityCost(n);n.built++;return addCity(c,n.id,type);}
+// best spot for a new city: a real city inside our land, far from our other cities; otherwise open land
+function citySpot(n,mine){
+  let best=-1,bs=-1;
+  for(const q of RC){if(owner[q.c]!==n.id||G.cityAt.has(q.c))continue;let md=1e9;for(const m of mine)md=Math.min(md,dist2(q.c,m.cell));if(md<25)continue;
+    const sc=Math.sqrt(Math.min(md,900))+q.rk*.4+(q.cap?6:0);if(sc>bs){bs=sc;best=q.c;}}
+  if(best>=0)return best;
+  const cand=randomOwnCells(n.id,40);let bd=-1;
+  for(const c of cand){if(G.cityAt.has(c))continue;let md=1e9;for(const m of mine)md=Math.min(md,dist2(c,m.cell));if(md>bd){bd=md;best=c;}}
+  return bd>36?best:-1;
+}
+function canHero(n){return share(n)>=ACT.hero.unlock&&n.gold>=ACT.hero.cost&&n.heroCD<=0}
+function doHero(n){if(!canHero(n))return false;const cap=citiesOf(n.id).find(c=>c.type==='capital')||citiesOf(n.id)[0];if(!cap)return false;n.gold-=ACT.hero.cost;n.heroCD=ACT.hero.cd;spawnUnit(n,cap,'hero');if(n.isPlayer)say(n,true);return true;}
+function canCharge(n){return n.gold>=ACT.charge.cost&&n.chargeCD<=0}
+function doCharge(n){if(!canCharge(n))return false;n.gold-=ACT.charge.cost;n.chargeCD=ACT.charge.cd;n.chargeT=ACT.charge.dur*TE(n,'chargeDur');if(n.isPlayer){say(n,true);toast('돌격!');}return true;}
+
+function botAI(n){
+  const opts=[];
+  for(const u of UPG)if(canUp(n,u))opts.push([()=>doUp(n,u),{prod:3,atk:2.2,hp:2,spd:1,rng:n.cul.wpn?1.2:1}[u.k]]);
+  if(canCity(n))opts.push([()=>{const c=citySpot(n,citiesOf(n.id));if(c>=0)buildCity(n,c,SR()<.5?'melee':'ranged');},1.4]);
+  if(canHero(n))opts.push([()=>doHero(n),2.5]);
+  if(canCharge(n)&&n.border.size&&n.gold>220)opts.push([()=>doCharge(n),.8]);
+  if(!opts.length)return;
+  if(SR()<.3&&n.gold<400)return; // save a bit
+  let tot=opts.reduce((s,o)=>s+o[1],0),r=SR()*tot;for(const o of opts){r-=o[1];if(r<=0){o[0]();break;}}
+}
+function autoCities(){
+  for(const n of G.nations){if(!n.alive)continue;
+    const mine=citiesOf(n.id);const allowed=Math.min(14,1+Math.floor(n.cells/450))+n.built;
+    if(mine.length>=allowed)continue;
+    const best=citySpot(n,mine);
+    if(best>=0){const bias=TE(n,'rng')>1||TE(n,'multi',0)?.65:TE(n,'hp')>1?.35:.5;const c=addCity(best,n.id,SR()<bias?'ranged':'melee');
+      if(n.isPlayer)feed(`🏙 새 도시: ${c.name} ${c.type==='ranged'?'🏹':'🛡'}`,'good');}
+  }
+}
+
+// ================= match flow
+function resetWorld(){
+  for(let i=0;i<NC;i++)owner[i]=ctry[i]?-1:-2;
+  G.units=[];G.projs=[];G.fx=[];G.bubbles=[];G.cities=[];G.cityAt=new Map();G.t=0;G.dm=0;G.borderT=0;G.cityT=1;G.checkT=1;G.winner=null;
+  fullRedraw=true;
+}
+// A match is fully described by a small config: seed + 16 nations [ci, cell, peer('' = bot), x2].
+// Every client builds the identical world from it, so only player commands travel over the network.
+function makeCfg(humans){
+  const used=new Set(),spawns=[],n=[];
+  for(const h of humans.slice(0,16)){used.add(h.pick.ci);spawns.push(h.pick.cell);n.push([h.pick.ci,h.pick.cell,h.peer,h.x2?1:0]);}
+  while(n.length<16){const pk=pickStart(used,spawns,-1);used.add(pk.ci);spawns.push(pk.cell);n.push([pk.ci,pk.cell,'',0]);}
+  return {m:'m'+Math.random().toString(36).slice(2,9),seed:(Math.random()*2147483647)|0,n};
+}
+function newMatchCfg(cfg,mp){
+  resetWorld();SEED=cfg.seed|0;
+  G.frame=0;G.m=cfg.m;G.cfg=cfg;G.mp=!!mp;G.cmds=new Map();G.seenQ=new Set();G.hash=null;NET.hashes=new Map();NET.hostH=new Map();NET.conf=0;NET.desync=false;
+  G.nations=[];
+  const myId=cfg.n.findIndex(x=>x[2]&&x[2]===NET.myPeer);
+  cfg.n.forEach(([ci,cell,peer,x2],id)=>{
+    const n=makeNation(id,ci,cell,id===myId);n.human=!!peer;n.peer=peer||'';n.pname=peer?nameOf(peer):'';n.x2=!!x2;
+    if(id!==myId){n.color=NATION_COLORS[1+((id-(myId>=0&&id>myId?1:0))%15)];n.rgb=hexRGB(n.color);}
+    calcStats(n);G.nations.push(n);
+  });
+  for(const n of G.nations){
+    const [x,y]=cellXY(n.spawn);
+    claimDisk(x,y,n.sp==='NR'?6:n.sup?4.5:3.2,n.id,true);
+    if(owner[n.spawn]===-1)claim(n.spawn,n.id);
+    addCity(n.spawn,n.id,'capital');
+    if(n.sup)feed(`✨ 슈퍼 국가 ${n.flag} ${n.name} 등장! (${n.sup.perk})`,'gold');
+  }
+  ME.nid=myId;ME.status=myId>=0?'in':(ME.status==='in'||ME.status==='dead'?'queued':ME.status);
+  G.state='play';computeBorders();for(const n of G.nations)updateTargets(n);
+  const humans=G.nations.filter(n=>n.human);
+  if(mp&&humans.length>1)feed(`👥 ${humans.map(n=>`${n.flag} ${n.pname||'플레이어'}`).join(', ')} 참전!`,'gold');
+  if(myId>=0){const p=G.nations[myId];flyTo(p.lx,p.ly,Math.max(fitScale()*2.2,6));setTimeout(()=>say(p,true),900);}
+  else flyTo(W/2,H/2*0.9,fitScale());
+  lastWinner&&feed(`👑 지난 판 1등: ${lastWinner}`,'gold');
+}
+function newMatch(withPlayer){
+  newMatchCfg(makeCfg(withPlayer?[{peer:NET.myPeer,pick:ME.pick,x2:ME.perk==='x2'}]:[]),false);
+}
+let lastWinner=null;
+// ---- commands: the only way player input reaches the simulation
+// [q, nid, type, a, b]  type 0 upgrade(a=UPG index) 1 city(a=cell,b=ranged) 2 hero 3 charge 4 target(a=cell) 5 hand nation to AI
+function addCmd(fr,c){if(G.seenQ.has(c[0]))return;G.seenQ.add(c[0]);let a=G.cmds.get(fr);if(!a)G.cmds.set(fr,a=[]);a.push(c);}
+function applyCmd(nid,t,a,b){
+  const n=G.nations[nid];if(!n||!n.alive)return;
+  if(t===0){const u=UPG[a];if(u&&doUp(n,u)&&n.isPlayer)feed(`${u.ic} ${u.nm} Lv${n.lv[u.k]} · ${u.desc}`,'good');}
+  else if(t===1){const c=buildCity(n,a,b?'ranged':'melee');if(c&&n.isPlayer)feed(`${b?'🏹 원거리':'🛡 근접'} 도시 건설: ${c.name}`,'good');}
+  else if(t===2){if(doHero(n)&&n.isPlayer)feed('👑 영웅 출격!','good');}
+  else if(t===3)doCharge(n);
+  else if(t===4)setTarget(n,a);
+  else if(t===5){if(n.human){n.human=false;feed(`👤 ${n.pname||n.name} 연결 끊김 · AI가 이어서 지휘합니다`);}}
+}
+function setTarget(n,c){
+  const o=c>=0&&c<NC?owner[c]:n.id;if(o===-2)return;
+  if(o===n.id){if(n.manual){n.manual=null;if(n.isPlayer)feed('🎯 자동 목표로 전환');updateTargets(n);}return;}
+  if(o>=0){n.manual={kind:'nation',id:o,cell:c};const t=G.nations[o];
+    if(n.isPlayer)feed(`🎯 ${t.flag} ${t.name} 공격 개시!`,'hot');else if(t.isPlayer&&n.human)feed(`⚠ ${n.flag} ${n.pname||n.name}이(가) 우리를 공격합니다!`,'hot');}
+  else{n.manual={kind:'cell',cell:c};if(n.isPlayer)feed('🎯 중립 땅으로 진군');}
+  updateTargets(n);
+  for(const u of G.units)if(u.n===n.id&&SR()<.7)assignTarget(u,n);
+  if(n.isPlayer)say(n,true);
+}
+function issue(t,a=0,b=0){
+  const n=myNation();if(!n)return;
+  if(G.mp&&NET.role==='client'){NET.seq++;NET.myCmds.push([NET.seq,t,a,b]);if(NET.myCmds.length>20)NET.myCmds.shift();NET.room.presence({cm:G.m,cmds:NET.myCmds}).catch(()=>{});}
+  else if(G.mp)hostSchedule(n.id,t,a,b);
+  else addCmd(G.frame+1,[NET.q++,n.id,t,a,b]);
+}
+function stateHash(){let h=G.units.length;for(const n of G.nations)h=(Math.imul(h,31)+n.cells*7+n.units*3+n.lv.atk)|0;for(const c of G.cities)h=(Math.imul(h,17)+c.owner)|0;return h;}
+function step(){
+  const dt=TICK; G.t+=dt; G.frame++;
+  const cs=G.cmds.get(G.frame);if(cs){cs.sort((a,b)=>a[0]-b[0]);for(const c of cs)applyCmd(c[1],c[2],c[3],c[4]);}
+  const st=G.t>=1080?3:G.t>=840?2:G.t>=600?1:0;
+  if(st>G.dm){G.dm=st;const msg=['','데스매치 I · 생산 1.5배','데스매치 II · 생산 2배','서든데스 · 생산 3배'][st];feed('💀 '+msg,'hot');toast('💀 '+msg);}
+  G.borderT-=dt; if(G.borderT<=0){G.borderT=2;computeBorders();for(const n of G.nations)if(n.alive)updateTargets(n);}
+  G.cityT-=dt; if(G.cityT<=0){G.cityT=2.5;autoCities();}
+  for(const n of G.nations){
+    if(!n.alive)continue;
+    n.gold+=dt*(1+n.cells*.009)*(n.sup?1.5:1)*TE(n,'gold');
+    n.chargeT-=dt;n.chargeCD-=dt;n.heroCD-=dt;
+    if(!n.human){n.aiT-=dt;if(n.aiT<=0){n.aiT=srnd(1.5,3);botAI(n);}}
+    n.boostT-=dt;n.flashT-=dt;
+    // neutral expansion
+    if(n.nAdj>0||n.front.length){
+      n.expAcc+=dt*(9+pw0625(n.cells)*.55)*prodMult(n)*TE(n,'expand')*(n.sup?1.15:1);
+      let k=n.expAcc|0;n.expAcc-=k;let tries=k*3+4;
+      const f=n.front;
+      while(k>0&&tries-->0&&f.length){const i=sri(f.length),c=f[i];
+        if(owner[c]!==n.id){f[i]=f[f.length-1];f.pop();continue;}
+        const nb=neutralNb(c);if(nb<0){f[i]=f[f.length-1];f.pop();continue;}
+        claim(nb,n.id);k--;}
+    }
+    // production
+    const cap=unitCap(n);
+    if(n.units<cap){const pm=prodMult(n);
+      for(const c of G.cities){if(c.owner!==n.id)continue;
+        let type=c.type,iv=type==='melee'?1.8:type==='ranged'?2.1:1.25;
+        c.timer+=dt*pm*(type==='capital'?TE(n,'capProd'):1);
+        if(c.timer>=iv){c.timer-=iv;if(type==='capital'){type=(c.alt++%2)?'ranged':'melee';}spawnUnit(n,c,type);if(n.units>=cap)break;}}}
+    n.sayT-=dt;if(n.sayT<=0){n.sayT=n.isPlayer?rnd(9,15):rnd(12,24);say(n,false);}
+    n.peak=Math.max(n.peak,n.cells);
+  }
+  stepUnits(dt);
+  // eliminations
+  for(const n of G.nations){if(n.alive&&n.cells<=0){n.alive=false;n.deadAt=G.t;
+    for(const c of G.cities)if(c.owner===n.id){}
+    feed(`☠ ${n.flag} ${n.name} 멸망`,n.isPlayer?'hot':'');
+    if(n.isPlayer){ME.status='dead';toast('탈락! 관전하며 다음 판을 기다립니다');}}}
+  if(G.frame%50===0){const h=stateHash();NET.hashes.set(G.frame,h);G.hash=[G.frame,h];
+    if(NET.hostH.has(G.frame)&&NET.hostH.get(G.frame)!==h)flagDesync();}
+  G.checkT-=dt; if(G.checkT<=0){G.checkT=1;checkWin();}
+}
+function checkWin(){
+  const alive=G.nations.filter(n=>n.alive);
+  let w=null,why='';
+  if(alive.length<=1){w=alive[0]||null;why='최후의 생존국';}
+  else{const top=alive.reduce((a,b)=>a.cells>b.cells?a:b);
+    if(top.cells/TOTAL_LAND>=.6){w=top;why='지구 60% 장악';}
+    else if(G.t>=1800){w=top;why='30분 종료 · 영토 1위';}}
+  if(w)endMatch(w,why);
+}
+function ranking(){return G.nations.slice().sort((a,b)=>(b.alive-a.alive)||(b.cells-a.cells)||(b.deadAt-a.deadAt));}
+function endMatch(w,why){
+  G.state='end';G.winner=w;G.endT=10;
+  const rk=ranking();
+  lastWinner=`${w.flag} ${w.name}`;
+  const me=G.nations.find(n=>n.isPlayer);
+  if(me){ME.lastRank=rk.indexOf(me)+1; if(w===me&&!G.mp){ME.perkEarned=true;ME.wins++;}}
+  if(G.mp)NET.lastWinnerPeer=w.human?w.peer:null;
+  if(w.isPlayer)say(w,true);
+  showEnd(w,why,rk,me);
+}
+
+// ================= speech
+let soundOn=true,userActed=false,voices=[];
+function loadVoices(){try{voices=speechSynthesis.getVoices()||[];}catch(e){}}
+if('speechSynthesis' in window){loadVoices();speechSynthesis.onvoiceschanged=loadVoices;}
+let lastSpeak=0;
+function speak(text,lang,force){
+  if(!soundOn||!userActed||!('speechSynthesis' in window))return;
+  const now=performance.now();if(!force&&now-lastSpeak<7000)return;
+  try{if(speechSynthesis.speaking&&!force)return;speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);u.lang=lang;
+    const v=voices.find(v=>v.lang.replace('_','-')===lang)||voices.find(v=>v.lang.slice(0,2)===lang.slice(0,2));if(v)u.voice=v;
+    u.volume=.42;u.rate=1.05;u.pitch=rnd(.85,1.3);speechSynthesis.speak(u);lastSpeak=now;}catch(e){}
+}
+function say(n,loud){
+  const mine=G.units.filter(u=>u.n===n.id);
+  let x,y; if(mine.length){const u=mine[ri(mine.length)];x=u.x;y=u.y;} else {const c=citiesOf(n.id)[0];if(!c)return;x=c.x+.5;y=c.y;}
+  if(G.bubbles.some(b=>b.nid===n.id)||G.bubbles.length>=10)return;
+  G.bubbles.push({x,y,text:n.cul.say,life:2.6,max:2.6,c:n.color,me:n.isPlayer,nid:n.id});
+  if(n.isPlayer&&(loud||R()<.9))speak(n.cul.say,n.cul.lang,loud);
+  else if(ME.status!=='in'&&cam.s>=2.5&&R()<.35){const X=cam.ox+x*cam.s,Y=cam.oy+y*cam.s;if(X>0&&X<VW&&Y>0&&Y<VH)speak(n.cul.say,n.cul.lang,false);}
+}
+
+// ================= rendering
+const cv=$('map'),ctx=cv.getContext('2d');
+const off=document.createElement('canvas');off.width=W;off.height=H;const octx=off.getContext('2d');
+const img=octx.createImageData(W,H);const px=new Uint32Array(img.data.buffer);
+const baseCol=new Uint32Array(NC);
+const pack=(r,g,b)=>(255<<24)|(b<<16)|(g<<8)|r;
+(function buildBase(){
+  for(let i=0;i<NC;i++){const x=i%W,c=ctry[i];
+    if(!c){let coast=false;for(const nb of [i-1,i+1,i-W,i+W])if(nb>=0&&nb<NC&&ctry[nb]){coast=true;break;}
+      const y=i/W|0;const shade=Math.round(6*Math.sin(y*.05)+4);baseCol[i]=coast?pack(24,44,66):pack(11+(shade>>1),24+shade,40+shade);continue;}
+    const h=hash(META[c-1].en);let v=(h%15)-7;
+    let border=false;for(const nb of [x<W-1?i+1:-1,i+W<NC?i+W:-1])if(nb>=0&&ctry[nb]&&ctry[nb]!==c){border=true;break;}
+    if(border)v-=12;
+    baseCol[i]=pack(clamp(58+v,0,255),clamp(66+v,0,255),clamp(60+v+(h>>4)%5,0,255));}
+})();
+let fullRedraw=true;
+function cellColor(i){
+  const o=owner[i];if(o<0)return baseCol[i];
+  const n=G.nations[o],b=baseCol[i],br=b&255,bg=(b>>8)&255,bb=(b>>16)&255;const x=i%W;
+  let edge=false;for(const nb of [x>0?i-1:-1,x<W-1?i+1:-1,i-W,i+W]){if(nb<0||nb>=NC)continue;const on=owner[nb];if(on!==o&&on!==-2){edge=true;break;}}
+  const [r,g,bl]=n.rgb;
+  if(edge)return pack(Math.min(255,r*1.05+20)|0,Math.min(255,g*1.05+20)|0,Math.min(255,bl*1.05+20)|0);
+  const a=n.isPlayer?.6:.52;return pack((br*(1-a)+r*a)|0,(bg*(1-a)+g*a)|0,(bb*(1-a)+bl*a)|0);
+}
+function flushMap(){
+  if(fullRedraw){for(let i=0;i<NC;i++)px[i]=cellColor(i);fullRedraw=false;dirty.length=0;dirtyF.fill(0);octx.putImageData(img,0,0);return;}
+  if(!dirty.length)return;
+  for(const c of dirty){px[c]=cellColor(c);dirtyF[c]=0;}dirty.length=0;octx.putImageData(img,0,0);
+}
+// camera
+const cam={s:2,ox:0,oy:0,tw:null};
+let VW=innerWidth,VH=innerHeight,DPR=1;
+function fitScale(){return Math.max(Math.min(VW/W,VH/H),VH/H*.55)}
+function resize(){DPR=Math.min(2,devicePixelRatio||1);VW=innerWidth;VH=innerHeight;cv.width=VW*DPR;cv.height=VH*DPR;clampCam();}
+addEventListener('resize',resize);
+function clampCam(){const mn=fitScale();cam.s=clamp(cam.s,mn*.9,40);
+  const mw=W*cam.s,mh=H*cam.s;
+  cam.ox=mw<VW?(VW-mw)/2:clamp(cam.ox,VW-mw-VW*.3,VW*.3);
+  cam.oy=mh<VH?(VH-mh)/2:clamp(cam.oy,VH-mh-VH*.3,VH*.3);}
+function flyTo(x,y,s){cam.tw={x,y,s,t:0,fx:(VW/2-cam.ox)/cam.s,fy:(VH/2-cam.oy)/cam.s,fs:cam.s};}
+function zoomAt(sx,sy,f){const wx=(sx-cam.ox)/cam.s,wy=(sy-cam.oy)/cam.s;cam.s=clamp(cam.s*f,fitScale()*.9,40);cam.ox=sx-wx*cam.s;cam.oy=sy-wy*cam.s;clampCam();cam.tw=null;}
+
+function draw(){
+  flushMap();
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  ctx.fillStyle='#0a1626';ctx.fillRect(0,0,VW,VH);
+  ctx.imageSmoothingEnabled=false;
+  const s=cam.s;
+  ctx.drawImage(off,cam.ox,cam.oy,W*s,H*s);
+  const vx0=-cam.ox/s-2,vy0=-cam.oy/s-2,vx1=vx0+VW/s+4,vy1=vy0+VH/s+4;
+  const vis=(x,y)=>x>vx0&&x<vx1&&y>vy0&&y<vy1;
+  const SX=x=>cam.ox+x*s,SY=y=>cam.oy+y*s;
+  // capture fx
+  for(const f of G.fx){if(!vis(f.x,f.y))continue;const a=f.life/f.max;ctx.globalAlpha=a*.8;
+    if(f.k==='cap'||f.k==='ring'){ctx.strokeStyle=f.c;ctx.lineWidth=Math.max(1,s*.25);ctx.beginPath();ctx.arc(SX(f.x),SY(f.y),Math.max(.5,f.r*s*(1.4-a*.4)),0,6.283);ctx.stroke();}
+    else if(f.k==='poof'){ctx.fillStyle=f.c;ctx.beginPath();ctx.arc(SX(f.x),SY(f.y),Math.max(.5,f.r*s*(1.5-a)),0,6.283);ctx.fill();}
+    else if(f.k==='txt'){ctx.globalAlpha=Math.min(1,a*1.6);const fs=f.t.length>4?15:13;ctx.font=`800 ${fs}px "IBM Plex Sans KR",system-ui,sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+      const Y=SY(f.y)-(1-a)*26;ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.8)';ctx.strokeText(f.t,SX(f.x),Y);ctx.fillStyle=f.c;ctx.fillText(f.t,SX(f.x),Y);}
+    else if(f.k==='up'){if(s>=2.6){ctx.globalAlpha=Math.min(1,a*1.5);ctx.font='13px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';ctx.textAlign='center';ctx.fillText(f.t,SX(f.x),SY(f.y)-(1-a)*20);}}
+    else if(s>3){ctx.fillStyle=f.c||'#fff';const r=Math.max(1.5,s*.28);ctx.fillRect(SX(f.x)-r/2,SY(f.y)-r/2,r,r);}
+  }
+  ctx.globalAlpha=1;
+  // cities
+  const cityR=clamp(s*1.5,4,22);
+  for(const c of G.cities){if(!vis(c.x,c.y))continue;const n=G.nations[c.owner];const x=SX(c.x+.5),y=SY(c.y+.5);
+    const r=c.type==='capital'?cityR*1.25:cityR;
+    ctx.fillStyle='rgba(0,0,0,.55)';ctx.beginPath();ctx.arc(x,y+1.5,r,0,6.283);ctx.fill();
+    ctx.fillStyle=n.color;ctx.beginPath();ctx.arc(x,y,r,0,6.283);ctx.fill();
+    ctx.lineWidth=c.type==='capital'?2.5:1.5;ctx.strokeStyle=c.type==='capital'?'#ffe08a':'rgba(255,255,255,.85)';ctx.stroke();
+    if(r>=6){ctx.font=`${Math.round(r*1.15)}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(c.type==='capital'?'🏰':c.type==='ranged'?'🏹':'🛡️',x,y+1);}
+    if(s>=3.2||(c.type==='capital'&&s>=1.8)){const fs=clamp(s*1.05,10,15)|0;ctx.font=`${c.type==='capital'?700:600} ${fs}px "IBM Plex Sans KR",system-ui,sans-serif`;
+      ctx.textAlign='center';ctx.textBaseline='top';ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.75)';ctx.strokeText(c.name,x,y+r+2);
+      ctx.fillStyle=c.type==='capital'?'#ffe08a':'#f2f5f8';ctx.fillText(c.name,x,y+r+2);}
+  }
+  // units
+  if(s<2.6){
+    for(const u of G.units){if(!vis(u.x,u.y))continue;ctx.fillStyle=G.nations[u.n].color;const r=u.type==='hero'?3:1.6;ctx.fillRect(SX(u.x)-r/2,SY(u.y)-r/2,r,r);}
+  }else{
+    const us=G.units.filter(u=>vis(u.x,u.y)).sort((a,b)=>a.y-b.y);
+    const base=clamp(s*2.1,10,56);
+    for(const u of us){const n=G.nations[u.n];const sp=sprite(n.cul,u.type,n.color,n.wt,n.at);
+      const sz=(u.type==='hero'?base*1.6:base)*(1+.045*n.lv.hp);const x=SX(u.x),y=SY(u.y);const bob=Math.abs(Math.sin(u.ph))*sz*.05;
+      if(u.mv>0&&(n.lv.spd>0||n.boostT>0)){ctx.globalAlpha=Math.min(.55,.15+n.lv.spd*.06+(n.boostT>0?.25:0));ctx.fillStyle='#e8dcc0';
+        for(let k=1;k<=3;k++){ctx.beginPath();ctx.ellipse(x-u.face*sz*(.22+k*.16),y-sz*.02-k*1.2,sz*.12/k*2,sz*.07/k*2,0,0,6.283);ctx.fill();}ctx.globalAlpha=1;}
+      if(n.chargeT>0){ctx.fillStyle='rgba(255,70,60,.38)';ctx.beginPath();ctx.ellipse(x,y,sz*.42,sz*.15,0,0,6.283);ctx.fill();}
+      ctx.save();ctx.translate(x,y-bob);if(u.face<0)ctx.scale(-1,1);
+      if(u.water){ctx.fillStyle='#6b4a2b';ctx.beginPath();ctx.moveTo(-sz*.5,sz*.12);ctx.lineTo(sz*.5,sz*.12);ctx.lineTo(sz*.35,sz*.35);ctx.lineTo(-sz*.35,sz*.35);ctx.fill();}
+      if(u.hit>0)ctx.filter='brightness(2.2)';else if(n.flashT>0&&(n.flashT*4|0)%2)ctx.filter='brightness(1.6) saturate(1.4)';
+      ctx.drawImage(sp,-sz/2,-sz*.9,sz,sz);ctx.filter='none';ctx.restore();
+      u.mv-=1/60;if(u.hp<u.mhp&&sz>14){const w=sz*.55;ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillRect(x-w/2,y-sz*.98,w,2.5);ctx.fillStyle=u.hp/u.mhp>.5?'#5fe0a8':'#ff5b52';ctx.fillRect(x-w/2,y-sz*.98,w*u.hp/u.mhp,2.5);}
+    }
+  }
+  // projectiles
+  if(s>=2.6){for(const p of G.projs){const t=p.t/p.d;const x=p.x+(p.tx-p.x)*t,y=p.y+(p.ty-p.y)*t-Math.sin(t*Math.PI)*.6;if(!vis(x,y))continue;
+    const X=SX(x),Y=SY(y),ang=Math.atan2(p.ty-p.y,p.tx-p.x),L=Math.max(3,s*.6);
+    if(p.t<0)continue;ctx.save();ctx.translate(X,Y);if(p.g){ctx.shadowColor=p.g;ctx.shadowBlur=8;}
+    if(p.k==='arrow'||p.k==='jav'){ctx.rotate(ang);ctx.strokeStyle=p.g||(p.k==='jav'?'#c9a46a':'#eee');ctx.lineWidth=p.k==='jav'?1.6:1.2;ctx.beginPath();ctx.moveTo(-L,0);ctx.lineTo(L*.6,0);ctx.stroke();}
+    else if(p.k==='bullet'){ctx.fillStyle='#ffe08a';ctx.beginPath();ctx.arc(0,0,Math.max(1,s*.12),0,6.283);ctx.fill();}
+    else if(p.k==='stone'){ctx.fillStyle='#9a9a9a';ctx.beginPath();ctx.arc(0,0,Math.max(1.3,s*.16),0,6.283);ctx.fill();}
+    else if(p.k==='star'){ctx.rotate(p.t*30);ctx.fillStyle='#d6dbe0';for(let k=0;k<4;k++){ctx.rotate(Math.PI/2);ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(L*.25,-L*.2);ctx.lineTo(0,-L*.7);ctx.fill();}}
+    else if(p.k==='ring'){ctx.strokeStyle='#e0b23a';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(0,0,L*.45,0,6.283);ctx.stroke();}
+    else if(p.k==='boom'){ctx.rotate(p.t*25);ctx.strokeStyle='#a0522d';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-L*.5,-L*.4);ctx.lineTo(0,0);ctx.lineTo(-L*.5,L*.4);ctx.stroke();}
+    ctx.restore();}}
+  // manual target marker
+  const me=G.nations.find(n=>n.isPlayer&&n.alive);
+  if(me&&me.manual){const [mx,my]=cellXY(me.manual.cell);const X=SX(mx+.5),Y=SY(my+.5),r=10+Math.sin(performance.now()/200)*3;
+    ctx.strokeStyle='#ff5b52';ctx.lineWidth=2;ctx.beginPath();ctx.arc(X,Y,r,0,6.283);ctx.moveTo(X-r-5,Y);ctx.lineTo(X-r+4,Y);ctx.moveTo(X+r-4,Y);ctx.lineTo(X+r+5,Y);ctx.moveTo(X,Y-r-5);ctx.lineTo(X,Y-r+4);ctx.moveTo(X,Y+r-4);ctx.lineTo(X,Y+r+5);ctx.stroke();}
+  // nation labels
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  for(const n of G.nations){if(!n.alive||n.cells<25)continue;const fs=Math.min(38,Math.sqrt(n.cells)*s*.16);if(fs<9)continue;
+    const X=SX(n.lx+.5),Y=SY(n.ly+.5);if(X<-200||X>VW+200||Y<-50||Y>VH+50)continue;
+    ctx.font=`${fs|0}px "Black Han Sans","IBM Plex Sans KR",sans-serif`;
+    const label=n.name;ctx.lineWidth=Math.max(2,fs*.18);ctx.strokeStyle='rgba(0,0,0,.65)';ctx.strokeText(label,X,Y);ctx.fillStyle=n.isPlayer?'#fff':'rgba(255,255,255,.92)';ctx.fillText(label,X,Y);
+    ctx.font=`${Math.max(9,fs*.48)|0}px "IBM Plex Mono",monospace`;const sub=`${n.flag} ${n.units}`;ctx.lineWidth=3;ctx.strokeText(sub,X,Y+fs*.82);ctx.fillStyle='rgba(255,255,255,.85)';ctx.fillText(sub,X,Y+fs*.82);
+    if(n.human&&!n.isPlayer&&n.pname){ctx.font=`700 ${Math.max(10,fs*.45)|0}px "IBM Plex Sans KR",sans-serif`;ctx.fillStyle='#46d4ff';ctx.strokeText('👤 '+n.pname,X,Y+fs*1.5);ctx.fillText('👤 '+n.pname,X,Y+fs*1.5);}
+    if(n.sup){ctx.font=`${Math.max(9,fs*.42)|0}px "IBM Plex Sans KR",sans-serif`;ctx.fillStyle='#f3c34f';ctx.strokeText('★ SUPER',X,Y-fs*.8);ctx.fillText('★ SUPER',X,Y-fs*.8);}
+  }
+  // speech bubbles
+  for(const b of G.bubbles){if(!b.me&&s<2.5)continue;const X=SX(b.x),Y=SY(b.y)-Math.max(18,s*2.4)-(1-b.life/b.max)*14;if(X<-100||X>VW+100||Y<-40||Y>VH+40)continue;
+    const a=Math.min(1,b.life/.4,(b.max-b.life)/.2);ctx.globalAlpha=a;
+    const fs=b.me?15:12;ctx.font=`700 ${fs}px "IBM Plex Sans KR",system-ui,sans-serif`;const w=ctx.measureText(b.text).width+14,h=fs+10;
+    ctx.fillStyle=b.me?'#fff':'rgba(255,255,255,.9)';ctx.beginPath();ctx.roundRect(X-w/2,Y-h,w,h,8);ctx.fill();
+    ctx.beginPath();ctx.moveTo(X-5,Y-1);ctx.lineTo(X,Y+6);ctx.lineTo(X+5,Y-1);ctx.fill();
+    ctx.strokeStyle=b.c;ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(X-w/2,Y-h,w,h,8);ctx.stroke();
+    ctx.fillStyle='#0b1420';ctx.fillText(b.text,X,Y-h/2);ctx.globalAlpha=1;}
+  // lobby: preview start marker
+  if(G.state==='lobby'&&ME.pick){const [x,y]=cellXY(ME.pick.cell);const X=SX(x+.5),Y=SY(y+.5),r=14+Math.sin(performance.now()/180)*4;
+    ctx.strokeStyle='#46d4ff';ctx.lineWidth=3;ctx.beginPath();ctx.arc(X,Y,r,0,6.283);ctx.stroke();ctx.fillStyle='#46d4ff';ctx.beginPath();ctx.arc(X,Y,4,0,6.283);ctx.fill();}
+}
+
+// ================= HUD
+const feedEl=$('feed');
+function feed(text,cls){const d=document.createElement('div');d.className='fe '+(cls||'');d.textContent=text;feedEl.prepend(d);while(feedEl.children.length>6)feedEl.lastChild.remove();}
+let toastTO;function toast(t,c){const el=$('toast');el.textContent=t;el.style.color=c||'';el.classList.add('show');clearTimeout(toastTO);toastTO=setTimeout(()=>el.classList.remove('show'),1800);}
+function renderLB(){
+  const rk=ranking();const rows=[];const meN=G.nations.find(n=>n.isPlayer);
+  rk.forEach((n,i)=>{n.rank=i+1;});
+  const show=rk.slice(0,10);if(meN&&!show.includes(meN))show.push(meN);
+  for(const n of show){rows.push(`<div class="lr${n.isPlayer?' me':''}${n.alive?'':' dead'}"><span class="rk">${n.rank}</span><span class="flag">${n.flag}</span><span class="nm"><i class="sw" style="background:${n.color}"></i>${n.human&&!n.isPlayer?'👤':''}${n.name}${n.sup?'<span class="sup">★</span>':''}</span><span class="pc">${(share(n)*100).toFixed(1)}%</span><span class="un">${n.units}</span></div>`);}
+  $('lbRows').innerHTML=rows.join('');
+}
+function renderClock(){
+  const t=G.state==='lobby'?0:G.t;$('clockT').textContent=fmtT(t);
+  const neu=G.state==='play'?G.nations.reduce((s,n)=>s-n.cells,TOTAL_LAND)/TOTAL_LAND:1;
+  const ph=G.state==='lobby'?'대기실':G.state==='end'?'게임 종료':G.dm===3?'서든데스':G.dm===2?'데스매치 II':G.dm===1?'데스매치 I':neu>.06?'확장기':'전쟁';
+  $('clockP').textContent=ph;$('clock').classList.toggle('dm',G.dm>0&&G.state==='play');
+  $('pfill').style.width=(clamp(t/1800,0,1)*100)+'%';
+}
+// command bar
+const acts=$('acts');
+const BTN=[
+ ...UPG.map(u=>({id:u.k,ic:u.ic,nm:u.nm,tip:u.desc})),
+ {id:'city',ic:'🏗',nm:'도시',tip:'내 땅에 새 도시 건설 (원거리/근접 선택)'},
+ {id:'hero',ic:'👑',nm:'영웅',tip:'수도에서 강력한 영웅 소환'},
+ {id:'charge',ic:'📯',nm:'돌격',tip:'8초간 전군 공격·속도 +50%'},
+];
+acts.innerHTML=BTN.map(b=>`<button class="ab" id="ab_${b.id}" type="button" title="${b.tip}"><span class="lv"></span><span class="ic">${b.ic}</span><span>${b.nm}</span><span class="co"></span><i class="cdv" hidden></i></button>`).join('');
+let placing=null;
+for(const b of BTN){$('ab_'+b.id).addEventListener('click',()=>{const n=myNation();if(!n)return;userActed=true;
+  const ui=UPG.findIndex(x=>x.k===b.id);
+  if(ui>=0){if(canUp(n,UPG[ui]))issue(0,ui);}
+  else if(b.id==='city'){if(!canCity(n))return;placing=placing==='ranged'?null:placing==='melee'?'ranged':'melee';cv.classList.toggle('placing',!!placing);
+    if(placing)toast(placing==='melee'?'🛡 근접 도시: 내 땅을 누르세요 (다시 누르면 🏹)':'🏹 원거리 도시: 내 땅을 누르세요');}
+  else if(b.id==='hero'){if(canHero(n))issue(2);}
+  else if(b.id==='charge'){if(canCharge(n))issue(3);}
+  updateBar();});}
+function myNation(){const n=G.nations.find(x=>x.isPlayer);return n&&n.alive&&G.state==='play'?n:null;}
+function updateBar(){
+  const n=myNation();const bar=$('bar');
+  if(!n){bar.hidden=true;return;}bar.hidden=false;
+  $('meName').innerHTML=`<span class="flag">${n.flag}</span>${n.name}${n.sup?' <span class="supbadge">SUPER</span>':''}`;
+  $('meSay').textContent=`“${n.cul.say}” · ${n.cul.sayKo}`;
+  $('meTrait').textContent=`★ ${n.tr.name} · ${n.tr.desc}`;$('meTrait').title=n.tr.desc;
+  $('sGold').textContent=Math.floor(n.gold);$('sLand').textContent=(share(n)*100).toFixed(1)+'%';$('sUnits').textContent=`${n.units}/${unitCap(n)}`;$('sCities').textContent=citiesOf(n.id).length;
+  const tn=n.manual?(n.manual.kind==='nation'?G.nations[n.manual.id]:null):null;
+  $('tgt').textContent=n.manual?(tn?`🎯 목표: ${tn.flag} ${tn.name}`:'🎯 목표: 중립 땅'):(n.target!==null&&G.nations[n.target]?`자동 · ${G.nations[n.target].flag} ${G.nations[n.target].name}과 교전`:'자동 · 영토 확장 중');
+  for(const u of UPG){const el=$('ab_'+u.k);const locked=share(n)<u.unlock;const max=n.lv[u.k]>=MAXLV;
+    el.querySelector('.lv').textContent=n.lv[u.k]?'Lv'+n.lv[u.k]:'';el.title=`${u.desc}\n현재 +${u.step*n.lv[u.k]}% → 다음 +${u.step*(n.lv[u.k]+1)}%`;
+    el.querySelector('.co').textContent=locked?`🔒${(u.unlock*100).toFixed(1)}%`:max?'MAX':upCost(n,u);
+    el.disabled=locked||max||n.gold<upCost(n,u);el.classList.toggle('locked',locked);el.classList.toggle('can',!el.disabled);}
+  const ec=$('ab_city'),lc=share(n)<ACT.city.unlock;ec.querySelector('.co').textContent=lc?`🔒${(ACT.city.unlock*100).toFixed(1)}%`:cityCost(n);ec.disabled=lc||(!placing&&n.gold<cityCost(n));ec.classList.toggle('locked',lc);ec.classList.toggle('on',!!placing);ec.classList.toggle('can',!ec.disabled&&!placing);
+  ec.querySelector('.lv').textContent=placing==='ranged'?'🏹':placing==='melee'?'🛡':'';
+  const eh=$('ab_hero'),lh=share(n)<ACT.hero.unlock;eh.querySelector('.co').textContent=lh?`🔒${(ACT.hero.unlock*100).toFixed(0)}%`:n.heroCD>0?Math.ceil(n.heroCD)+'s':ACT.hero.cost;eh.disabled=!canHero(n);eh.classList.toggle('locked',lh);eh.classList.toggle('can',canHero(n));
+  const ech=$('ab_charge');ech.querySelector('.co').textContent=n.chargeCD>0?Math.ceil(n.chargeCD)+'s':ACT.charge.cost;ech.disabled=!canCharge(n);ech.classList.toggle('can',canCharge(n));ech.classList.toggle('on',n.chargeT>0);
+  const cd=ech.querySelector('.cdv');cd.hidden=!(n.chargeT>0);if(n.chargeT>0)cd.style.transform=`scaleX(${n.chargeT/ACT.charge.dur})`;
+}
+function updateBanner(){
+  const b=$('banner');
+  if(G.state==='play'&&!G.mp&&ME.status==='in'&&NET.role==='host'&&NET.peersN>1){b.hidden=false;
+    if(b.dataset.s!=='inv'){b.dataset.s='inv';b.innerHTML=`<span>👋 친구가 들어왔어요</span><button class="btn pri" id="invGo" type="button">친구와 새 게임 시작</button>`;$('invGo').onclick=()=>{userActed=true;hostStartLobby();};}
+  }else if(G.state==='play'&&(ME.status==='queued'||ME.status==='dead')){
+    b.hidden=false;
+    const cl=NET.role==='client',key=ME.status+cl+(!!NET.waitM);
+    const txt=ME.status==='dead'?'탈락했습니다. 관전 중':cl?(NET.waitM&&!G.mp?'친구들의 게임이 진행 중입니다. 끝나면 자동으로 참가합니다':'방장이 다음 게임을 열면 자동으로 참가합니다'):'게임이 진행 중입니다. 관전 중';
+    if(b.dataset.s!==key){b.dataset.s=key;b.innerHTML=cl?`<span>${txt}</span>`:`<span>${txt} · 다음 게임 대기열 <b>1번</b></span><button class="btn pri" id="skipQ" type="button">바로 다음 게임</button>`;
+      if($('skipQ'))$('skipQ').onclick=()=>{userActed=true;if(NET.role==='host')hostStartLobby();else startLobby();};}
+  }else{b.hidden=true;b.dataset.s='';}
+  $('bSpeed').hidden=!(G.state==='play'&&ME.status!=='in'&&!G.mp);
+}
+
+// ================= lobby & end screens
+function rosterHTML(cu,color){
+  const box=$('roster');box.innerHTML='';
+  for(const [t,label] of [['melee',cu.mel+' · 근접'],['ranged',cu.rng+' · 원거리'],['hero','영웅']]){
+    const f=document.createElement('figure');const c=document.createElement('canvas');c.width=c.height=t==='hero'?84:72;
+    const g=c.getContext('2d');g.imageSmoothingEnabled=false;g.drawImage(sprite(cu,t,color),0,0,c.width,c.width);
+    f.appendChild(c);const cap=document.createElement('figcaption');cap.textContent=label;f.appendChild(cap);box.appendChild(f);}
+}
+function showPick(){
+  const pk=ME.pick,m=META[pk.ci],cu=getCulture(pk.ci),sup=SUPER_BY_CI[pk.ci];
+  $('lbName').innerHTML=`<span class="flag">${flagOf(m.a2)}</span><span>${m.ko}</span>${sup?'<span class="supbadge">SUPER</span>':''}`;
+  $('lbSay').innerHTML=`“${cu.say}” <small>${cu.sayKo}</small> <button class="btn" id="lbListen" type="button" style="padding:4px 9px;font-size:12px">🔊 듣기</button>`;
+  $('lbListen').onclick=()=>{userActed=true;speak(cu.say,cu.lang,true);};
+  rosterHTML(cu,NATION_COLORS[0]);
+  const tr=getTrait(pk.ci);
+  const rows=[['시작 수도',`🏰 ${cityNameAt(pk.cell)}`],['국가 특성',`<b style="color:var(--ok)">★ ${tr.name}</b> · ${tr.desc}`],['병종',`${cu.mel} · ${cu.rng}`]];
+  if(sup)rows.push(['슈퍼 특전','생산 +40% · 골드 +50% · 시작 영토 확대']);
+  if(ME.perk==='x2')rows.push(['1등 특전','병력 2배 생산']);
+  if(ME.perk==='loc')rows.push(['1등 특전','시작 위치 지정']);
+  $('lbPerks').innerHTML=rows.map(r=>`<div><span class="k">${r[0]}</span><span>${r[1]}</span></div>`).join('');
+}
+let rouletteT=0;
+function startLobby(){
+  if(G.state==='lobby')return;
+  $('endov').hidden=true;
+  resetWorld();G.nations=[];G.state='lobby';G.lobbyT=ME.perkEarned?18:9;G.dm=0;
+  ME.perk=null;ME.status='queued';
+  ME.pick=pickStart(new Set(),[],-1);rouletteT=1.6;
+  $('perkPick').hidden=!ME.perkEarned;$('pkHint').hidden=true;$('pkX2').setAttribute('aria-pressed','false');$('pkLoc').setAttribute('aria-pressed','false');
+  $('lbEyebrow').textContent=ME.perkEarned?'다음 게임 · 1등 특전 선택':'다음 게임 · 국가 추첨';
+  $('lobby').hidden=false;flyTo(W/2,H/2*.9,fitScale());
+  $('lbGo').hidden=false;$('lbGo').textContent='바로 시작';const pl=$('lbPlayers');if(pl)pl.remove();NET.lobbyMP=false;G.mp=false;
+}
+function tickLobby(rdt){
+  G.lobbyT-=rdt;$('lbCount').textContent=Math.ceil(Math.max(0,G.lobbyT))+'초';
+  if(rouletteT>0){rouletteT-=rdt;
+    if(rouletteT>0){const c=landIdx[ri(TOTAL_LAND)];const m=META[ctry[c]-1];$('lbName').innerHTML=`<span class="flag">${flagOf(m.a2)}</span><span style="opacity:.6">${m.ko}</span>`;$('lbSay').textContent='국가 추첨 중…';$('roster').innerHTML='';$('lbPerks').innerHTML='';}
+    else{showPick();const [x,y]=cellXY(ME.pick.cell);flyTo(x,y,fitScale()*1.8);}}
+  if(G.lobbyT<=0)beginMatch();
+}
+function beginMatch(){
+  if(G.state!=='lobby')return;
+  if(rouletteT>0){rouletteT=0;showPick();}
+  $('lobby').hidden=true;ME.perkEarned=false;newMatch(true);
+}
+$('lbGo').onclick=()=>{userActed=true;if(NET.lobbyMP){if(NET.role==='host'&&NET.lobby)NET.lobby.t=0;}else beginMatch();};
+$('pkX2').onclick=()=>{userActed=true;ME.perk='x2';if(NET.lobbyMP)NET.room.presence({perk:'x2',loc:null}).catch(()=>{});$('pkX2').setAttribute('aria-pressed','true');$('pkLoc').setAttribute('aria-pressed','false');$('pkHint').hidden=true;cv.classList.remove('placing');if(rouletteT<=0)showPick();};
+$('pkLoc').onclick=()=>{userActed=true;ME.perk='loc';if(NET.lobbyMP)NET.room.presence({perk:'loc'}).catch(()=>{});$('pkLoc').setAttribute('aria-pressed','true');$('pkX2').setAttribute('aria-pressed','false');$('pkHint').hidden=false;$('lobby').classList.add('clear');cv.classList.add('placing');G.lobbyT=Math.max(G.lobbyT,12);if(rouletteT<=0)showPick();};
+function showEnd(w,why,rk,me){
+  $('endEyebrow').textContent=`게임 종료 · ${fmtT(G.t)} · ${why}`;
+  $('endName').innerHTML=`<span class="flag">${w.flag}</span><span>${w.name} 우승</span>`;
+  $('endSub').textContent=me?(w===me?'🏆 1등! 다음 판 특전: 병력 2배 생산 또는 시작 위치 지정':G.mp&&w.human?`👤 ${w.pname||'친구'}의 승리 · 내 순위 ${ME.lastRank}위 / 16`:`내 순위 ${ME.lastRank}위 / 16 · ${me.flag} ${me.name}`):'관전한 게임이 끝났습니다. 다음 판에 참가합니다.';
+  $('endList').innerHTML=rk.slice(0,6).map((n,i)=>`<div class="lr${n.isPlayer?' me':''}"><span class="rk">${i+1}</span><span class="flag">${n.flag}</span><span class="nm"><i class="sw" style="background:${n.color}"></i>${n.name}${n.human?' 👤'+esc(n.pname):''}</span><span class="pc">${(n.peak/TOTAL_LAND*100).toFixed(1)}%</span><span class="un">☠${n.kills}</span></div>`).join('');
+  $('endov').hidden=false;
+}
+$('endGo').onclick=()=>{userActed=true;if(NET.role==='host')hostStartLobby();else if(NET.role!=='client')startLobby();};
+
+// ================= input
+const ptrs=new Map();let drag=null,pinch=null;
+cv.addEventListener('pointerdown',e=>{userActed=true;cv.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(ptrs.size===1)drag={x:e.clientX,y:e.clientY,ox:cam.ox,oy:cam.oy,moved:false};
+  else if(ptrs.size===2){const [a,b]=[...ptrs.values()];pinch={d:hyp(a.x-b.x,a.y-b.y),s:cam.s};drag=null;}});
+cv.addEventListener('pointermove',e=>{if(!ptrs.has(e.pointerId))return;ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pinch&&ptrs.size===2){const [a,b]=[...ptrs.values()];const d=hyp(a.x-b.x,a.y-b.y);const cx=(a.x+b.x)/2,cy=(a.y+b.y)/2;zoomAt(cx,cy,(pinch.s*d/pinch.d)/cam.s);return;}
+  if(drag){const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>6){drag.moved=true;cv.classList.add('dragging');}
+    if(drag.moved){cam.ox=drag.ox+dx;cam.oy=drag.oy+dy;cam.tw=null;clampCam();}}});
+const endPtr=e=>{if(!ptrs.has(e.pointerId))return;ptrs.delete(e.pointerId);cv.classList.remove('dragging');
+  if(drag&&!drag.moved&&e.type==='pointerup')mapClick(e.clientX,e.clientY);
+  if(ptrs.size<2)pinch=null;if(!ptrs.size)drag=null;};
+cv.addEventListener('pointerup',endPtr);cv.addEventListener('pointercancel',endPtr);
+cv.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.clientX,e.clientY,Math.exp(-e.deltaY*.0015));},{passive:false});
+$('zIn').onclick=()=>zoomAt(VW/2,VH/2,1.4);$('zOut').onclick=()=>zoomAt(VW/2,VH/2,1/1.4);
+$('zHome').onclick=()=>{const n=G.nations.find(x=>x.isPlayer&&x.alive);if(n)flyTo(n.lx,n.ly,Math.max(cam.s,6));else flyTo(W/2,H/2*.9,fitScale());};
+function mapClick(sx,sy){
+  const x=Math.floor((sx-cam.ox)/cam.s),y=Math.floor((sy-cam.oy)/cam.s);if(x<0||y<0||x>=W||y>=H)return;const c=y*W+x;
+  if(G.state==='lobby'&&ME.perk==='loc'){if(!ctry[c])return;if(NET.lobbyMP)NET.room.presence({perk:'loc',loc:c}).catch(()=>{});ME.pick=pickStart(new Set(),[],c);showPick();const [px,py]=cellXY(ME.pick.cell);flyTo(px,py,cam.s);$('lobby').classList.remove('clear');cv.classList.remove('placing');$('pkHint').hidden=true;return;}
+  const n=myNation();if(!n)return;
+  if(placing){if(owner[c]===n.id&&!G.cityAt.has(c)){const q=nearestRC(c,3,q=>owner[q.c]===n.id&&!G.cityAt.has(q.c));issue(1,q?q.c:c,placing==='ranged'?1:0);placing=null;cv.classList.remove('placing');updateBar();}else toast('내 땅에만 지을 수 있어요');return;}
+  if(owner[c]===-2)return;
+  if(owner[c]===n.id&&!n.manual)return;
+  issue(4,c);
+}
+addEventListener('keydown',e=>{if(e.target!==document.body)return;const n=myNation();const k=e.key;
+  const map={'1':'prod','2':'atk','3':'hp','4':'spd','5':'rng','6':'city','7':'hero','8':'charge',' ':'charge'};if(map[k]){e.preventDefault();$('ab_'+map[k]).click();}});
+$('bSound').onclick=()=>{soundOn=!soundOn;userActed=true;$('bSound').textContent=soundOn?'🔊':'🔇';$('bSound').setAttribute('aria-pressed',soundOn);if(!soundOn)try{speechSynthesis.cancel()}catch(e){}};
+$('bSpeed').onclick=()=>{G.speed=G.speed===1?2:G.speed===2?4:G.speed===4?8:1;$('bSpeed').textContent='▶ '+G.speed+'×';};
+$('bHelp').onclick=()=>{$('help').hidden=false;};$('helpX').onclick=()=>{$('help').hidden=true;try{localStorage.setItem('ttm_help','1')}catch(e){}};
+$('lbTog').onclick=()=>{$('lb').classList.toggle('collapsed');};
+
+// ================= multiplayer: claude.ai room capability, lockstep simulation
+// The host steps the match and broadcasts {frame, recent commands}; clients step the same deterministic
+// simulation up to that frame. Clients send their own commands through presence (anyone may set presence).
+const NET={room:null,user:null,role:'solo',myPeer:'local',canHost:false,hostPeer:null,joinedAt:0,lastTk:0,conf:0,seq:0,myCmds:[],lastSeq:{},
+  q:0,waitM:null,names:{},hashes:new Map(),hostH:new Map(),desync:false,lastWinnerPeer:null,lobby:null,lobbyMP:false,greeted:new Set(),acc:0,last:0,emitAt:0,peersN:1};
+const esc=t=>String(t||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function nameOf(peer){return NET.names[peer]||'플레이어'}
+function flagDesync(){if(NET.desync)return;NET.desync=true;feed('⚠ 친구 화면과 동기화가 어긋났습니다. 다음 판에서 다시 맞춰집니다','hot');}
+function livePeers(){return NET.room?NET.room.peers().filter(p=>p.kind==='viewer'&&p.presence&&p.presence.v===1):[];}
+async function refreshNames(){
+  if(!NET.user)return;const ps=livePeers().filter(p=>p.by&&!NET.names[p.peer]);if(!ps.length)return;
+  try{const pr=await NET.user.profiles(ps.map(p=>p.by));for(const p of ps){const nm=pr[p.by]&&pr[p.by].name;if(nm)NET.names[p.peer]=nm.slice(0,16);}
+    for(const n of G.nations)if(n.human&&NET.names[n.peer])n.pname=NET.names[n.peer];}catch(e){}
+}
+function electHost(){
+  if(!NET.room)return;
+  const ps=livePeers();const me=NET.room.peers().find(p=>p.sameTab);if(me)NET.myPeer=me.peer;
+  NET.peersN=Math.max(1,ps.length);
+  const hosts=ps.filter(p=>p.presence.host).map(p=>p.peer).sort();
+  let hp=hosts[0]||null;
+  if(!hp&&performance.now()-NET.joinedAt>2500){const c=ps.filter(p=>p.presence.ch).map(p=>p.peer).sort();hp=c[0]||null;}
+  if(!hp){if(NET.role==='client')NET.role='solo';NET.hostPeer=null;return;}
+  NET.hostPeer=hp;
+  if(hp===NET.myPeer){if(NET.role!=='host')becomeHost();}
+  else{if(NET.role==='host'){NET.room.presence({host:null}).catch(()=>{});}
+    if(NET.role!=='client'){NET.role='client';if(G.state==='lobby'&&!NET.lobbyMP){$('lobby').hidden=true;newMatchCfg(makeCfg([]),false);ME.status='queued';}}}
+}
+function becomeHost(){
+  const wasClient=NET.role==='client';NET.role='host';NET.room.presence({host:true}).catch(()=>{});
+  NET.last=performance.now();NET.acc=0;
+  if(G.mp&&G.state==='play'){ // take over a running match from the departed host
+    let mq=0;for(const q of G.seenQ)mq=Math.max(mq,q+1);NET.q=Math.max(NET.q,mq);
+    for(const p of livePeers()){const c=p.presence.cmds;if(Array.isArray(c)&&c.length)NET.lastSeq[p.peer]=c[c.length-1][0];}
+    feed('👑 방장이 나가서 내가 방장이 되었습니다','gold');
+  }else if(G.mp&&G.state==='lobby'){hostStartLobby(true);}
+  if(wasClient&&!G.mp&&NET.peersN>1)hostStartLobby();
+}
+function hostSchedule(nid,t,a,b){addCmd(Math.max(G.frame,NET.conf)+1,[NET.q++,nid,t,a,b]);}
+function hostIntake(){
+  for(const p of livePeers()){const pr=p.presence;if(pr.cm!==G.m||!Array.isArray(pr.cmds))continue;
+    const n=G.nations.find(x=>x.human&&x.peer===p.peer);if(!n)continue;
+    let last=NET.lastSeq[p.peer]||0;
+    for(const c of pr.cmds){if(!Array.isArray(c)||!(c[0]>last))continue;last=c[0];
+      const t=c[1]|0,a=c[2]|0,b=c[3]|0;if(t>=0&&t<=4&&a>=-1&&a<NC)hostSchedule(n.id,t,a,b);}
+    NET.lastSeq[p.peer]=last;}
+}
+function emitTk(){
+  const f=G.frame,c=[];
+  for(const [fr,arr] of G.cmds){if(fr<=f-100){G.cmds.delete(fr);continue;}if(fr>f)continue;for(const x of arr)c.push([fr,...x]);}
+  NET.room.emit('tk',{m:G.m,f,c:c.slice(-110),cfg:G.cfg,h:G.hash}).catch(()=>{});
+}
+function hostLoop(){
+  if(NET.role!=='host')return;
+  const now=performance.now(),dt=Math.min(5,(now-NET.last)/1000);NET.last=now;
+  if(G.mp&&G.state==='play'){
+    hostIntake();NET.acc+=dt;let k=0;
+    const behind=NET.conf-G.frame; // a new host first replays what the old host already confirmed
+    while((NET.acc>=TICK||G.frame<NET.conf)&&k<80&&G.state==='play'){step();k++;if(G.frame>NET.conf)NET.acc-=TICK;
+      if(G.frame>NET.conf&&G.frame%2===0){NET.conf=G.frame;emitTk();}}
+    if(behind<=0&&NET.acc>1)NET.acc=0;
+    if(G.state==='end'&&NET.conf<G.frame){NET.conf=G.frame;emitTk();}
+  }else if(G.mp&&G.state==='end'){NET.emitAt-=dt;if(NET.emitAt<=0){NET.emitAt=1;emitTk();}G.endT-=dt;$('endCount').textContent=`다음 게임까지 ${Math.ceil(Math.max(0,G.endT))}초`;if(G.endT<=0)hostStartLobby();}
+  else if(G.state==='lobby'&&NET.lobbyMP)hostLobbyTick(dt);
+}
+function hostStartLobby(keep){
+  if(NET.role!=='host')return;
+  $('endov').hidden=true;
+  if(!keep||!NET.lobby)NET.lobby={m:'l'+Math.random().toString(36).slice(2,8),t:NET.peersN>1?20:10,picks:new Map(),emitT:0,w:NET.lastWinnerPeer};
+  enterLobbyUI();
+}
+function enterLobbyUI(){
+  resetWorld();G.nations=[];G.state='lobby';G.mp=true;G.dm=0;NET.lobbyMP=true;
+  if(ME.status==='in'||ME.status==='dead')ME.status='queued';
+  ME.perk=null;rouletteT=0;
+  $('perkPick').hidden=true;$('pkHint').hidden=true;$('pkX2').setAttribute('aria-pressed','false');$('pkLoc').setAttribute('aria-pressed','false');
+  $('lobby').hidden=false;$('lobby').classList.remove('clear');flyTo(W/2,H/2*.9,fitScale());lobbyKey='';
+}
+function hostLobbyTick(dt){
+  const L=NET.lobby;L.t-=dt;L.emitT-=dt;
+  const ps=livePeers().slice(0,16);
+  const used=new Set(),spawns=[];
+  for(const [peer,pk] of L.picks){if(!ps.some(p=>p.peer===peer))L.picks.delete(peer);}
+  for(const p of ps){let pk=L.picks.get(p.peer);
+    const win=L.w&&p.peer===L.w,pr=p.presence;
+    if(win&&pr.perk==='loc'&&pr.loc>=0&&pr.loc<NC&&ctry[pr.loc]&&(!pk||pk.loc!==pr.loc)){pk={...pickStart(new Set(),[],pr.loc),loc:pr.loc};}
+    if(!pk){for(const q of L.picks.values()){used.add(q.ci);spawns.push(q.cell);}pk=pickStart(used,spawns,-1);}
+    pk.x2=win&&pr.perk==='x2';L.picks.set(p.peer,pk);}
+  if(L.emitT<=0||L.t<=0){L.emitT=1;
+    NET.room.emit('lb',{m:L.m,t:Math.max(0,L.t),p:[...L.picks].map(([peer,pk])=>[peer,pk.ci,pk.cell,pk.x2?1:0]),w:L.w||null}).catch(()=>{});}
+  lobbyRender({t:L.t,p:[...L.picks].map(([peer,pk])=>[peer,pk.ci,pk.cell,pk.x2?1:0]),w:L.w});
+  if(L.t<=0){
+    const cfg=makeCfg([...L.picks].map(([peer,pk])=>({peer,pick:pk,x2:pk.x2})));
+    NET.lobby=null;NET.lobbyMP=false;$('lobby').hidden=true;
+    newMatchCfg(cfg,true);NET.conf=0;NET.last=performance.now();NET.acc=0;emitTk();
+  }
+}
+let lobbyKey='';
+function lobbyRender(d){
+  $('lbCount').textContent=Math.ceil(Math.max(0,d.t))+'초';
+  const mine=d.p.find(x=>x[0]===NET.myPeer);
+  const isW=d.w&&d.w===NET.myPeer;
+  $('perkPick').hidden=!isW;$('lbEyebrow').textContent=isW?'다음 게임 · 1등 특전 선택':`멀티플레이 대기실 · ${d.p.length}명`;
+  if(mine){const k=mine.join(',')+ME.perk;if(k!==lobbyKey){lobbyKey=k;ME.pick={ci:mine[1],cell:mine[2]};showPick();const [x,y]=cellXY(mine[2]);flyTo(x,y,fitScale()*1.8);}}
+  else if(lobbyKey!=='wait'){lobbyKey='wait';$('lbName').textContent='자리 배정 중…';$('lbSay').textContent='';$('roster').innerHTML='';$('lbPerks').innerHTML='';}
+  const host=NET.role==='host';
+  $('lbGo').hidden=!host;$('lbGo').textContent=d.p.length>1?'모두 모였어요, 시작':'바로 시작';
+  let pl=$('lbPlayers');if(!pl){pl=document.createElement('div');pl.id='lbPlayers';pl.className='players';$('lbPerks').after(pl);}
+  pl.innerHTML=`<div class="k">참가자</div>`+d.p.map(([peer,ci])=>`<span class="pchip${peer===NET.myPeer?' me':''}">${peer===NET.hostPeer?'👑':''}${flagOf(META[ci].a2)} ${esc(peer===NET.myPeer?'나':nameOf(peer))}</span>`).join('')+(host?'':`<div class="hint">방장이 곧 시작합니다</div>`);
+}
+function onLb(msg){
+  if(msg.sameTab||NET.role==='host')return;const d=msg.data;if(!d||!Array.isArray(d.p))return;
+  NET.hostPeer=msg.peer;NET.lastTk=performance.now();NET.waitM=null;
+  if(G.state!=='lobby'||!NET.lobbyMP){if(G.state==='play'&&G.mp&&ME.status==='in'&&G.state!=='end')return;enterLobbyUI();lobbyKey='';}
+  lobbyRender(d);
+}
+function onTk(msg){
+  const d=msg.data;if(!d||msg.sameTab)return;
+  if(NET.role==='host'){if(msg.peer<NET.myPeer){NET.role='client';NET.room.presence({host:null}).catch(()=>{});}else return;}
+  NET.hostPeer=msg.peer;NET.lastTk=performance.now();
+  if(G.m!==d.m){
+    if(d.f<=100&&d.cfg&&Array.isArray(d.cfg.n)){NET.lobbyMP=false;$('lobby').hidden=true;$('endov').hidden=true;newMatchCfg(d.cfg,true);NET.waitM=null;}
+    else{if(NET.waitM!==d.m){NET.waitM=d.m;if(G.mp||G.state!=='play'){$('lobby').hidden=true;NET.lobbyMP=false;newMatchCfg(makeCfg([]),false);}ME.status='queued';}return;}
+  }
+  if(Array.isArray(d.c))for(const x of d.c)if(Array.isArray(x)&&x.length===6)addCmd(x[0],x.slice(1));
+  NET.conf=Math.max(NET.conf,d.f|0);
+  if(Array.isArray(d.h)){NET.hostH.set(d.h[0],d.h[1]);const mine=NET.hashes.get(d.h[0]);if(mine!==undefined&&mine!==d.h[1])flagDesync();}
+}
+let cacc=0;
+function clientStep(rdt){
+  cacc+=rdt;const lag=NET.conf-G.frame;
+  if(lag>5)cacc+=TICK*Math.min(lag-3,30);
+  let k=0;while(cacc>=TICK&&G.frame<NET.conf&&k<40&&G.state==='play'){step();cacc-=TICK;k++;}
+  if(G.frame>=NET.conf)cacc=Math.min(cacc,TICK);
+}
+function onPeersChange(ch){
+  electHost();refreshNames();
+  if(NET.role==='host'){
+    for(const p of ch.left){const n=G.mp&&G.state==='play'?G.nations.find(x=>x.human&&x.peer===p.peer&&x.alive):null;if(n)hostSchedule(n.id,5,0,0);}
+    if(ch.joined.some(p=>!p.sameTab)&&!G.mp&&G.state!=='lobby'&&ME.status!=='in')hostStartLobby();
+  }
+  for(const p of ch.joined)if(!p.sameTab&&p.kind==='viewer'&&!NET.greeted.has(p.peer)){NET.greeted.add(p.peer);setTimeout(()=>feed(`👋 ${nameOf(p.peer)}님이 들어왔습니다`,'good'),600);}
+  updateNetBadge();
+}
+function updateNetBadge(){const b=$('bNet');if(!b)return;b.hidden=!NET.room;b.textContent=`👥 ${NET.peersN}${NET.role==='host'?' · 방장':''}`;}
+async function netInit(){
+  try{
+    if(!window.claude||typeof window.claude.use!=='function')return;
+    const room=await window.claude.use('room');if(!room)return;
+    NET.room=room;NET.joinedAt=performance.now();
+    try{NET.user=await window.claude.use('user');}catch(e){}
+    room.on('tk',onTk,()=>{});room.on('lb',onLb,()=>{});
+    room.onPeers(onPeersChange,()=>{NET.room=null;NET.role='solo';updateNetBadge();});
+    try{await room.emit('hi',{});NET.canHost=true;}catch(e){NET.canHost=false;}
+    room.presence({v:1,ch:NET.canHost}).catch(()=>{});
+    setInterval(()=>{electHost();
+      if(NET.role==='client'&&G.mp&&G.state==='play'&&performance.now()-NET.lastTk>5000&&!livePeers().some(p=>p.peer===NET.hostPeer)){NET.hostPeer=null;}
+    },1000);
+    setInterval(hostLoop,50);
+    updateNetBadge();
+  }catch(e){}
+}
+
+// ================= main loop
+let last=performance.now(),acc=0,hudT=0;
+function frame(now){
+  const rdt=Math.min(.1,(now-last)/1000);last=now;
+  if(cam.tw){const t=cam.tw;t.t=Math.min(1,t.t+rdt/1.1);const e=t.t<.5?2*t.t*t.t:1-Math.pow(-2*t.t+2,2)/2;
+    const s=t.fs+(t.s-t.fs)*e,x=t.fx+(t.x-t.fx)*e,y=t.fy+(t.y-t.fy)*e;cam.s=s;cam.ox=VW/2-x*s;cam.oy=VH/2-y*s;clampCam();if(t.t>=1)cam.tw=null;}
+  if(G.state==='play'){
+    if(G.mp&&NET.role==='host'){/* stepped by hostLoop so it keeps going in a background tab */}
+    else if(G.mp)clientStep(rdt);
+    else{const sp=ME.status==='in'?1:G.speed;acc+=rdt*sp;let n=0;while(acc>=TICK&&n<10){step();acc-=TICK;n++;if(G.state!=='play')break;}if(n>=10)acc=0;}
+  }else if(G.state==='end'){
+    if(!(G.mp&&NET.role==='host')){G.endT-=rdt;
+      if(NET.role==='client'){$('endCount').textContent=G.endT>0?`다음 게임까지 ${Math.ceil(G.endT)}초`:'방장이 다음 게임을 준비 중…';if(G.endT<=0&&!G.mp){newMatchCfg(makeCfg([]),false);}}
+      else{$('endCount').textContent=`다음 게임까지 ${Math.ceil(Math.max(0,G.endT))}초`;if(G.endT<=0){if(NET.role==='host')hostStartLobby();else startLobby();}}}
+  }
+  else if(G.state==='lobby'){if(!NET.lobbyMP)tickLobby(rdt);}
+  const gdt=G.state==='play'?rdt*(ME.status==='in'||G.mp?1:G.speed):rdt;
+  for(const p of G.projs)p.t+=gdt;G.projs=G.projs.filter(p=>p.t<p.d);
+  for(const f of G.fx)f.life-=gdt;G.fx=G.fx.filter(f=>f.life>0);
+  for(const b of G.bubbles)b.life-=rdt;G.bubbles=G.bubbles.filter(b=>b.life>0);
+  if(G.fx.length>600)G.fx.splice(0,G.fx.length-600);
+  hudT-=rdt;if(hudT<=0){hudT=.25;$('lb').hidden=G.state==='lobby';if(G.state!=='lobby')renderLB();renderClock();updateBar();updateBanner();}
+  draw();
+  requestAnimationFrame(frame);
+}
+
+// boot: a match is already running when you arrive; you queue for the next one
+resize();
+cam.s=fitScale();clampCam();
+newMatch(false);
+for(let i=0;i<450;i++)step();
+netInit();
+G.bubbles=[];
+ME.status='queued';
+feed('🌍 진행 중인 게임에 들어왔습니다. 다음 판까지 관전하세요','gold');
+$('loading').remove();
+try{if(!localStorage.getItem('ttm_help'))$('help').hidden=false;}catch(e){$('help').hidden=false;}
+window.__ttm={G,ME,NET,step,startLobby,beginMatch,TOTAL_LAND,sprite,getCulture,META,stateHash,issue};
+requestAnimationFrame(frame);
+})();
+</script>
