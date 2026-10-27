@@ -5,13 +5,13 @@
         ".read": true,
         "presence": {
           "$peer": {
-            ".write": "auth != null",
+            ".write": "auth != null && auth.token.firebase.sign_in_provider !== 'anonymous'",
             ".validate": "newData.child('j').isString() && newData.child('j').val().length < 4096"
           }
         },
         "ev": {
           "$topic": {
-            ".write": "auth != null && ($topic === 'tk' || $topic === 'lb' || $topic === 'hi')",
+            ".write": "auth != null && auth.token.firebase.sign_in_provider !== 'anonymous' && ($topic === 'tk' || $topic === 'lb' || $topic === 'hi')",
             ".validate": "newData.child('j').isString() && newData.child('j').val().length < 8192"
           }
         }
@@ -21,7 +21,7 @@
       ".read": true,
       ".indexOn": ["pts"],
       "$uid": {
-        ".write": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.token.firebase.sign_in_provider !== 'anonymous' && auth.uid === $uid",
         ".validate": "newData.child('pts').isNumber() && newData.child('games').isNumber()"
       }
     }

@@ -549,7 +549,7 @@ const I18N={
  'lg.localOnly':['This link can\'t save to the shared leaderboard, so results are kept on this device.','이 링크로는 공용 순위표에 저장할 수 없어서, 결과는 이 기기에 저장됩니다.'],
  'lg.guest':['Play as a guest','게스트로 플레이'],'lg.nick':['Nickname','닉네임'],
  'lg.guestNote':['Guest scores are saved on this device only. Open the shared link while signed in to claude.ai to join the global leaderboard.','게스트 기록은 이 기기에만 저장됩니다. claude.ai에 로그인한 상태로 공유 링크를 열면 전체 순위표에 올라갑니다.'],
- 'lg.play':['Play','시작하기'],'lg.google':['Sign in with Google','Google로 로그인'],'lg.signout':['Sign out','로그아웃'],'lg.google.ok':['Google account','Google 계정'],'lg.fbGuest':['Guests appear on the global leaderboard under their nickname.','게스트도 닉네임으로 전체 순위표에 올라갑니다.'],'lg.offline':['Online play is unavailable right now, so you play solo and scores stay on this device.','지금은 온라인 기능을 쓸 수 없어서 혼자 플레이하고 기록은 이 기기에 저장됩니다.'],'lg.room':['Room “{0}” · friends who open this same link join you','방 “{0}” · 같은 링크를 연 친구와 같이 플레이합니다'],'lg.board':['🏆 Leaderboard','🏆 순위표'],'lg.lang':['Language','언어'],
+ 'lg.play':['Play','시작하기'],'lg.google':['Sign in with Google','Google로 로그인'],'lg.signout':['Sign out','로그아웃'],'lg.google.ok':['Google account','Google 계정'],'lg.needGoogle':['Sign in with Google to play. Your results go to the global leaderboard.','Google로 로그인하면 플레이할 수 있습니다. 결과는 전체 순위표에 기록됩니다.'],'lg.offline':['Online play is unavailable right now, so you play solo and scores stay on this device.','지금은 온라인 기능을 쓸 수 없어서 혼자 플레이하고 기록은 이 기기에 저장됩니다.'],'lg.room':['Room “{0}” · friends who open this same link join you','방 “{0}” · 같은 링크를 연 친구와 같이 플레이합니다'],'lg.board':['🏆 Leaderboard','🏆 순위표'],'lg.lang':['Language','언어'],
  'bd.title':['Leaderboard','순위표'],'bd.global':['Everyone','전체'],'bd.local':['This device','이 기기'],
  'bd.cols':['Player','플레이어'],'bd.pts':['Points','점수'],'bd.wins':['Wins','승리'],'bd.games':['Games','판수'],'bd.best':['Best','최고'],
  'bd.empty':['No games recorded yet. Finish a game to get on the board.','아직 기록이 없습니다. 한 판을 끝내면 순위표에 올라갑니다.'],
@@ -2082,14 +2082,14 @@ function fbInit(){
     firebase.initializeApp(FB_CFG);FB.auth=firebase.auth();FB.db=firebase.database();
     FB.db.ref('.info/serverTimeOffset').on('value',s=>{FB.offset=s.val()||0;});
     await new Promise(r=>{const un=FB.auth.onAuthStateChanged(()=>{un();r();});setTimeout(r,4000);});
+    if(FB.auth.currentUser&&FB.auth.currentUser.isAnonymous)await FB.auth.signOut().catch(()=>{});
     FB.ok=true;return true;
   })().catch(e=>{FB.err=String(e&&e.message||e);console.warn('firebase',e);return false;});
   return FB.ready;
 }
 const fbNow=()=>Date.now()+FB.offset;
-const fbUser=()=>FB.auth&&FB.auth.currentUser;
+const fbUser=()=>{const u=FB.auth&&FB.auth.currentUser;return u&&!u.isAnonymous?u:null;}; // only Google accounts count
 async function fbGoogle(){await fbInit();if(!FB.ok)return false;try{await FB.auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());return true;}catch(e){FB.err=String(e&&e.code||e);return false;}}
-async function fbGuest(){await fbInit();if(!FB.ok)return false;if(fbUser())return true;try{await FB.auth.signInAnonymously();return true;}catch(e){FB.err=String(e&&e.code||e);return false;}}
 async function fbSignOut(){if(FB.ok)try{await FB.auth.signOut();}catch(e){}}
 const FB_NAMES={};
 const fbUserApi={
@@ -2373,7 +2373,7 @@ async function acctInit(){
   ACCT.ready=true;renderLogin();
 }
 function fbLoadAcct(){const u=fbUser();ACCT.user=fbUserApi;
-  if(u){ACCT.uid=u.uid;ACCT.anon=u.isAnonymous;ACCT.name=u.isAnonymous?ACCT.nick:(u.displayName||'');ACCT.db=fbDbApi;ACCT.canWrite=true;}
+  if(u){ACCT.uid=u.uid;ACCT.anon=false;ACCT.name=u.displayName||'';ACCT.db=fbDbApi;ACCT.canWrite=true;}
   else{ACCT.uid=null;ACCT.anon=false;ACCT.db=null;}}
 function renderLogin(){
   const a=$('lgAcct');if(!a)return;
@@ -2381,8 +2381,9 @@ function renderLogin(){
   if(!ON_CLAUDE){
     const room=`<small class="room">${tr('lg.room',esc(FB_ROOM))}</small>`;
     if(ACCT.uid&&!ACCT.anon){a.innerHTML=`<div class="acct"><span class="av">👤</span><div><div>${tr('lg.signedIn',esc(ACCT.name||tr('player')))}</div><small>${tr('lg.google.ok')} · ${tr('lg.global')} · <button class="lnk" id="lgOut" type="button">${tr('lg.signout')}</button></small></div></div>${room}`;}
-    else{const v=$('lgNick')?$('lgNick').value:ACCT.nick;
-      a.innerHTML=`<div class="guest"><button class="btn" id="lgGoogle" type="button"${FB.ready&&!FB.ok?' disabled':''}>🔑 ${tr('lg.google')}</button><b>${tr('lg.guest')}</b><label for="lgNick">${tr('lg.nick')}</label><input id="lgNick" maxlength="16" autocomplete="nickname" value="${esc(v)}"><small>${tr(FB.ready&&!FB.ok?'lg.offline':'lg.fbGuest')}</small></div>${room}`;}
+    else if(FB.ready&&!FB.ok){a.innerHTML=`<div class="guest"><small>${tr('lg.offline')}</small></div>`;}
+    else{a.innerHTML=`<div class="guest"><button class="btn pri" id="lgGoogle" type="button">🔑 ${tr('lg.google')}</button><small>${tr('lg.needGoogle')}</small></div>${room}`;}
+    $('lgPlay').disabled=!lgCanPlay();
     return;
   }
   if(ACCT.uid){
@@ -2392,11 +2393,13 @@ function renderLogin(){
     a.innerHTML=`<div class="guest"><b>${tr('lg.guest')}</b><label for="lgNick">${tr('lg.nick')}</label><input id="lgNick" maxlength="16" autocomplete="nickname" value="${esc(v)}"><small>${tr('lg.guestNote')}</small></div>`;
   }
 }
+const lgCanPlay=()=>ON_CLAUDE||!!ACCT.uid||!!(FB.ready&&!FB.ok)||!/^https?:$/.test(location.protocol)&&!window.firebase;
 let playing=false;
 async function play(){
-  if(playing)return;playing=true;
-  if(!ACCT.uid||ACCT.anon){const v=($('lgNick')&&$('lgNick').value.trim())||ACCT.nick;ACCT.nick=v.slice(0,16);try{localStorage.setItem('ttm_nick',ACCT.nick);}catch(e){}}
-  if(!ON_CLAUDE){$('lgPlay').disabled=true;if(await fbInit()){if(!fbUser())await fbGuest();fbLoadAcct();}$('lgPlay').disabled=false;}
+  if(playing)return;
+  if(!ON_CLAUDE){await fbInit();fbLoadAcct();if(!lgCanPlay()){toast(tr('lg.needGoogle'));renderLogin();return;}}
+  playing=true;
+  if(!ACCT.uid){const v=($('lgNick')&&$('lgNick').value.trim())||ACCT.nick;ACCT.nick=v.slice(0,16);try{localStorage.setItem('ttm_nick',ACCT.nick);}catch(e){}}
   userActed=true;$('login').hidden=true;startLobby(7);netInit();
   try{if(!localStorage.getItem('ttm_help'))$('help').hidden=false;}catch(e){$('help').hidden=false;}
 }
@@ -2476,7 +2479,7 @@ function frame(now){
 // boot: no human is playing yet, so a fresh game opens for this visitor right away
 resize();
 cam.s=fitScale();clampCam();
-applyI18n();$('bLang').textContent=LANG==='ko'?'EN':'한';renderLogin();acctInit();
+applyI18n();$('bLang').textContent=LANG==='ko'?'EN':'한';if(!ON_CLAUDE)$('lgPlay').disabled=true;renderLogin();acctInit();
 newMatch(false);for(let i=0;i<300;i++)step();G.bubbles=[];ME.status='queued';
 $('loading').remove();
 window.__ttm={G,ME,NET,ACCT,setLang,play,recordScore,step,draw,cam,zoomAt,startLobby,beginMatch,TOTAL_LAND,sprite,getCulture,META,stateHash,issue};
