@@ -1,0 +1,31 @@
+// Same as mp.js but over the Firebase backend (fake SDK from fakefirebase.js), as on GitHub Pages.
+const {chromium}=require('playwright');const fs=require('fs');
+(async()=>{const b=await chromium.launch();const ctx=await b.newContext({viewport:{width:1200,height:760}});
+const drop=process.argv[2]||'0';
+await ctx.addInitScript({content:`window.__DROP=${drop};`+fs.readFileSync(__dirname+'/fakefirebase.js','utf8')+`;try{localStorage.setItem('ttm_help','1')}catch(e){}`});
+const errs=[];const url='file://'+require('path').resolve(__dirname,'../index.html')+'';
+const A=await ctx.newPage();A.on('pageerror',e=>errs.push('A '+e.message));
+await A.goto(url);await A.click('#lgPlay');await A.waitForTimeout(3500);
+const st=p=>p.evaluate(()=>{const T=window.__ttm;return {role:T.NET.role,peer:T.NET.myPeer,host:T.NET.hostPeer,state:T.G.state,mp:T.G.mp,frame:T.G.frame,conf:T.NET.conf,me:T.G.nations.findIndex(n=>n.isPlayer),humans:T.G.nations.filter(n=>n.human).map(n=>n.name+':'+n.pname),desync:T.NET.desync}});
+console.log('A alone',await st(A));
+const B=await ctx.newPage();B.on('pageerror',e=>errs.push('B '+e.message));
+await B.goto(url);await B.click('#lgPlay');await B.waitForTimeout(4000);
+console.log('A',await st(A));console.log('B',await st(B));
+await B.screenshot({path:'mp_lobbyB.png'});
+if(await A.isVisible('#lbGo'))await A.click('#lbGo');await A.waitForTimeout(3000);
+console.log('A',await st(A));console.log('B',await st(B));
+// B issues an attack + upgrades via the real UI
+await B.evaluate(()=>{const T=window.__ttm;const me=T.G.nations.find(n=>n.isPlayer);me.gold+=0;});
+for(const k of ['1','2','3'])await B.keyboard.press(k);
+await A.keyboard.press('2');
+await B.waitForTimeout(25000);
+console.log('A',await st(A));console.log('B',await st(B));
+const lv=await Promise.all([A,B].map(p=>p.evaluate(()=>window.__ttm.G.nations.filter(n=>n.human).map(n=>n.name+JSON.stringify(n.lv)))));console.log('levels',lv);
+const hA=await A.evaluate(()=>[...window.__ttm.NET.hashes]);const hB=new Map(await B.evaluate(()=>[...window.__ttm.NET.hashes]));
+let same=0,diff=0;for(const [f,h] of hA){if(hB.has(f)){hB.get(f)===h?same++:diff++;}}console.log('hash frames same',same,'diff',diff);
+await B.screenshot({path:'mp_gameB.png'});await A.screenshot({path:'mp_gameA.png'});
+// host leaves -> B should take over
+await A.close();await B.waitForTimeout(7000);
+console.log('B after host left',await st(B));
+const f1=(await st(B)).frame;await B.waitForTimeout(3000);console.log('B frame advanced',f1,'->',(await st(B)).frame);
+console.log(errs.slice(0,5));await b.close();})();

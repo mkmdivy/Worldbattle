@@ -1,0 +1,29 @@
+{
+  "rules": {
+    "rooms": {
+      "$room": {
+        ".read": true,
+        "presence": {
+          "$peer": {
+            ".write": "auth != null",
+            ".validate": "newData.child('j').isString() && newData.child('j').val().length < 4096"
+          }
+        },
+        "ev": {
+          "$topic": {
+            ".write": "auth != null && ($topic === 'tk' || $topic === 'lb' || $topic === 'hi')",
+            ".validate": "newData.child('j').isString() && newData.child('j').val().length < 8192"
+          }
+        }
+      }
+    },
+    "scores": {
+      ".read": true,
+      ".indexOn": ["pts"],
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid",
+        ".validate": "newData.child('pts').isNumber() && newData.child('games').isNumber()"
+      }
+    }
+  }
+}

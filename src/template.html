@@ -197,6 +197,8 @@ button:focus-visible{outline:2px solid var(--you);outline-offset:2px}
 .acct{display:flex;gap:10px;align-items:center;background:rgba(0,0,0,.25);border-radius:10px;padding:10px 12px}
 .acct .av{font-size:22px}.acct small,.guest small{color:var(--muted);font-size:12px;line-height:1.45}
 .guest{display:flex;flex-direction:column;gap:6px;background:rgba(0,0,0,.25);border-radius:10px;padding:10px 12px}
+.guest .btn{align-self:flex-start}
+.room{display:block;color:var(--muted);font-size:12px;margin-top:8px}
 .guest label{font-size:12px;color:var(--muted)}
 .guest input{font:inherit;font-size:15px;color:var(--text);background:var(--sea);border:1px solid var(--line);border-radius:8px;padding:9px 10px}
 .guest input:focus-visible{outline:2px solid var(--you)}
@@ -547,7 +549,7 @@ const I18N={
  'lg.localOnly':['This link can\'t save to the shared leaderboard, so results are kept on this device.','이 링크로는 공용 순위표에 저장할 수 없어서, 결과는 이 기기에 저장됩니다.'],
  'lg.guest':['Play as a guest','게스트로 플레이'],'lg.nick':['Nickname','닉네임'],
  'lg.guestNote':['Guest scores are saved on this device only. Open the shared link while signed in to claude.ai to join the global leaderboard.','게스트 기록은 이 기기에만 저장됩니다. claude.ai에 로그인한 상태로 공유 링크를 열면 전체 순위표에 올라갑니다.'],
- 'lg.play':['Play','시작하기'],'lg.board':['🏆 Leaderboard','🏆 순위표'],'lg.lang':['Language','언어'],
+ 'lg.play':['Play','시작하기'],'lg.google':['Sign in with Google','Google로 로그인'],'lg.signout':['Sign out','로그아웃'],'lg.google.ok':['Google account','Google 계정'],'lg.fbGuest':['Guests appear on the global leaderboard under their nickname.','게스트도 닉네임으로 전체 순위표에 올라갑니다.'],'lg.offline':['Online play is unavailable right now, so you play solo and scores stay on this device.','지금은 온라인 기능을 쓸 수 없어서 혼자 플레이하고 기록은 이 기기에 저장됩니다.'],'lg.room':['Room “{0}” · friends who open this same link join you','방 “{0}” · 같은 링크를 연 친구와 같이 플레이합니다'],'lg.board':['🏆 Leaderboard','🏆 순위표'],'lg.lang':['Language','언어'],
  'bd.title':['Leaderboard','순위표'],'bd.global':['Everyone','전체'],'bd.local':['This device','이 기기'],
  'bd.cols':['Player','플레이어'],'bd.pts':['Points','점수'],'bd.wins':['Wins','승리'],'bd.games':['Games','판수'],'bd.best':['Best','최고'],
  'bd.empty':['No games recorded yet. Finish a game to get on the board.','아직 기록이 없습니다. 한 판을 끝내면 순위표에 올라갑니다.'],
@@ -2060,6 +2062,88 @@ $('bSpeed').onclick=()=>{G.speed=G.speed===1?2:G.speed===2?4:G.speed===4?8:1;$('
 $('bHelp').onclick=()=>{$('help').hidden=false;};$('helpX').onclick=()=>{$('help').hidden=true;try{localStorage.setItem('ttm_help','1')}catch(e){}};
 $('lbTog').onclick=()=>{$('lb').classList.toggle('collapsed');};
 
+// ================= Firebase backend (GitHub Pages and any host outside claude.ai)
+// It exposes the same small room / user / db interface the claude.ai capabilities give the page,
+// so the multiplayer and leaderboard code above runs unchanged on either backend.
+const ON_CLAUDE=!!(window.claude&&typeof window.claude.use==='function');
+const FB_CFG={apiKey:"AIzaSyCfSJQEQg5vtMgQOD5Q2hRoziM3oX2QBUc",authDomain:"worldbattle-85006.firebaseapp.com",
+  databaseURL:"https://worldbattle-85006-default-rtdb.europe-west1.firebasedatabase.app",projectId:"worldbattle-85006",
+  storageBucket:"worldbattle-85006.firebasestorage.app",messagingSenderId:"340888366586",appId:"1:340888366586:web:7618406b1511d824c8c843"};
+const FB={ok:false,ready:null,auth:null,db:null,offset:0,err:''};
+// a private room per link: …/Worldbattle/#friends puts everyone with that link in room "friends"
+const FB_ROOM=((location.hash||'').replace(/^#/,'').toLowerCase().replace(/[^a-z0-9-]/g,'').slice(0,24))||'lobby';
+function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=()=>rej(new Error('load '+src));document.head.appendChild(s);});}
+function fbInit(){
+  if(ON_CLAUDE||!/^https?:$/.test(location.protocol)&&!window.firebase)return Promise.resolve(false);
+  if(FB.ready)return FB.ready;
+  FB.ready=(async()=>{
+    if(!window.firebase){const b='https://cdn.jsdelivr.net/npm/firebase@10.12.2/';
+      await loadScript(b+'firebase-app-compat.js');await Promise.all([loadScript(b+'firebase-auth-compat.js'),loadScript(b+'firebase-database-compat.js')]);}
+    firebase.initializeApp(FB_CFG);FB.auth=firebase.auth();FB.db=firebase.database();
+    FB.db.ref('.info/serverTimeOffset').on('value',s=>{FB.offset=s.val()||0;});
+    await new Promise(r=>{const un=FB.auth.onAuthStateChanged(()=>{un();r();});setTimeout(r,4000);});
+    FB.ok=true;return true;
+  })().catch(e=>{FB.err=String(e&&e.message||e);console.warn('firebase',e);return false;});
+  return FB.ready;
+}
+const fbNow=()=>Date.now()+FB.offset;
+const fbUser=()=>FB.auth&&FB.auth.currentUser;
+async function fbGoogle(){await fbInit();if(!FB.ok)return false;try{await FB.auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());return true;}catch(e){FB.err=String(e&&e.code||e);return false;}}
+async function fbGuest(){await fbInit();if(!FB.ok)return false;if(fbUser())return true;try{await FB.auth.signInAnonymously();return true;}catch(e){FB.err=String(e&&e.code||e);return false;}}
+async function fbSignOut(){if(FB.ok)try{await FB.auth.signOut();}catch(e){}}
+const FB_NAMES={};
+const fbUserApi={
+  me:async()=>{const u=fbUser();return {id:u?u.uid:null,name:u&&!u.isAnonymous?(u.displayName||''):''};},
+  id:async()=>{const u=fbUser();return u?u.uid:null;},
+  can:async()=>!!fbUser(),
+  profiles:async ids=>{const o={};for(const i of [].concat(ids))o[i]={id:i,name:FB_NAMES[i]||''};return o;},
+};
+const fbDbApi={
+  doc:path=>({get:async()=>{const s=await FB.db.ref(path).get();return {exists:s.exists(),data:()=>s.val()};},set:v=>FB.db.ref(path).set(v)}),
+  collection:path=>({orderBy:f=>({limit:k=>({onSnapshot:(cb,err)=>{const q=FB.db.ref(path).orderByChild(f).limitToLast(k);
+    const h=s=>{const docs=[];s.forEach(c=>{const v=c.val();if(v&&v.name)FB_NAMES[c.key]=v.name;docs.push({id:c.key,exists:true,data:()=>v});});docs.reverse();cb({docs,size:docs.length,empty:!docs.length});};
+    q.on('value',h,e=>{err&&err(e);});return ()=>q.off('value',h);}})})}),
+};
+function fbRoom(){
+  const base=FB.db.ref('rooms/'+FB_ROOM),me=Math.random().toString(36).slice(2,10),uid=()=>{const u=fbUser();return u?u.uid:null;};
+  let myP={},snap=Object.freeze([]),prev=new Map(),conn=false,pend=null;const hs=[],ch=[],ons={},seen={};
+  const myRef=base.child('presence/'+me);myRef.onDisconnect().remove();
+  const push=()=>{pend=null;myRef.set({j:JSON.stringify(myP),t:firebase.database.ServerValue.TIMESTAMP,b:uid()});};
+  setInterval(()=>{if(conn)push();},20000);
+  base.child('presence').on('value',s=>{
+    const now=fbNow(),cur=new Map();
+    s.forEach(c=>{const v=c.val();if(!v||!v.j)return;if(c.key!==me&&now-(v.t||0)>50000)return;let p={};try{p=JSON.parse(v.j);}catch(e){}
+      if(v.b&&p.nm)FB_NAMES[v.b]=p.nm;cur.set(c.key,{peer:c.key,by:v.b||null,isMe:c.key===me,sameTab:c.key===me,kind:'viewer',guest:false,presence:Object.freeze(p),updatedAt:Date.now(),j:v.j});});
+    if(!cur.has(me))cur.set(me,{peer:me,by:uid(),isMe:true,sameTab:true,kind:'viewer',guest:false,presence:Object.freeze({...myP}),updatedAt:Date.now(),j:''});
+    const joined=[],left=[],updated=[];
+    for(const [k,v] of cur){const o=prev.get(k);if(!o)joined.push(v);else if(o.j!==v.j)updated.push(v);else cur.set(k,o);}
+    for(const [k,v] of prev)if(!cur.has(k))left.push(v);
+    prev=cur;snap=Object.freeze([...cur.values()]);
+    if(joined.length||left.length||updated.length)for(const h of hs)h({peers:snap,joined,left,updated});
+  });
+  FB.db.ref('.info/connected').on('value',s=>{conn=!!s.val();if(conn){myRef.onDisconnect().remove();push();}for(const f of ch)f(conn);});
+  return {
+    emit:async(topic,data)=>{seen[topic]=(seen[topic]||0)+1;await base.child('ev/'+topic).set({j:JSON.stringify(data),p:me,b:uid(),n:seen[topic],t:firebase.database.ServerValue.TIMESTAMP});},
+    on:(topic,fn)=>{let last='';base.child('ev/'+topic).on('value',s=>{const v=s.val();if(!v||v.p===me)return;const key=v.p+':'+v.n;if(key===last)return;last=key;
+      if(fbNow()-(v.t||0)>8000)return; // ignore what an old, finished session left behind
+      let d=null;try{d=JSON.parse(v.j);}catch(e){return;}fn({topic,data:d,peer:v.p,by:v.b||null,isMe:false,sameTab:false,kind:'viewer',guest:false});});return ()=>{};},
+    presence:async patch=>{for(const k in patch){if(patch[k]===null)delete myP[k];else myP[k]=patch[k];}if(!pend)pend=setTimeout(push,80);},
+    peers:()=>snap,
+    onPeers:h=>{hs.push(h);setTimeout(()=>h({peers:snap,joined:snap,left:[],updated:[]}),0);return ()=>{};},
+    connected:()=>conn,
+    onConnection:f=>{ch.push(f);setTimeout(()=>f(conn),0);return ()=>{};},
+  };
+}
+// one entry point for both backends
+async function caps(name){
+  if(ON_CLAUDE)return window.claude.use(name).catch(()=>null);
+  if(!(await fbInit()))return null;
+  if(name==='user')return fbUserApi;
+  if(name==='db')return fbUser()?fbDbApi:null;
+  if(name==='room')return fbUser()?(FB.room||(FB.room=fbRoom())):null;
+  return null;
+}
+
 // ================= multiplayer: claude.ai room capability, lockstep simulation
 // The host steps the match and broadcasts {frame, recent commands}; clients step the same deterministic
 // simulation up to that frame. Clients send their own commands through presence (anyone may set presence).
@@ -2212,14 +2296,13 @@ function onPeersChange(ch){
 function updateNetBadge(){const b=$('bNet');if(!b)return;b.hidden=!NET.room;b.textContent=`👥 ${NET.peersN}${NET.role==='host'?' · '+tr('net.host'):''}`;}
 async function netInit(){
   try{
-    if(!window.claude||typeof window.claude.use!=='function')return;
-    const room=await window.claude.use('room');if(!room)return;
+    const room=await caps('room');if(!room)return;
     NET.room=room;NET.joinedAt=performance.now();
-    try{NET.user=await window.claude.use('user');}catch(e){}
+    try{NET.user=await caps('user');}catch(e){}
     room.on('tk',onTk,()=>{});room.on('lb',onLb,()=>{});
     room.onPeers(onPeersChange,()=>{NET.room=null;NET.role='solo';updateNetBadge();});
     try{await room.emit('hi',{});NET.canHost=true;}catch(e){NET.canHost=false;}
-    room.presence({v:1,ch:NET.canHost}).catch(()=>{});
+    room.presence(ON_CLAUDE?{v:1,ch:NET.canHost}:{v:1,ch:NET.canHost,nm:myName()}).catch(()=>{});
     setInterval(()=>{electHost();
       if(NET.role==='client'&&G.mp&&G.state==='play'&&performance.now()-NET.lastTk>5000&&!livePeers().some(p=>p.peer===NET.hostPeer)){NET.hostPeer=null;}
     },1000);
@@ -2279,7 +2362,8 @@ try{ACCT.nick=localStorage.getItem('ttm_nick')||'';}catch(e){}
 if(!ACCT.nick)ACCT.nick='Commander-'+(1000+Math.floor(Math.random()*9000));
 async function acctInit(){
   try{
-    if(window.claude&&typeof window.claude.use==='function'){
+    if(!ON_CLAUDE){if(await fbInit())fbLoadAcct();}
+    else{
       const [u,d]=await Promise.all([window.claude.use('user').catch(()=>null),window.claude.use('db').catch(()=>null)]);
       ACCT.user=u;ACCT.db=d;
       if(u){const me=await u.me();ACCT.uid=me.id;ACCT.name=me.name||'';
@@ -2288,9 +2372,19 @@ async function acctInit(){
   }catch(e){}
   ACCT.ready=true;renderLogin();
 }
+function fbLoadAcct(){const u=fbUser();ACCT.user=fbUserApi;
+  if(u){ACCT.uid=u.uid;ACCT.anon=u.isAnonymous;ACCT.name=u.isAnonymous?ACCT.nick:(u.displayName||'');ACCT.db=fbDbApi;ACCT.canWrite=true;}
+  else{ACCT.uid=null;ACCT.anon=false;ACCT.db=null;}}
 function renderLogin(){
   const a=$('lgAcct');if(!a)return;
   $('lgEn').setAttribute('aria-pressed',LANG==='en');$('lgKo').setAttribute('aria-pressed',LANG==='ko');
+  if(!ON_CLAUDE){
+    const room=`<small class="room">${tr('lg.room',esc(FB_ROOM))}</small>`;
+    if(ACCT.uid&&!ACCT.anon){a.innerHTML=`<div class="acct"><span class="av">👤</span><div><div>${tr('lg.signedIn',esc(ACCT.name||tr('player')))}</div><small>${tr('lg.google.ok')} · ${tr('lg.global')} · <button class="lnk" id="lgOut" type="button">${tr('lg.signout')}</button></small></div></div>${room}`;}
+    else{const v=$('lgNick')?$('lgNick').value:ACCT.nick;
+      a.innerHTML=`<div class="guest"><button class="btn" id="lgGoogle" type="button"${FB.ready&&!FB.ok?' disabled':''}>🔑 ${tr('lg.google')}</button><b>${tr('lg.guest')}</b><label for="lgNick">${tr('lg.nick')}</label><input id="lgNick" maxlength="16" autocomplete="nickname" value="${esc(v)}"><small>${tr(FB.ready&&!FB.ok?'lg.offline':'lg.fbGuest')}</small></div>${room}`;}
+    return;
+  }
   if(ACCT.uid){
     a.innerHTML=`<div class="acct"><span class="av">👤</span><div><div>${tr('lg.signedIn',esc(ACCT.name||tr('player')))}</div><small>${tr('lg.claude')} · ${tr(ACCT.db&&ACCT.canWrite!==false?'lg.global':'lg.localOnly')}</small></div></div>`;
   }else{
@@ -2298,19 +2392,25 @@ function renderLogin(){
     a.innerHTML=`<div class="guest"><b>${tr('lg.guest')}</b><label for="lgNick">${tr('lg.nick')}</label><input id="lgNick" maxlength="16" autocomplete="nickname" value="${esc(v)}"><small>${tr('lg.guestNote')}</small></div>`;
   }
 }
-function play(){
-  if(!ACCT.uid){const v=($('lgNick')&&$('lgNick').value.trim())||ACCT.nick;ACCT.nick=v.slice(0,16);try{localStorage.setItem('ttm_nick',ACCT.nick);}catch(e){}}
+let playing=false;
+async function play(){
+  if(playing)return;playing=true;
+  if(!ACCT.uid||ACCT.anon){const v=($('lgNick')&&$('lgNick').value.trim())||ACCT.nick;ACCT.nick=v.slice(0,16);try{localStorage.setItem('ttm_nick',ACCT.nick);}catch(e){}}
+  if(!ON_CLAUDE){$('lgPlay').disabled=true;if(await fbInit()){if(!fbUser())await fbGuest();fbLoadAcct();}$('lgPlay').disabled=false;}
   userActed=true;$('login').hidden=true;startLobby(7);netInit();
   try{if(!localStorage.getItem('ttm_help'))$('help').hidden=false;}catch(e){$('help').hidden=false;}
 }
 $('lgPlay').addEventListener('click',play);
-$('login').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.tagName!=='BUTTON')play();});
+$('lgAcct').addEventListener('click',async e=>{
+  if(e.target.id==='lgGoogle'){e.target.disabled=true;const ok=await fbGoogle();fbLoadAcct();renderLogin();if(!ok&&FB.err)toast(FB.err);}
+  else if(e.target.id==='lgOut'){await fbSignOut();fbLoadAcct();renderLogin();}});
+$('login').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.tagName==='INPUT')play();});
 const myName=()=>ACCT.uid?(ACCT.name||tr('player')):ACCT.nick;
 // local board
 function localScores(){try{return JSON.parse(localStorage.getItem('ttm_scores')||'{}');}catch(e){return {};}}
 function recordScore(me,rank){
   const best=Math.round(me.peak/TOTAL_LAND*1000)/10,pts=Math.max(5,Math.round(100*Math.pow(.72,rank-1)))+Math.round(best)+Math.floor(me.kills/25),win=rank===1?1:0;
-  const add=o=>({pts:(o.pts||0)+pts,games:(o.games||0)+1,wins:(o.wins||0)+win,best:Math.max(o.best||0,best),kills:(o.kills||0)+me.kills,last:Date.now(),nation:META[me.ci].a2||''});
+  const add=o=>({pts:(o.pts||0)+pts,games:(o.games||0)+1,wins:(o.wins||0)+win,best:Math.max(o.best||0,best),kills:(o.kills||0)+me.kills,last:Date.now(),nation:META[me.ci].a2||'',...(ON_CLAUDE?{}:{name:myName()})});
   try{const all=localScores(),k=ACCT.uid?'u:'+ACCT.uid:'g:'+ACCT.nick;all[k]={...add(all[k]||{}),name:myName()};localStorage.setItem('ttm_scores',JSON.stringify(all));}catch(e){}
   $('endPts').textContent=tr('end.pts',pts);
   if(ACCT.db&&ACCT.uid&&ACCT.canWrite!==false){
@@ -2318,18 +2418,19 @@ function recordScore(me,rank){
     ref.get().then(s=>ref.set(add(s.exists?s.data():{}))).then(()=>feed(tr('bd.saved',pts),'gold')).catch(()=>{ACCT.canWrite=false;feed(tr('bd.savedLocal',pts),'gold');});
   }else feed(tr('bd.savedLocal',pts),'gold');
 }
+const boardDb=()=>ACCT.db||(!ON_CLAUDE&&FB.ok?fbDbApi:null);
 function subscribeBoard(){
-  if(ACCT.unsub||!ACCT.db)return;
-  try{ACCT.unsub=ACCT.db.collection('scores').orderBy('pts','desc').limit(50).onSnapshot(snap=>{ACCT.rows=snap.docs.map(d=>({id:d.id,...d.data()}));if(!$('board').hidden)renderBoard();},()=>{ACCT.rows=[];ACCT.unsub=null;});}catch(e){ACCT.rows=[];}
+  const db=boardDb();if(ACCT.unsub||!db)return;
+  try{ACCT.unsub=db.collection('scores').orderBy('pts','desc').limit(50).onSnapshot(snap=>{ACCT.rows=snap.docs.map(d=>({id:d.id,...d.data()}));if(!$('board').hidden)renderBoard();},()=>{ACCT.rows=[];ACCT.unsub=null;});}catch(e){ACCT.rows=[];}
 }
 async function renderBoard(){
   $('bdG').setAttribute('aria-selected',ACCT.tab==='g');$('bdL').setAttribute('aria-selected',ACCT.tab==='l');
   const body=$('boardBody');let rows,meKey;
   if(ACCT.tab==='g'){
-    if(!ACCT.db){body.innerHTML=`<p class="hint">${tr('bd.noGlobal')}</p>`;return;}
+    if(!boardDb()){body.innerHTML=`<p class="hint">${tr(ON_CLAUDE?'bd.noGlobal':'lg.offline')}</p>`;return;}
     if(!ACCT.rows){body.innerHTML=`<p class="hint">${tr('bd.loading')}</p>`;subscribeBoard();return;}
     let names={};try{if(ACCT.user&&ACCT.rows.length)names=await ACCT.user.profiles(ACCT.rows.map(r=>r.id));}catch(e){}
-    rows=ACCT.rows.map(r=>({...r,name:(names[r.id]&&names[r.id].name)||tr('player'),me:r.id===ACCT.uid}));
+    rows=ACCT.rows.map(r=>({...r,name:(names[r.id]&&names[r.id].name)||r.name||tr('player'),me:r.id===ACCT.uid}));
   }else{
     const all=localScores();rows=Object.entries(all).map(([k,v])=>({...v,me:k===(ACCT.uid?'u:'+ACCT.uid:'g:'+ACCT.nick)})).sort((a,b)=>b.pts-a.pts);
   }
@@ -2337,7 +2438,7 @@ async function renderBoard(){
   body.innerHTML=`<div class="bd head"><span>#</span><span>${tr('bd.cols')}</span><span>${tr('bd.pts')}</span><span>${tr('bd.wins')}</span><span>${tr('bd.games')}</span><span>${tr('bd.best')}</span></div>`+
     rows.map((r,i)=>`<div class="bd${r.me?' me':''}"><span class="rk">${i+1}</span><span class="nm"><span class="flag">${flagOf(r.nation)}</span> ${esc(r.name)}${r.me?` <small>(${tr('bd.you')})</small>`:''}</span><span class="pt">${r.pts|0}</span><span>${r.wins|0}</span><span>${r.games|0}</span><span>${(+r.best||0).toFixed(1)}%</span></div>`).join('');
 }
-function openBoard(){ACCT.tab=ACCT.db?ACCT.tab:'l';$('board').hidden=false;renderBoard();}
+function openBoard(){ACCT.tab=boardDb()?ACCT.tab:'l';$('board').hidden=false;renderBoard();}
 $('bBoard').addEventListener('click',()=>{userActed=true;openBoard();});
 $('lgBoard').addEventListener('click',openBoard);
 $('endBoard').addEventListener('click',openBoard);

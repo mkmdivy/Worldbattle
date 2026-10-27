@@ -26,6 +26,11 @@ English is the default language; Korean can be selected on the start screen or w
 - 1등 특전: 다음 판 병력 2배 생산 또는 시작 위치 지정.
 
 ## 멀티플레이
+두 가지 연결 방식이 있고, 게임이 열린 위치에 따라 자동으로 고릅니다.
+- **claude.ai 아티팩트 안**: claude.ai `room`(실시간)과 `db`(순위표), claude.ai 계정 로그인.
+- **GitHub Pages 등 그 밖의 곳**: Firebase(프로젝트 `worldbattle-85006`, Realtime Database europe-west1). Google 로그인 또는 익명 게스트, 순위표는 `scores/{uid}`. 주소 끝에 `#방이름`을 붙이면(예: `…/Worldbattle/#friends`) 그 링크를 연 사람끼리만 같은 방에 모입니다. 붙이지 않으면 `lobby` 방입니다.
+- 보안 규칙은 [database.rules.json](database.rules.json)에 있습니다(각자 자기 순위표 행만 쓰기, 방 메시지 크기 제한).
+
 claude.ai 아티팩트의 `room` 기능으로 동작하는 **락스텝** 방식입니다.
 - 시뮬레이션은 시드 기반 난수와 엔진 간 결과가 같은 연산(`+ - * /`, `Math.sqrt`)만 써서 완전히 결정적입니다.
 - 방장은 틱 번호와 최근 명령만 브로드캐스트하고, 모든 참가자가 같은 시뮬레이션을 돌립니다. 참가자 명령은 presence로 방장에게 갑니다.
@@ -49,6 +54,9 @@ test/sim.js         봇끼리 전체 경기 시뮬레이션 (판 길이 측정)
 test/mp.js          가짜 room으로 탭 2개 멀티 동기화·방장 인계 테스트
 test/reroll.js      다시 뽑기(혼자·멀티) 테스트
 test/restart.js     빈 판 재시작·관전 대기·연구 선택 UI 테스트
+test/fakefirebase.js 테스트용 가짜 Firebase SDK(탭끼리 공유)
+test/mp_firebase.js  Firebase 방식 멀티 동기화 테스트
+test/board_firebase.js Google 로그인·점수 저장·순위표 테스트
 test/mockroom.js    BroadcastChannel 기반 가짜 room/user capability
 test/perf.js        확대 단계별 프레임 렌더링 시간 측정
 audio/              목소리 팩 (LINES.md 대사 목록, README.md 넣는 방법)
