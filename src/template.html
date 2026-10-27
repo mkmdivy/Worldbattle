@@ -349,7 +349,7 @@ button:focus-visible{outline:2px solid var(--you);outline-offset:2px}
       <div class="row"><button class="btn" id="pkX2" type="button" aria-pressed="false" data-i18n="pk.x2">⚒ Half-price troops</button><button class="btn" id="pkLoc" type="button" aria-pressed="false" data-i18n="pk.loc">📍 Choose your start</button></div>
       <p id="pkHint" style="margin:8px 0 0;color:var(--muted)" hidden data-i18n="pk.hint">Tap any land on the map. You'll play as that country.</p>
     </div>
-    <div class="row"><span style="font-size:12px;color:var(--muted)" data-i18n="lb.foot">16 nations · 15–25 min · deathmatch from 10 min</span><button class="btn pri" id="lbGo" type="button" data-i18n="lb.go">Start now</button></div>
+    <div class="row"><span style="font-size:12px;color:var(--muted)" data-i18n="lb.foot">16 nations · 15–25 min · deathmatch from 10 min</span><span class="row" style="margin:0"><button class="btn" id="lbRe" type="button">🎲 Reroll (3 left)</button><button class="btn pri" id="lbGo" type="button" data-i18n="lb.go">Start now</button></span></div>
   </div>
 </div>
 
@@ -504,7 +504,7 @@ const I18N={
  'lb.cap':['Capital','시작 수도'],'lb.trait':['Trait','국가 특성'],'lb.troops':['Troops','병종'],'lb.super':['Super perks','슈퍼 특전'],
  'lb.superTxt':['Income +50% · cheaper units · bigger start','수입 +50% · 유닛 할인 · 시작 영토 확대'],
  'lb.perk':['Winner\'s perk','1등 특전'],'lb.perkX2':['Half-price troops','병력 반값'],'lb.perkLoc':['Choose your start','시작 위치 지정'],
- 'lb.secs':['{0}s','{0}초'],'lb.go':['Start now','바로 시작'],'lb.goAll':['Everyone\'s here, start','모두 모였어요, 시작'],
+ 'lb.secs':['{0}s','{0}초'],'lb.reroll':['🎲 Reroll ({0} left)','🎲 다시 뽑기 ({0}회 남음)'],'lb.go':['Start now','바로 시작'],'lb.goAll':['Everyone\'s here, start','모두 모였어요, 시작'],
  'lb.seat':['Assigning a seat…','자리 배정 중…'],'lb.players':['Players','참가자'],'lb.hostSoon':['The host will start soon','방장이 곧 시작합니다'],
  'lb.foot':['16 nations · 15–25 min · deathmatch from 10 min','16개국 · 15~25분 · 10분부터 데스매치'],
  'pk.title':['🏆 Pick your perk for winning last game','🏆 지난 판 1등 특전을 골라주세요'],
@@ -568,6 +568,7 @@ const I18N={
 <li>Busy? Turn on 🤖 <b>Auto</b> and only pick targets.</li>
 <li>Every nation has its own trait: Korea fires 3 arrows at once, Japan lands critical hits, Russia defends at home, Mongolia rides fast.</li>
 <li>Deathmatch ramps up from 10 minutes. After 30 minutes the biggest country wins; holding 60% of the land wins at once.</li>
+<li>In the lobby you can 🎲 <b>reroll</b> your country up to 3 times.</li>
 <li>Win a game and you get a perk for the next one: <b>half-price troops</b> or <b>choose your start</b>.</li>
 <li><b>Multiplayer</b>: open the same link with friends at the same time and you meet in one lobby. The first one in is the 👑 host; AI nations fill the other seats.</li>`,
 `<li>매 판 <b>무작위 국가</b>로 시작합니다. 땅이 넓은 나라가 자주 걸리고, 작은 나라는 가끔 걸립니다.</li>
@@ -580,6 +581,7 @@ const I18N={
 <li>손이 바쁘면 🤖 <b>자동</b>을 켜고 공격 목표만 찍으세요.</li>
 <li>나라마다 고유 특성이 있습니다. 한국은 화살 3연발, 일본은 치명타, 러시아는 홈 방어, 몽골은 기마 속도.</li>
 <li>10분부터 데스매치가 세지고, 30분이면 영토 1위가 이깁니다. 전체 땅의 60%를 먹으면 즉시 승리합니다.</li>
+<li>대기실에서 🎲 <b>다시 뽑기</b>로 나라를 최대 3번 바꿀 수 있습니다.</li>
 <li>1등을 하면 다음 판에 <b>병력 반값</b> 또는 <b>시작 위치 지정</b> 특전을 받습니다.</li>
 <li><b>멀티플레이</b>: 친구와 같은 링크를 동시에 열면 같은 대기실에 모입니다. 먼저 온 사람이 👑 방장이 되고, 나머지 자리는 AI 국가가 채웁니다.</li>`],
 };
@@ -1968,7 +1970,7 @@ function rosterHTML(cu,color){
     const g=c.getContext('2d');g.imageSmoothingEnabled=false;g.drawImage(sprite(cu,t,color),0,0,c.width,c.width);
     f.appendChild(c);const cap=document.createElement('figcaption');cap.textContent=label;f.appendChild(cap);box.appendChild(f);}
 }
-function showPick(){
+function showPick(){updRe();
   const pk=ME.pick,m=META[pk.ci],cu=getCulture(pk.ci),sup=SUPER_BY_CI[pk.ci];
   $('lbName').innerHTML=`<span class="flag">${flagOf(m.a2)}</span><span>${locName(pk.ci)}</span>${sup?'<span class="supbadge">SUPER</span>':''}`;
   $('lbSay').innerHTML=`“${cu.say}” <small>${cu.sayKo}</small> <button class="btn" id="lbListen" type="button" style="padding:4px 9px;font-size:12px">${tr('lb.listen')}</button>`;
@@ -1986,7 +1988,7 @@ function startLobby(secs){
   if(G.state==='lobby')return;
   $('endov').hidden=true;
   resetWorld();G.nations=[];G.state='lobby';G.lobbyT=secs||(ME.perkEarned?18:9);G.dm=0;
-  ME.perk=null;ME.status='queued';
+  ME.perk=null;ME.status='queued';ME.rr=0;ME.seen=null;
   ME.pick=pickStart(new Set(),[],-1);rouletteT=1.6;
   $('perkPick').hidden=!ME.perkEarned;$('pkHint').hidden=true;$('pkX2').setAttribute('aria-pressed','false');$('pkLoc').setAttribute('aria-pressed','false');
   $('lbEyebrow').textContent=tr(ME.perkEarned?'lb.perkEye':'lb.next');
@@ -2007,7 +2009,13 @@ function beginMatch(){
 }
 $('lbGo').onclick=()=>{userActed=true;if(NET.lobbyMP){if(NET.role==='host'&&NET.lobby)NET.lobby.t=0;}else beginMatch();};
 $('pkX2').onclick=()=>{userActed=true;ME.perk='x2';if(NET.lobbyMP)NET.room.presence({perk:'x2',loc:null}).catch(()=>{});$('pkX2').setAttribute('aria-pressed','true');$('pkLoc').setAttribute('aria-pressed','false');$('pkHint').hidden=true;cv.classList.remove('placing');if(rouletteT<=0)showPick();};
-$('pkLoc').onclick=()=>{userActed=true;ME.perk='loc';if(NET.lobbyMP)NET.room.presence({perk:'loc'}).catch(()=>{});$('pkLoc').setAttribute('aria-pressed','true');$('pkX2').setAttribute('aria-pressed','false');$('pkHint').hidden=false;$('lobby').classList.add('clear');cv.classList.add('placing');G.lobbyT=Math.max(G.lobbyT,12);if(rouletteT<=0)showPick();};
+function updRe(){const b=$('lbRe');if(!b)return;const left=3-(ME.rr||0);b.textContent=tr('lb.reroll',left);b.disabled=left<=0||ME.perk==='loc';}
+$('lbRe').onclick=()=>{userActed=true;if((ME.rr||0)>=3||ME.perk==='loc')return;ME.rr=(ME.rr||0)+1;
+  if(NET.lobbyMP){NET.room.presence({rr:{m:NET.lbM,n:ME.rr}}).catch(()=>{});}
+  else if(G.state==='lobby'){ME.seen=ME.seen||new Set();if(ME.pick)ME.seen.add(ME.pick.ci);let pk;for(let k=0;k<20;k++){pk=pickStart(new Set(ME.seen),[],-1);if(!ME.seen.has(pk.ci))break;}
+    ME.pick=pk;rouletteT=0;showPick();const [x,y]=cellXY(pk.cell);flyTo(x,y,fitScale()*1.8);if(G.lobbyT<4)G.lobbyT=4;}
+  updRe();};
+$('pkLoc').onclick=()=>{userActed=true;ME.perk='loc';setTimeout(updRe,0);if(NET.lobbyMP)NET.room.presence({perk:'loc'}).catch(()=>{});$('pkLoc').setAttribute('aria-pressed','true');$('pkX2').setAttribute('aria-pressed','false');$('pkHint').hidden=false;$('lobby').classList.add('clear');cv.classList.add('placing');G.lobbyT=Math.max(G.lobbyT,12);if(rouletteT<=0)showPick();};
 function showEnd(w,why,rk,me){
   $('endEyebrow').textContent=tr('end.eye',fmtT(G.t),tr(why));
   $('endName').innerHTML=`<span class="flag">${w.flag}</span><span>${tr('end.win',w.name)}</span>`;
@@ -2120,13 +2128,13 @@ function hostLoop(){
 function hostStartLobby(keep,secs){
   if(NET.role!=='host')return;
   $('endov').hidden=true;
-  if(!keep||!NET.lobby)NET.lobby={m:'l'+Math.random().toString(36).slice(2,8),t:secs||(NET.peersN>1?20:10),picks:new Map(),emitT:0,w:NET.lastWinnerPeer};
+  if(!keep||!NET.lobby)NET.lobby={m:'l'+Math.random().toString(36).slice(2,8),t:secs||(NET.peersN>1?20:10),picks:new Map(),rr:new Map(),emitT:0,w:NET.lastWinnerPeer};NET.lbM=NET.lobby.m;
   enterLobbyUI();
 }
 function enterLobbyUI(){
   resetWorld();G.nations=[];G.state='lobby';G.mp=true;G.dm=0;NET.lobbyMP=true;
   if(ME.status==='in'||ME.status==='dead')ME.status='queued';
-  ME.perk=null;rouletteT=0;
+  ME.perk=null;rouletteT=0;ME.rr=0;
   $('perkPick').hidden=true;$('pkHint').hidden=true;$('pkX2').setAttribute('aria-pressed','false');$('pkLoc').setAttribute('aria-pressed','false');
   $('lobby').hidden=false;$('lobby').classList.remove('clear');flyTo(W/2,H/2*.9,fitScale());lobbyKey='';
 }
@@ -2138,6 +2146,9 @@ function hostLobbyTick(dt){
   for(const p of ps){let pk=L.picks.get(p.peer);
     const win=L.w&&p.peer===L.w,pr=p.presence;
     if(win&&pr.perk==='loc'&&pr.loc>=0&&pr.loc<NC&&ctry[pr.loc]&&(!pk||pk.loc!==pr.loc)){pk={...pickStart(new Set(),[],pr.loc),loc:pr.loc};}
+    const rq=pr.rr&&pr.rr.m===L.m?Math.min(3,pr.rr.n|0):0;
+    if(!L.seen)L.seen=new Map();let sn=L.seen.get(p.peer);if(!sn)L.seen.set(p.peer,sn=new Set());if(pk)sn.add(pk.ci);
+    if(pk&&rq>(L.rr.get(p.peer)||0)&&!(win&&pr.perk==='loc')){L.rr.set(p.peer,rq);for(const c of sn)used.add(c);pk=null;L.t=Math.max(L.t,4);}
     if(!pk){for(const q of L.picks.values()){used.add(q.ci);spawns.push(q.cell);}pk=pickStart(used,spawns,-1);}
     pk.x2=win&&pr.perk==='x2';L.picks.set(p.peer,pk);}
   if(L.emitT<=0||L.t<=0){L.emitT=1;
@@ -2164,7 +2175,7 @@ function lobbyRender(d){
 }
 function onLb(msg){
   if(msg.sameTab||NET.role==='host')return;const d=msg.data;if(!d||!Array.isArray(d.p))return;
-  NET.hostPeer=msg.peer;NET.lastTk=performance.now();NET.waitM=null;
+  NET.hostPeer=msg.peer;NET.lastTk=performance.now();NET.waitM=null;if(d.m&&NET.lbM!==d.m){NET.lbM=d.m;ME.rr=0;}
   if(G.state!=='lobby'||!NET.lobbyMP){if(G.state==='play'&&G.mp&&ME.status==='in'&&G.state!=='end')return;enterLobbyUI();lobbyKey='';}
   lobbyRender(d);
 }
@@ -2254,7 +2265,7 @@ function setLang(l){
   if(!$('tree').hidden)renderTree();
   if(!$('board').hidden)renderBoard();
   if(!$('endov').hidden&&G.lastEnd)showEnd(...G.lastEnd);
-  renderLogin();renderLB();renderClock();updateBar();
+  renderLogin();renderLB();renderClock();updateBar();updRe();
 }
 $('bLang').addEventListener('click',()=>{userActed=true;setLang(LANG==='ko'?'en':'ko');});
 $('lgEn').addEventListener('click',()=>setLang('en'));

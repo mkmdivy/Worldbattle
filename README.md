@@ -22,6 +22,7 @@ English is the default language; Korean can be selected on the start screen or w
 - 조작은 정책·연구·생산·업그레이드·공격 목표 지정뿐입니다. 손이 바쁘면 🤖 **자동 운영**을 켜서 유닛 구매·업그레이드·연구를 맡기고 공격 목표만 직접 찍을 수 있습니다.
 - 모바일: 하단 전체 폭 조작판(유닛 4버튼, 손가락 크기 행동 버튼, 연구 게이지), 가로 화면 전용 배치, 조작판 접기(▾). 업그레이드는 싸우고 있는 병사에게도 즉시 적용되고 외형이 바뀝니다.
 - 한 판 약 15~28분(시뮬레이션 중앙값 약 17분). 10분부터 데스매치 3단계, 30분이면 영토 1위 승리, 60% 장악 시 즉시 승리.
+- 대기실에서 🎲 다시 뽑기로 나라를 최대 3번 바꿀 수 있습니다(이미 나온 나라는 다시 안 나옴, 멀티에서는 방장이 처리).
 - 1등 특전: 다음 판 병력 2배 생산 또는 시작 위치 지정.
 
 ## 멀티플레이
@@ -46,6 +47,7 @@ tools/raster.js     국경 데이터 → map.json
 tools/cities.js     Natural Earth 도시 → cities.json
 test/sim.js         봇끼리 전체 경기 시뮬레이션 (판 길이 측정)
 test/mp.js          가짜 room으로 탭 2개 멀티 동기화·방장 인계 테스트
+test/reroll.js      다시 뽑기(혼자·멀티) 테스트
 test/restart.js     빈 판 재시작·관전 대기·연구 선택 UI 테스트
 test/mockroom.js    BroadcastChannel 기반 가짜 room/user capability
 test/perf.js        확대 단계별 프레임 렌더링 시간 측정
