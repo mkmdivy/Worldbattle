@@ -60,7 +60,9 @@ tools/raster.js     국경 데이터 → map.json
 tools/cities.js     Natural Earth 도시 → cities.json
 test/sim.js         봇끼리 전체 경기 시뮬레이션 (판 길이 측정)
 test/mp.js          가짜 room으로 탭 2개 멀티 동기화·방장 인계 테스트
-test/reroll.js      다시 뽑기(혼자·멀티) 테스트
+test/lobbyrow.js    대기실 조합 고르기(혼자·멀티) 테스트
+test/mp_decline.js  멀티 중 쇠퇴 동기화 테스트
+test/sw.js          스몰 월드 규칙 시뮬레이션(라운드 점수 로그)
 test/restart.js     빈 판 재시작·관전 대기·연구 선택 UI 테스트
 test/fakefirebase.js 테스트용 가짜 Firebase SDK(탭끼리 공유)
 test/mp_firebase.js  Firebase 방식 멀티 동기화 테스트
