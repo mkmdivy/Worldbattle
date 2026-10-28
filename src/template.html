@@ -435,6 +435,12 @@ body{font-weight:700}
 .mkc b{font:400 17px/1.1 var(--f-display);letter-spacing:.02em}.mkc small{font-size:11.5px;color:#c3d3ee;line-height:1.3}.mkc .mt{color:#9be36b}
 .mkc .mcost{margin-top:4px;font:400 15px var(--f-display);color:#ffd84d;background:#0a1122;border-radius:99px;padding:3px 10px}.mkc .mcost em{font-style:normal;color:#5fe0a8}
 @media (max-width:760px){#mkRow{grid-template-columns:1fr 1fr}.mkc .mf{font-size:28px}}
+#lbRowWrap{margin-top:10px}#lbRowWrap .k{font:400 13px var(--f-display);color:#ffd84d;letter-spacing:.03em;margin-bottom:6px}
+#lbRow{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.lrc{position:relative;display:flex;flex-direction:column;align-items:center;gap:1px;padding:7px 4px 6px;border-radius:12px;border:2px solid var(--ink);color:#fff;background:linear-gradient(180deg,#2f4675,#1c2a4b);box-shadow:inset 0 2px 0 rgba(255,255,255,.14),0 3px 0 var(--ink);text-align:center}
+.lrc.on{background:linear-gradient(180deg,#ffe066,#ffb21a);color:#3a2100;box-shadow:inset 0 2px 0 rgba(255,255,255,.45),0 3px 0 var(--ink)}
+.lrc:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
+.lrc .f{font-size:22px;line-height:1}.lrc .p{position:absolute;top:4px;left:6px;font-size:13px}.lrc b{font:400 12px/1.1 var(--f-display);letter-spacing:.02em}.lrc .c{font:400 11px var(--f-display);color:#ffd84d}.lrc.on .c{color:#7a3d00}
 </style>
 
 <canvas id="map" data-i18n-aria="map.aria" aria-label="World map battlefield"></canvas>
@@ -492,12 +498,13 @@ body{font-weight:700}
     <div id="lbSay"></div>
     <div id="roster"></div>
     <div class="perks" id="lbPerks"></div>
+    <div id="lbRowWrap"><div class="k" id="lbRowHead"></div><div id="lbRow"></div></div>
     <div id="perkPick" hidden>
       <p data-i18n="pk.title">🏆 Pick your perk for winning last game</p>
       <div class="row"><button class="btn" id="pkX2" type="button" aria-pressed="false" data-i18n="pk.x2">⚒ Half-price troops</button><button class="btn" id="pkLoc" type="button" aria-pressed="false" data-i18n="pk.loc">📍 Choose your start</button></div>
       <p id="pkHint" style="margin:8px 0 0;color:var(--muted)" hidden data-i18n="pk.hint">Tap any land on the map. You'll play as that country.</p>
     </div>
-    <div class="row"><span style="font-size:12px;color:var(--muted)" data-i18n="lb.foot">16 nations · 15–25 min · deathmatch from 10 min</span><span class="row" style="margin:0"><button class="btn" id="lbRe" type="button">🎲 Reroll (3 left)</button><button class="btn pri" id="lbGo" type="button" data-i18n="lb.go">Start now</button></span></div>
+    <div class="row"><span style="font-size:12px;color:var(--muted)" data-i18n="lb.foot">16 nations · 10 rounds · 15 min</span><span class="row" style="margin:0"><button class="btn pri" id="lbGo" type="button" data-i18n="lb.go">Start now</button></span></div>
   </div>
 </div>
 
@@ -688,9 +695,9 @@ const I18N={
  'lb.cap':['Capital','시작 수도'],'lb.trait':['Trait','국가 특성'],'lb.troops':['Troops','병종'],'lb.super':['Super perks','슈퍼 특전'],
  'lb.superTxt':['Income +50% · cheaper units · bigger start','수입 +50% · 유닛 할인 · 시작 영토 확대'],
  'lb.perk':['Winner\'s perk','1등 특전'],'lb.perkX2':['Half-price troops','병력 반값'],'lb.perkLoc':['Choose your start','시작 위치 지정'],
- 'lb.secs':['{0}s','{0}초'],'lb.reroll':['🎲 Reroll ({0} left)','🎲 다시 뽑기 ({0}회 남음)'],'lb.go':['Start now','바로 시작'],'lb.goAll':['Everyone\'s here, start','모두 모였어요, 시작'],
+ 'lb.secs':['{0}s','{0}초'],'lb.power':['Power','특수 능력'],'lb.rowHead':['Pick your combo · you start with {0}⭐','조합 고르기 · 시작 ⭐ {0}'],'over.tip':['Spread thin: army cap −{0}% (every region beyond {1} costs 2.5%)','과잉 확장: 병력 상한 −{0}% ({1}개 넘는 지역마다 2.5%)'],'f.over':['⚠ Your army is spread thin (cap −{0}%). Small World players decline here and start a fresh nation.','⚠ 병력이 얇게 퍼졌습니다 (상한 −{0}%). 스몰 월드라면 여기서 쇠퇴하고 새 나라를 시작할 때입니다.'],'lb.reroll':['🎲 Reroll ({0} left)','🎲 다시 뽑기 ({0}회 남음)'],'lb.go':['Start now','바로 시작'],'lb.goAll':['Everyone\'s here, start','모두 모였어요, 시작'],
  'lb.seat':['Assigning a seat…','자리 배정 중…'],'lb.players':['Players','참가자'],'lb.hostSoon':['The host will start soon','방장이 곧 시작합니다'],
- 'lb.foot':['16 nations · 15–25 min · deathmatch from 10 min','16개국 · 15~25분 · 10분부터 데스매치'],
+ 'lb.foot':['16 nations · 10 rounds · 15 min','16개국 · 10라운드 · 15분'],
  'pk.title':['🏆 Pick your perk for winning last game','🏆 지난 판 1등 특전을 골라주세요'],
  'pk.x2':['⚒ Half-price troops','⚒ 병력 반값'],'pk.loc':['📍 Choose your start','📍 시작 위치 지정'],
  'pk.hint':['Tap any land on the map. You\'ll play as that country.','지도에서 원하는 땅을 누르세요. 그 땅의 나라로 시작합니다.'],
@@ -874,29 +881,45 @@ const pwName=i=>L2(POWERS[i][1],POWERS[i][2]),pwDesc=i=>L2(POWERS[i][3],POWERS[i
 const comboName=(ci,pw)=>LANG==='ko'?`${POWERS[pw][2]} ${locName(ci)}`:`${POWERS[pw][1]} ${locName(ci)}`;
 function applyPower(n,pw){n.pw=pw;const e=POWERS[pw][5],o=n.eff||(n.eff={...n.tr.e});
   for(const k in e){if(k in PW_ADD)o[k]=(o[k]||0)+e[k];else o[k]=(o[k]===undefined?1:o[k])*e[k];}}
-// regions: a country is one region; big countries are cut into chunks of about REG_SIZE cells (k-means around spread-out seeds),
-// so a start in Russia or Canada scores like a start in Europe. Specks under MIN_REG cells are not regions.
-const REG_SIZE=260,MIN_REG=4,SMALL_C=30;
+// regions, sized like Small World's: small neighbouring countries are grouped until a group has about GROUP_MIN cells,
+// and big countries are cut into chunks of about REG_SIZE cells (k-means around spread-out seeds).
+// Specks under MIN_REG cells are not regions.
+const REG_SIZE=420,GROUP_MIN=160,GROUP_MAX=420,MIN_REG=4,SMALL_C=60;
 const regOf=new Int16Array(NC).fill(-1),REGS=[];
-for(let ci=0;ci<META.length;ci++){const cs=META[ci].cells;if(cs.length<MIN_REG)continue;
-  const k=cs.length<=REG_SIZE*1.5?1:Math.round(cs.length/REG_SIZE),base=REGS.length;
-  if(k===1){for(const c of cs)regOf[c]=base;REGS.push({ci,n:1,i:0});continue;}
-  const X=cs.map(c=>c%W),Y=cs.map(c=>c/W|0),seeds=[[X[0],Y[0]]],md=new Float64Array(cs.length).fill(1e18);
-  for(let q=1;q<k;q++){const [sx,sy]=seeds[q-1];let bi=0,bv=-1;for(let t=0;t<cs.length;t++){const d=(X[t]-sx)**2+(Y[t]-sy)**2;if(d<md[t])md[t]=d;if(md[t]>bv){bv=md[t];bi=t;}}seeds.push([X[bi],Y[bi]]);}
-  const as=new Int16Array(cs.length);
-  for(let it=0;it<4;it++){
-    for(let t=0;t<cs.length;t++){let bq=0,bd=1e18;for(let q=0;q<k;q++){const d=(X[t]-seeds[q][0])**2+(Y[t]-seeds[q][1])**2;if(d<bd){bd=d;bq=q;}}as[t]=bq;}
-    const sx=new Float64Array(k),sy=new Float64Array(k),sn=new Int32Array(k);for(let t=0;t<cs.length;t++){sx[as[t]]+=X[t];sy[as[t]]+=Y[t];sn[as[t]]++;}
-    for(let q=0;q<k;q++)if(sn[q])seeds[q]=[sx[q]/sn[q],sy[q]/sn[q]];}
-  for(let t=0;t<cs.length;t++)regOf[cs[t]]=base+as[t];
-  for(let q=0;q<k;q++)REGS.push({ci,n:k,i:q});}
+(function(){
+  const NCI=META.length,sz=META.map(m=>m.cells.length),adj=META.map(()=>new Set());
+  for(const c of landIdx){const a=ctry[c]-1,x=c%W;for(const nb of [x<W-1?c+1:-1,c+W<NC?c+W:-1]){if(nb<0||!ctry[nb])continue;const b=ctry[nb]-1;if(b!==a){adj[a].add(b);adj[b].add(a);}}}
+  // union small neighbours, smallest first
+  const grp=META.map((m,i)=>i),gsz=sz.slice(),find=i=>{while(grp[i]!==i)i=grp[i]=grp[grp[i]];return i;};
+  const order=[...Array(NCI).keys()].filter(i=>sz[i]>=MIN_REG).sort((a,b)=>sz[a]-sz[b]);
+  for(const a of order){let ga=find(a);if(gsz[ga]>=GROUP_MIN||sz[a]>=GROUP_MIN)continue;
+    for(let guard=0;guard<12&&gsz[ga]<GROUP_MIN;guard++){let best=-1,bs=1e9;
+      for(const m of META.keys()){if(find(m)!==ga)continue;for(const b of adj[m]){const gb=find(b);if(gb===ga||sz[b]<MIN_REG||sz[b]>=GROUP_MIN*1.5)continue;const t=gsz[ga]+gsz[gb];if(t<=GROUP_MAX&&t<bs){bs=t;best=gb;}}}
+      if(best<0)break;grp[best]=ga;gsz[ga]+=gsz[best];}}
+  const members=new Map();for(const i of order){const g=find(i);if(!members.has(g))members.set(g,[]);members.get(g).push(i);}
+  for(const [g,mem] of members){
+    const cs=[];for(const ci of mem)for(const c of META[ci].cells)cs.push(c);
+    const lead=mem.reduce((a,b)=>sz[b]>sz[a]?b:a),k=mem.length>1||cs.length<=REG_SIZE*1.5?1:Math.round(cs.length/REG_SIZE),base=REGS.length;
+    if(k===1){for(const c of cs)regOf[c]=base;REGS.push({ci:lead,mem,n:1,i:0});continue;}
+    const X=cs.map(c=>c%W),Y=cs.map(c=>c/W|0),seeds=[[X[0],Y[0]]],md=new Float64Array(cs.length).fill(1e18);
+    for(let q=1;q<k;q++){const [sx,sy]=seeds[q-1];let bi=0,bv=-1;for(let t=0;t<cs.length;t++){const d=(X[t]-sx)**2+(Y[t]-sy)**2;if(d<md[t])md[t]=d;if(md[t]>bv){bv=md[t];bi=t;}}seeds.push([X[bi],Y[bi]]);}
+    const as=new Int16Array(cs.length);
+    for(let it=0;it<4;it++){
+      for(let t=0;t<cs.length;t++){let bq=0,bd=1e18;for(let q=0;q<k;q++){const d=(X[t]-seeds[q][0])**2+(Y[t]-seeds[q][1])**2;if(d<bd){bd=d;bq=q;}}as[t]=bq;}
+      const sx=new Float64Array(k),sy=new Float64Array(k),sn=new Int32Array(k);for(let t=0;t<cs.length;t++){sx[as[t]]+=X[t];sy[as[t]]+=Y[t];sn[as[t]]++;}
+      for(let q=0;q<k;q++)if(sn[q])seeds[q]=[sx[q]/sn[q],sy[q]/sn[q]];}
+    for(let t=0;t<cs.length;t++)regOf[cs[t]]=base+as[t];
+    for(let q=0;q<k;q++)REGS.push({ci:lead,mem,n:k,i:q});}
+})();
 const REG_N=REGS.length,regTot=new Int32Array(REG_N),regCx=new Float32Array(REG_N),regCy=new Float32Array(REG_N),regCi=new Int16Array(REG_N),regSmall=new Uint8Array(REG_N);
 for(const c of landIdx){const r=regOf[c];if(r<0)continue;regTot[r]++;regCx[r]+=c%W;regCy[r]+=c/W|0;}
-for(let r=0;r<REG_N;r++){regCi[r]=REGS[r].ci;if(regTot[r]){regCx[r]/=regTot[r];regCy[r]/=regTot[r];}regSmall[r]=META[REGS[r].ci].cells.length<SMALL_C?1:0;}
-// a region's name: the country, or the biggest real city inside a chunk of a big country
+for(let r=0;r<REG_N;r++){regCi[r]=REGS[r].ci;if(regTot[r]){regCx[r]/=regTot[r];regCy[r]/=regTot[r];}regSmall[r]=regTot[r]<SMALL_C?1:0;}
+// a region's name: the country, "Belgium · Netherlands" for a pair, "Belgium +2" for a bigger group, or the biggest city of a chunk
 const regNameCache=new Map();
 function regName(r){const k=LANG+r;let v=regNameCache.get(k);if(v)return v;const R0=REGS[r];
-  if(R0.n===1)v=locName(R0.ci);
+  if(R0.mem.length===2)v=R0.mem.map(locName).join(' · ');
+  else if(R0.mem.length>2)v=`${locName(R0.ci)} +${R0.mem.length-1}`;
+  else if(R0.n===1)v=locName(R0.ci);
   else{let best=null;for(const q of RC){if(q.ci!==R0.ci||regOf[q.c]!==r)continue;if(!best||q.rk<best.rk||(q.rk===best.rk&&q.cap>best.cap))best=q;}
     v=best?(LANG==='ko'?`${locName(R0.ci)} ${best.ko}`:`${locName(R0.ci)} · ${best.en}`):`${locName(R0.ci)} ${R0.i+1}`;}
   regNameCache.set(k,v);return v;}
@@ -1381,7 +1404,6 @@ function transferCity(city,nid,old){
       const mine=on.isPlayer||n.isPlayer;if(mine||G.t-(G.capFeedT||-99)>10){if(!mine)G.capFeedT=G.t;feed(tr('f.capFall',city.name,`${n.flag} ${n.name}`,`${on.flag} ${on.name}`),mine?'hot':'');}
       if(on.isPlayer)toast(tr('t.capLost',city.name));
       if(n.isPlayer){say(n,true);sfx('capture');}
-      absorbTrait(n,on);
       relocateCapital(on);
     }
   }
@@ -1540,7 +1562,10 @@ function chooseTech(n,l){
     const mine=G.units.filter(u=>u.n===n.id);for(let k=0;k<Math.min(60,mine.length);k++){const u=mine[ri(mine.length)];G.fx.push({x:u.x,y:u.y-.8,r:0,life:1,max:1,c:col,k:'up',t:t[0]});}
     feed(tr('f.sci',nm,eraName(n.era),techEff(l,i)),'good');}
 }
-function unitCap(n){return Math.min(480,Math.floor((14+n.cells/34)*TE(n,'cap')*powi(1.08,n.tn)))}
+// spreading thin (Small World): every region beyond OVER_FREE costs 2.5% of the army cap, down to half
+const OVER_FREE=10;
+const overF=n=>Math.max(.5,1-.025*Math.max(0,(n.regions|0)-OVER_FREE));
+function unitCap(n){return Math.min(480,Math.floor((14+n.cells/34)*TE(n,'cap')*powi(1.08,n.tn)*overF(n)))}
 function calcStats(n){
   const lv=n.lv,qm=powi(1.12,n.tq);
   for(const t of ['melee','ranged','hero','def','farm']){const b=BASE[t];
@@ -1768,8 +1793,8 @@ function resetWorld(){
 // Every client builds the identical world from it, so only player commands travel over the network.
 function makeCfg(humans){
   const used=new Set(),spawns=[],n=[];
-  for(const h of humans.slice(0,16)){used.add(h.pick.ci);spawns.push(h.pick.cell);n.push([h.pick.ci,h.pick.cell,h.peer,h.x2?1:0]);}
-  while(n.length<16){const pk=pickStart(used,spawns,-1);used.add(pk.ci);spawns.push(pk.cell);n.push([pk.ci,pk.cell,'',0]);}
+  for(const h of humans.slice(0,16)){used.add(h.pick.ci);spawns.push(h.pick.cell);n.push([h.pick.ci,h.pick.cell,h.peer,h.x2?1:0,h.pick.pw>=0?h.pick.pw:-1,Math.max(0,Math.min(ROW_N-1,h.pick.cost|0))]);}
+  while(n.length<16){const pk=pickStart(used,spawns,-1);used.add(pk.ci);spawns.push(pk.cell);n.push([pk.ci,pk.cell,'',0,-1,0]);}
   return {m:'m'+Math.random().toString(36).slice(2,9),seed:(Math.random()*2147483647)|0,n};
 }
 function newMatchCfg(cfg,mp){
@@ -1777,12 +1802,12 @@ function newMatchCfg(cfg,mp){
   G.frame=0;G.m=cfg.m;G.cfg=cfg;G.mp=!!mp;G.cmds=new Map();G.seenQ=new Set();G.hash=null;NET.hashes=new Map();NET.hostH=new Map();NET.conf=0;NET.desync=false;
   G.nations=[];
   const myId=cfg.n.findIndex(x=>x[2]&&x[2]===NET.myPeer);
-  cfg.n.forEach(([ci,cell,peer,x2],id)=>{
+  cfg.n.forEach(([ci,cell,peer,x2,pw0],id)=>{
     const n=makeNation(id,ci,cell,id===myId);n.human=!!peer;n.peer=peer||'';n.pname=peer?nameOf(peer):'';n.x2=!!x2;
     if(id!==myId){n.color=NATION_COLORS[1+((id-(myId>=0&&id>myId?1:0))%15)];n.rgb=hexRGB(n.color);}
-    n.qBias=.25+SR()*.5;n.pid=id;applyPower(n,sri(POWERS.length));calcStats(n);G.nations.push(n);
+    n.qBias=.25+SR()*.5;n.pid=id;{const rp=sri(POWERS.length);applyPower(n,pw0>=0&&pw0<POWERS.length?pw0|0:rp);}calcStats(n);G.nations.push(n);
   });
-  ME.pid=myId;G.score=new Array(cfg.n.length).fill(START_PTS);G.reg=new Int16Array(REG_N).fill(-1);G.regCnt=null;G.roundsPaid=0;G.row=[];G.pays=null;while(G.row.length<ROW_N)G.row.push(rowNew());
+  ME.pid=myId;G.score=cfg.n.map(x=>START_PTS-Math.max(0,Math.min(ROW_N-1,x[5]|0)));G.reg=new Int16Array(REG_N).fill(-1);G.regCnt=null;G.roundsPaid=0;G.row=[];G.pays=null;while(G.row.length<ROW_N)G.row.push(rowNew());
   for(const n of G.nations){
     const [x,y]=cellXY(n.spawn);
     claimDisk(x,y,n.sp==='NR'?6:n.sup?4.5:3.2,n.id,true);
@@ -1801,7 +1826,7 @@ function newMatchCfg(cfg,mp){
   else flyTo(W/2,H/2*0.9,fitScale());
   lastWinner&&feed(tr('f.lastWin',lastWinner),'gold');
 }
-function newMatch(withPlayer){BT.clear();LANDH.length=0;
+function newMatch(withPlayer){BT.clear();LANDH.length=0;ME.overHint=false;
   newMatchCfg(makeCfg(withPlayer?[{peer:NET.myPeer,pick:ME.pick,x2:ME.perk==='x2'}]:[]),false);
 }
 let lastWinner=null;
@@ -2030,7 +2055,7 @@ function music(name){
   a.play().then(()=>{const t0=performance.now(),f=()=>{if(MUSIC.el!==a)return;const k=Math.min(1,(performance.now()-t0)/1500);a.volume=MUSIC.vol*k;if(k<1)requestAnimationFrame(f);};f();}).catch(()=>{if(MUSIC.cur===name)MUSIC.cur='';});
   MUSIC.el=a;
 }
-function wantMusic(){return !soundOn||!userActed?'':G.state==='play'?(G.dm>=1?'final':'battle'):'lobby';}
+function wantMusic(){return !soundOn||!userActed?'':G.state==='play'?(G.roundsPaid>=ROUNDS-3?'final':'battle'):'lobby';}
 function sfx(name,vol=.8){
   if(!soundOn||!userActed)return;let a=SFX.get(name);
   if(a===null)return;if(!a){a=new Audio('audio/sfx/'+name+'.mp3');a.onerror=()=>SFX.set(name,null);SFX.set(name,a);}
@@ -2110,8 +2135,8 @@ const pack=(r,g,b)=>(255<<24)|(b<<16)|(g<<8)|r;
     if(!c){let coast=false;for(const nb of [i-1,i+1,i-W,i+W])if(nb>=0&&nb<NC&&ctry[nb]){coast=true;break;}
       const y=i/W|0;const shade=Math.round(6*Math.sin(y*.05)+4);baseCol[i]=coast?pack(24,44,66):pack(11+(shade>>1),24+shade,40+shade);continue;}
     const h=hash(META[c-1].en);let v=(h%15)-7;
-    let border=false;for(const nb of [x<W-1?i+1:-1,i+W<NC?i+W:-1])if(nb>=0&&ctry[nb]&&(ctry[nb]!==c||regOf[nb]!==regOf[i])){border=true;break;}
-    if(border){v-=12;realB[i]=1;}if(!foreignF[c])foreignF[c]=h%3===0?.74:h%3===1?.84:.92;
+    let border=0;for(const nb of [x<W-1?i+1:-1,i+W<NC?i+W:-1]){if(nb<0||!ctry[nb])continue;if(regOf[nb]!==regOf[i]){border=2;break;}if(ctry[nb]!==c)border=1;}
+    if(border===2){v-=14;realB[i]=1;}else if(border===1)v-=5;if(!foreignF[c])foreignF[c]=h%3===0?.74:h%3===1?.84:.92;
     baseCol[i]=pack(clamp(58+v,0,255),clamp(66+v,0,255),clamp(60+v+(h>>4)%5,0,255));}
 })();
 let fullRedraw=true;
@@ -2537,7 +2562,8 @@ function updateBar(){
   setText('meSay',`“${n.cul.say}” · ${n.cul.sayKo}`);
   const lt=(n.loot||[]).map(ci=>`${flagOf(META[ci].a2)} ${getTrait(ci).name}`);
   setText('meTrait',`★ ${n.tr.name} · ${n.tr.desc}`+(lt.length?` · +${lt.join(' +')}`:''));$('meTrait').title=n.tr.desc+(lt.length?'\n'+tr('loot.tip')+': '+lt.join(', '):'');
-  setText('sGold',String(Math.floor(n.gold)));setText('sUnits',`${n.units}/${unitCap(n)}`);{const v=G.score[n.pid]|0;setText('sVP',`⭐ ${v} (+${projPay(n.pid)})`);$('sVP').classList.toggle('hot',ranking()[0]===n);}
+  setText('sGold',String(Math.floor(n.gold)));{const of=overF(n);setText('sUnits',`${n.units}/${unitCap(n)}${of<1?' ⚠':''}`);$('sUnits').title=of<1?tr('over.tip',Math.round((1-of)*100),OVER_FREE):'';
+    if(of<.85&&!ME.overHint){ME.overHint=true;feed(tr('f.over',Math.round((1-of)*100)),'gold');}}{const v=G.score[n.pid]|0;setText('sVP',`⭐ ${v} (+${projPay(n.pid)})`);$('sVP').classList.toggle('hot',ranking()[0]===n);}
   {const t=landTrend(n),d=t.d;setHTML('sLand',`${(share(n)*100).toFixed(1)}%<i class="${d>.05?'up':d<-.05?'dn':''}">${d>.05?'▲':d<-.05?'▼':''}</i>`);}
   const tn=n.manual?(n.manual.kind==='nation'?G.nations[n.manual.id]:null):null;
   const goal=nextGoal(n);$('tgt').title=goal;
@@ -2595,12 +2621,13 @@ function rosterHTML(cu,color){
 }
 function showPick(){updRe();
   const pk=ME.pick,m=META[pk.ci],cu=getCulture(pk.ci),sup=SUPER_BY_CI[pk.ci];
-  $('lbName').innerHTML=`<span class="flag">${flagOf(m.a2)}</span><span>${locName(pk.ci)}</span>${sup?'<span class="supbadge">SUPER</span>':''}`;
+  $('lbName').innerHTML=`<span class="flag">${flagOf(m.a2)}</span><span>${pk.pw>=0?esc(comboName(pk.ci,pk.pw)):locName(pk.ci)}</span>${sup?'<span class="supbadge">SUPER</span>':''}`;
   $('lbSay').innerHTML=`“${cu.say}” <small>${cu.sayKo}</small> <button class="btn" id="lbListen" type="button" style="padding:4px 9px;font-size:12px">${tr('lb.listen')}</button>`;
   $('lbListen').onclick=()=>{userActed=true;speak(cu.say,cu.lang,true,cu);const vn=packKey(cu)?tr('voice.pack'):voiceName(cu.lang);$('lbListen').title=vn?tr('voice',vn):'';if(vn){toast('🎙 '+vn,'#9fd3ff');}};
   rosterHTML(cu,NATION_COLORS[0]);
   const trt=getTrait(pk.ci);
-  const rows=[[tr('lb.cap'),`🏰 ${cityNameAt(pk.cell)}`],[tr('lb.trait'),`<b style="color:var(--ok)">★ ${trt.name}</b> · ${trt.desc}`],[tr('lb.troops'),`${cu.mel} · ${cu.rng}`]];
+  const rows=[[tr('lb.cap'),`🏰 ${cityNameAt(pk.cell)}`]];if(pk.pw>=0)rows.push([tr('lb.power'),`${POWERS[pk.pw][0]} <b style="color:var(--gold)">${esc(pwName(pk.pw))}</b> · ${esc(pwDesc(pk.pw))}`]);
+  rows.push([tr('lb.trait'),`<b style="color:var(--ok)">★ ${trt.name}</b> · ${trt.desc}`],[tr('lb.troops'),`${cu.mel} · ${cu.rng}`]);
   if(sup)rows.push([tr('lb.super'),`${tr('lb.superTxt')} · ${supPerk(sup)}`]);
   if(ME.perk==='x2')rows.push([tr('lb.perk'),tr('lb.perkX2')]);
   if(ME.perk==='loc')rows.push([tr('lb.perk'),tr('lb.perkLoc')]);
@@ -2611,8 +2638,8 @@ function startLobby(secs){
   if(G.state==='lobby')return;
   $('endov').hidden=true;
   resetWorld();G.nations=[];G.state='lobby';G.lobbyT=secs||(ME.perkEarned?18:9);G.dm=0;
-  ME.perk=null;ME.status='queued';ME.rr=0;ME.seen=null;
-  ME.pick=pickStart(new Set(),[],-1);rouletteT=1.6;
+  ME.perk=null;ME.status='queued';
+  ME.row=genRow();ME.slot=0;ME.pick={...ME.row[0],cost:0};rouletteT=1.6;
   $('perkPick').hidden=!ME.perkEarned;$('pkHint').hidden=true;$('pkX2').setAttribute('aria-pressed','false');$('pkLoc').setAttribute('aria-pressed','false');
   $('lbEyebrow').textContent=tr(ME.perkEarned?'lb.perkEye':'lb.next');
   $('lobby').hidden=false;flyTo(W/2,H/2*.9,fitScale());
@@ -2632,12 +2659,19 @@ function beginMatch(){
 }
 $('lbGo').onclick=()=>{userActed=true;if(NET.lobbyMP){if(NET.role==='host'&&NET.lobby)NET.lobby.t=0;}else beginMatch();};
 $('pkX2').onclick=()=>{userActed=true;ME.perk='x2';if(NET.lobbyMP)NET.room.presence({perk:'x2',loc:null}).catch(()=>{});$('pkX2').setAttribute('aria-pressed','true');$('pkLoc').setAttribute('aria-pressed','false');$('pkHint').hidden=true;cv.classList.remove('placing');if(rouletteT<=0)showPick();};
-function updRe(){const b=$('lbRe');if(!b)return;const left=3-(ME.rr||0);b.textContent=tr('lb.reroll',left);b.disabled=left<=0||ME.perk==='loc';}
-$('lbRe').onclick=()=>{userActed=true;if((ME.rr||0)>=3||ME.perk==='loc')return;ME.rr=(ME.rr||0)+1;
-  if(NET.lobbyMP){NET.room.presence({rr:{m:NET.lbM,n:ME.rr}}).catch(()=>{});}
-  else if(G.state==='lobby'){ME.seen=ME.seen||new Set();if(ME.pick)ME.seen.add(ME.pick.ci);let pk;for(let k=0;k<20;k++){pk=pickStart(new Set(ME.seen),[],-1);if(!ME.seen.has(pk.ci))break;}
-    ME.pick=pk;rouletteT=0;showPick();const [x,y]=cellXY(pk.cell);flyTo(x,y,fitScale()*1.8);if(G.lobbyT<4)G.lobbyT=4;}
-  updRe();};
+// six combos to start with: the first is free, the n-th costs n of your 5 starting stars
+function genRow(used){used=new Set(used||[]);const out=[],pws=new Set();
+  for(let k=0;k<ROW_N;k++){const pk=pickStart(used,[],-1);used.add(pk.ci);let pw=ri(POWERS.length);for(let t=0;t<8&&pws.has(pw);t++)pw=ri(POWERS.length);pws.add(pw);out.push({ci:pk.ci,cell:pk.cell,pw});}
+  return out;}
+function updRe(){
+  const box=$('lbRow');if(!box)return;const row=ME.row;$('lbRowWrap').hidden=!row||ME.perk==='loc';if(!row)return;
+  setText('lbRowHead',tr('lb.rowHead',START_PTS-(ME.slot|0)));
+  setHTML('lbRow',row.map((r,i)=>`<button class="lrc${i===(ME.slot|0)?' on':''}" type="button" data-i="${i}"><span class="f">${flagOf(META[r.ci].a2)}</span><span class="p">${POWERS[r.pw][0]}</span><b>${esc(comboName(r.ci,r.pw))}</b><span class="c">${i?`−${i}⭐`:tr('mk.free')}</span></button>`).join(''));
+}
+$('lbRow').addEventListener('click',e=>{const b=e.target.closest('.lrc');if(!b||!ME.row||ME.perk==='loc')return;userActed=true;const i=+b.dataset.i;ME.slot=i;
+  if(NET.lobbyMP){NET.room.presence({slot:{m:NET.lbM,i}}).catch(()=>{});updRe();return;}
+  if(G.state!=='lobby')return;ME.pick={...ME.row[i],cost:i};rouletteT=0;showPick();const [x,y]=cellXY(ME.pick.cell);flyTo(x,y,fitScale()*1.8);if(G.lobbyT<4)G.lobbyT=4;});
+
 $('pkLoc').onclick=()=>{userActed=true;ME.perk='loc';setTimeout(updRe,0);if(NET.lobbyMP)NET.room.presence({perk:'loc'}).catch(()=>{});$('pkLoc').setAttribute('aria-pressed','true');$('pkX2').setAttribute('aria-pressed','false');$('pkHint').hidden=false;$('lobby').classList.add('clear');cv.classList.add('placing');G.lobbyT=Math.max(G.lobbyT,12);if(rouletteT<=0)showPick();};
 function showEnd(w,why,rk,me){
   $('endEyebrow').textContent=tr('end.eye',fmtT(G.t),tr(why));
@@ -2667,7 +2701,7 @@ $('zIn').onclick=()=>zoomAt(VW/2,VH/2,1.4);$('zOut').onclick=()=>zoomAt(VW/2,VH/
 $('zHome').onclick=()=>{const n=G.nations.find(x=>x.isPlayer&&x.alive);if(n)flyTo(n.lx,n.ly,Math.max(cam.s,6));else flyTo(W/2,H/2*.9,fitScale());};
 function mapClick(sx,sy){
   const x=Math.floor((sx-cam.ox)/cam.s),y=Math.floor((sy-cam.oy)/cam.s);if(x<0||y<0||x>=W||y>=H)return;const c=y*W+x;
-  if(G.state==='lobby'&&ME.perk==='loc'){if(!ctry[c])return;if(NET.lobbyMP)NET.room.presence({perk:'loc',loc:c}).catch(()=>{});ME.pick=pickStart(new Set(),[],c);showPick();const [px,py]=cellXY(ME.pick.cell);flyTo(px,py,cam.s);$('lobby').classList.remove('clear');cv.classList.remove('placing');$('pkHint').hidden=true;return;}
+  if(G.state==='lobby'&&ME.perk==='loc'){if(!ctry[c])return;if(NET.lobbyMP)NET.room.presence({perk:'loc',loc:c}).catch(()=>{});ME.pick={...pickStart(new Set(),[],c),pw:ME.row?ME.row[0].pw:-1,cost:0};ME.slot=0;showPick();const [px,py]=cellXY(ME.pick.cell);flyTo(px,py,cam.s);$('lobby').classList.remove('clear');cv.classList.remove('placing');$('pkHint').hidden=true;return;}
   const n=myNation();if(!n)return;
   if(placing){if(owner[c]===n.id&&!G.cityAt.has(c)){const q=nearestRC(c,3,q=>owner[q.c]===n.id&&!G.cityAt.has(q.c));issue(1,q?q.c:c,placing==='ranged'?1:0);placing=null;cv.classList.remove('placing');updateBar();}else toast(tr('city.own'));return;}
   if(owner[c]===-2)return;
@@ -2840,7 +2874,7 @@ function hostStartLobby(keep,secs){
 function enterLobbyUI(){
   resetWorld();G.nations=[];G.state='lobby';G.mp=true;G.dm=0;NET.lobbyMP=true;
   if(ME.status==='in'||ME.status==='dead')ME.status='queued';
-  ME.perk=null;rouletteT=0;ME.rr=0;
+  ME.perk=null;rouletteT=0;ME.slot=0;ME.row=null;
   $('perkPick').hidden=true;$('pkHint').hidden=true;$('pkX2').setAttribute('aria-pressed','false');$('pkLoc').setAttribute('aria-pressed','false');
   $('lobby').hidden=false;$('lobby').classList.remove('clear');flyTo(W/2,H/2*.9,fitScale());lobbyKey='';
 }
@@ -2848,18 +2882,19 @@ function hostLobbyTick(dt){
   const L=NET.lobby;L.t-=dt;L.emitT-=dt;
   const ps=livePeers().slice(0,16);
   const used=new Set(),spawns=[];
-  for(const [peer,pk] of L.picks){if(!ps.some(p=>p.peer===peer))L.picks.delete(peer);}
+  for(const [peer,pk] of L.picks){if(!ps.some(p=>p.peer===peer)){L.picks.delete(peer);if(L.rows)L.rows.delete(peer);}}
   for(const p of ps){let pk=L.picks.get(p.peer);
     const win=L.w&&p.peer===L.w,pr=p.presence;
     if(win&&pr.perk==='loc'&&pr.loc>=0&&pr.loc<NC&&ctry[pr.loc]&&(!pk||pk.loc!==pr.loc)){pk={...pickStart(new Set(),[],pr.loc),loc:pr.loc};}
-    const rq=pr.rr&&pr.rr.m===L.m?Math.min(3,pr.rr.n|0):0;
-    if(!L.seen)L.seen=new Map();let sn=L.seen.get(p.peer);if(!sn)L.seen.set(p.peer,sn=new Set());if(pk)sn.add(pk.ci);
-    if(pk&&rq>(L.rr.get(p.peer)||0)&&!(win&&pr.perk==='loc')){L.rr.set(p.peer,rq);for(const c of sn)used.add(c);pk=null;L.t=Math.max(L.t,4);}
-    if(!pk){for(const q of L.picks.values()){used.add(q.ci);spawns.push(q.cell);}pk=pickStart(used,spawns,-1);}
+    if(!L.rows)L.rows=new Map();let row=L.rows.get(p.peer);
+    if(!row){const u=new Set();for(const r of L.rows.values())for(const q of r)u.add(q.ci);row=genRow(u);L.rows.set(p.peer,row);}
+    const slot=pr.slot&&pr.slot.m===L.m?Math.max(0,Math.min(ROW_N-1,pr.slot.i|0)):0;
+    if(!(win&&pr.perk==='loc'&&pk&&pk.loc>=0)){if(!pk||pk.cost!==slot||pk.ci!==row[slot].ci){if(pk&&pk.cost!==slot)L.t=Math.max(L.t,4);pk={...row[slot],cost:slot};}}
+    else{pk.pw=row[0].pw;pk.cost=0;}
     pk.x2=win&&pr.perk==='x2';L.picks.set(p.peer,pk);}
   if(L.emitT<=0||L.t<=0){L.emitT=1;
-    NET.room.emit('lb',{m:L.m,t:Math.max(0,L.t),p:[...L.picks].map(([peer,pk])=>[peer,pk.ci,pk.cell,pk.x2?1:0]),w:L.w||null}).catch(()=>{});}
-  lobbyRender({t:L.t,p:[...L.picks].map(([peer,pk])=>[peer,pk.ci,pk.cell,pk.x2?1:0]),w:L.w});
+    NET.room.emit('lb',{m:L.m,t:Math.max(0,L.t),p:[...L.picks].map(([peer,pk])=>[peer,pk.ci,pk.cell,pk.x2?1:0,pk.pw,pk.cost|0]),r:[...(L.rows||[])].map(([peer,row])=>[peer,row.map(q=>[q.ci,q.cell,q.pw])]),w:L.w||null}).catch(()=>{});}
+  lobbyRender({t:L.t,p:[...L.picks].map(([peer,pk])=>[peer,pk.ci,pk.cell,pk.x2?1:0,pk.pw,pk.cost|0]),r:[...(L.rows||[])].map(([peer,row])=>[peer,row.map(q=>[q.ci,q.cell,q.pw])]),w:L.w});
   if(L.t<=0){
     const cfg=makeCfg([...L.picks].map(([peer,pk])=>({peer,pick:pk,x2:pk.x2})));
     NET.lobby=null;NET.lobbyMP=false;$('lobby').hidden=true;
@@ -2872,7 +2907,9 @@ function lobbyRender(d){
   const mine=d.p.find(x=>x[0]===NET.myPeer);
   const isW=d.w&&d.w===NET.myPeer;
   $('perkPick').hidden=!isW;$('lbEyebrow').textContent=isW?tr('lb.perkEye'):tr('lb.mp',d.p.length);
-  if(mine){const k=mine.join(',')+ME.perk;if(k!==lobbyKey){lobbyKey=k;ME.pick={ci:mine[1],cell:mine[2]};showPick();const [x,y]=cellXY(mine[2]);flyTo(x,y,fitScale()*1.8);}}
+  const myRow=Array.isArray(d.r)&&d.r.find(x=>x[0]===NET.myPeer);if(myRow&&Array.isArray(myRow[1]))ME.row=myRow[1].map(q=>({ci:q[0],cell:q[1],pw:q[2]}));
+  updRe();
+  if(mine){const k=mine.join(',')+ME.perk;if(k!==lobbyKey){lobbyKey=k;ME.pick={ci:mine[1],cell:mine[2],pw:mine[4]===undefined?-1:mine[4],cost:mine[5]|0};ME.slot=mine[5]|0;showPick();const [x,y]=cellXY(mine[2]);flyTo(x,y,fitScale()*1.8);}}
   else if(lobbyKey!=='wait'){lobbyKey='wait';$('lbName').textContent=tr('lb.seat');$('lbSay').textContent='';$('roster').innerHTML='';$('lbPerks').innerHTML='';}
   const host=NET.role==='host';
   $('lbGo').hidden=!host;$('lbGo').textContent=tr(d.p.length>1?'lb.goAll':'lb.go');
@@ -2881,7 +2918,7 @@ function lobbyRender(d){
 }
 function onLb(msg){
   if(msg.sameTab||NET.role==='host')return;const d=msg.data;if(!d||!Array.isArray(d.p))return;
-  NET.hostPeer=msg.peer;NET.lastTk=performance.now();NET.waitM=null;if(d.m&&NET.lbM!==d.m){NET.lbM=d.m;ME.rr=0;}
+  NET.hostPeer=msg.peer;NET.lastTk=performance.now();NET.waitM=null;if(d.m&&NET.lbM!==d.m){NET.lbM=d.m;ME.slot=0;}
   if(G.state!=='lobby'||!NET.lobbyMP){if(G.state==='play'&&G.mp&&ME.status==='in'&&G.state!=='end')return;enterLobbyUI();lobbyKey='';}
   lobbyRender(d);
 }
