@@ -1,7 +1,7 @@
 <title>World Battle</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Lilita+One&family=Nunito:wght@700;800;900&family=IBM+Plex+Sans+KR:wght@400;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800;9..144,900&family=Alegreya+Sans:wght@500;700;800&family=Gowun+Batang:wght@700&family=Gowun+Dodum&display=swap">
 <style>
 /* Layout: full-bleed world map, glass HUD pinned to the four corners + command bar at the bottom (OpenFront-style). Single dark look by design. */
 :root{
@@ -303,151 +303,246 @@ button:focus-visible{outline:2px solid var(--you);outline-offset:2px}
   #bar{gap:5px 8px;padding-top:5px}
 }
 @media (prefers-reduced-motion:reduce){.fr.lose{animation:none}.fe{animation:none}#toast{transition:none}}
-/* ===== game skin: chunky 3D buttons, outlined display type, deep panels (mobile-game style) */
-:root{--ink:#0a1122;--f-display:"Lilita One","Black Han Sans",system-ui,sans-serif;--f-body:"Nunito","IBM Plex Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
-  --panel:linear-gradient(180deg,rgba(32,48,82,.97),rgba(18,27,49,.97));--panel-hi:linear-gradient(180deg,#2e4473,#1c2a4b);--line:#0a1122;--muted:#9db3d6}
-body{font-weight:700}
-.panel{background:var(--panel);border:2px solid var(--ink);border-radius:16px;box-shadow:inset 0 1.5px 0 rgba(255,255,255,.14),0 4px 0 rgba(0,0,0,.35)}
-.btn,.tb,.tab,.ub,.ab,.sc,.node,.fe,.fr{-webkit-tap-highlight-color:transparent}
-.btn{font:400 17px/1.1 var(--f-display);letter-spacing:.02em;color:#fff;border:2px solid var(--ink);border-radius:14px;padding:11px 18px;
-  background:linear-gradient(180deg,#5d82c4 0,#3d5f9e 100%);box-shadow:inset 0 2px 0 rgba(255,255,255,.35),inset 0 -4px 0 rgba(0,0,0,.25),0 4px 0 var(--ink);
-  text-shadow:0 2px 0 rgba(0,0,0,.45);transition:transform .06s,box-shadow .06s,filter .15s}
-.btn:active:not(:disabled){transform:translateY(3px);box-shadow:inset 0 2px 0 rgba(255,255,255,.3),inset 0 -2px 0 rgba(0,0,0,.25),0 1px 0 var(--ink)}
-.btn.pri,.btn.gold{background:linear-gradient(180deg,#ffe66b 0,#ffc61f 52%,#ff9e0b 100%);color:#fff;text-shadow:0 2px 0 #b35a00,0 0 2px #8a4300}
-.btn:disabled{filter:grayscale(.85) brightness(.7);cursor:not-allowed}
-.btn[aria-pressed="true"]{outline:3px solid #ffd84d;outline-offset:1px}
-.tb{background:var(--panel-hi);border:2px solid var(--ink);border-radius:12px;box-shadow:inset 0 1.5px 0 rgba(255,255,255,.2),0 3px 0 var(--ink);font-weight:800}
-.tb:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
-.tab{background:#16213d;border:2px solid var(--ink);border-radius:12px;font:400 15px var(--f-display);letter-spacing:.02em;padding:7px 14px;color:#9db3d6;box-shadow:inset 0 -2px 0 rgba(0,0,0,.3)}
-.tab[aria-selected="true"],.tab[aria-pressed="true"]{background:linear-gradient(180deg,#5fd7ff,#2a9fe0);color:#fff;text-shadow:0 1.5px 0 rgba(0,0,0,.35);border-color:var(--ink);box-shadow:inset 0 2px 0 rgba(255,255,255,.35),0 2px 0 var(--ink)}
-/* dialogs */
-.overlay{background:radial-gradient(ellipse at 50% 40%,rgba(10,20,40,.35),rgba(2,6,14,.82))}
-.card{background:linear-gradient(180deg,#2c4372 0,#1b2949 140px,#141f39 100%);border:3px solid var(--ink);border-radius:24px;padding:22px 22px 20px;
-  box-shadow:inset 0 2px 0 rgba(255,255,255,.2),inset 0 0 0 2px rgba(120,170,255,.1),0 8px 0 rgba(0,0,0,.4),0 30px 70px rgba(0,0,0,.55)}
-.big{font-family:var(--f-display);font-weight:400;letter-spacing:.01em;color:#fff;text-shadow:0 4px 0 var(--ink),2px 2px 0 var(--ink),-2px 2px 0 var(--ink),2px -2px 0 var(--ink),-2px -2px 0 var(--ink)}
-.eyebrow{display:inline-block;background:var(--ink);color:#8fc4ff;padding:5px 11px;border-radius:99px;font:400 12px var(--f-display);letter-spacing:.08em}
-.lead{color:#c3d3ee;font-weight:700}
-.hint{color:#9db3d6;font-weight:700}
-.row{gap:10px}
-/* login */
-.card.login{text-align:center;width:min(420px,100%);padding-top:16px;position:relative;overflow:visible}
-.lgTop{display:flex;justify-content:flex-end}
-.logo{font-size:64px;line-height:1;margin:2px auto 0;filter:drop-shadow(0 5px 0 rgba(0,0,0,.45));animation:bob 2.4s ease-in-out infinite}
-@keyframes bob{50%{transform:translateY(-6px) rotate(-4deg)}}
-.logoT{justify-content:center;font-size:46px;margin:6px 0 2px;text-transform:uppercase;color:#ffd84d}
-.login .lead{margin:6px auto 16px;max-width:320px}
-.lgActs{display:flex;flex-direction:column;gap:12px;margin-top:16px}
-.btn.play{font-size:30px;padding:16px 18px;border-radius:18px;text-transform:uppercase;letter-spacing:.05em;box-shadow:inset 0 3px 0 rgba(255,255,255,.45),inset 0 -6px 0 rgba(0,0,0,.2),0 6px 0 var(--ink)}
-.btn.play:not(:disabled){animation:glowp 1.6s ease-in-out infinite}
-@keyframes glowp{50%{filter:brightness(1.1) drop-shadow(0 0 12px rgba(255,200,40,.55))}}
-.acct,.guest{background:rgba(5,10,22,.45);border:2px solid var(--ink);border-radius:16px;padding:12px 14px;text-align:left}
-.guest{align-items:stretch;text-align:center}
-.guest .btn{align-self:stretch}
-#lgGoogle{background:linear-gradient(180deg,#ffffff,#dfe7f3);color:#1b2540;text-shadow:none}
-.guest input{background:#0b1426;border:2px solid var(--ink);border-radius:12px;font-weight:800}
-.room{text-align:center}
-/* HUD */
-.lr{font-weight:800}.lr.me{background:rgba(70,212,255,.18);outline:2px solid rgba(70,212,255,.55)}
-#lb h3,#clockP{font-family:var(--f-display);font-weight:400;letter-spacing:.06em}
-#clockT{font-family:var(--f-display);font-weight:400;font-size:26px;letter-spacing:.04em;text-shadow:0 2px 0 var(--ink)}
-.fe{background:var(--panel);border:2px solid var(--ink);border-radius:12px;font-weight:800;box-shadow:0 3px 0 rgba(0,0,0,.35)}
-.fe.hot{border-color:#7a1d1d;background:linear-gradient(180deg,#5a2230,#3a1624)}.fe.good{border-color:#165c3e;background:linear-gradient(180deg,#1f5446,#14392f)}.fe.gold{border-color:#6b4f0f;background:linear-gradient(180deg,#5c4a1c,#3b2f12)}
-.fr{border:2px solid var(--ink);background:var(--panel);box-shadow:0 3px 0 rgba(0,0,0,.35);font:400 13px var(--f-display);letter-spacing:.03em}
-.fr.win{background:linear-gradient(180deg,#1f6b4c,#14452f)}.fr.lose{background:linear-gradient(180deg,#7a2430,#4a1620)}
-#meName{font-family:var(--f-display);text-shadow:0 2px 0 var(--ink)}
-#stats b{font-family:var(--f-display);font-weight:400;font-size:15px;letter-spacing:.02em}
-/* command tiles */
-.ub,.ab{background:linear-gradient(180deg,#2f4675,#1c2a4b);border:2px solid var(--ink);border-radius:14px;color:#fff;font:400 12px/1.1 var(--f-display);letter-spacing:.02em;
-  text-shadow:0 1.5px 0 rgba(0,0,0,.55);box-shadow:inset 0 2px 0 rgba(255,255,255,.16),inset 0 -3px 0 rgba(0,0,0,.3),0 3px 0 var(--ink);transition:transform .06s}
-.ub:active:not(:disabled),.ab:active:not(:disabled){transform:translateY(2px);box-shadow:inset 0 2px 0 rgba(255,255,255,.14),0 1px 0 var(--ink)}
-.ub .co,.ab .co{font:400 12px var(--f-display);color:#ffd84d;letter-spacing:.02em}
-.ub .ct,.ab .lv{font:400 10px var(--f-display);color:#bcd0f0}
-.ub.can,.ab.can{background:linear-gradient(180deg,#4466a6,#2b4477);border-color:var(--ink);box-shadow:inset 0 2px 0 rgba(255,255,255,.22),inset 0 -3px 0 rgba(0,0,0,.3),0 3px 0 var(--ink),0 0 0 2px rgba(255,200,40,.75)}
-.ub.on{background:linear-gradient(180deg,#5fe39a,#23a65d);border-color:var(--ink);box-shadow:inset 0 2px 0 rgba(255,255,255,.4),inset 0 -3px 0 rgba(0,0,0,.25),0 3px 0 var(--ink)}
-.ub.on .co{color:#fff}
-.ub.on .ln{background:#fff}
-.ub:disabled,.ab:disabled{opacity:1;filter:grayscale(.7) brightness(.62)}
-.ab.on{background:linear-gradient(180deg,#5fd7ff,#2a8fd0)}
-.sc{background:var(--panel-hi);border:2px solid var(--ink);border-radius:16px;box-shadow:inset 0 2px 0 rgba(255,255,255,.18),0 4px 0 var(--ink)}
-.sc:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
-.sn,.sciHead,.lh b{font-family:var(--f-display);font-weight:400;letter-spacing:.02em}
-#sci{border:3px solid var(--ink);box-shadow:0 0 0 2px rgba(160,140,255,.6),0 6px 0 rgba(0,0,0,.4)}
-.node{border:2px solid var(--ink);border-radius:12px}
-.bd.head{font-family:var(--f-display);font-weight:400;letter-spacing:.04em}
-.bd .pt{font-family:var(--f-display);font-weight:400}
-@media (max-width:760px), (pointer:coarse) and (max-height:520px){
-  .tb{height:42px;min-width:42px;font-size:16px;border-radius:12px;justify-content:center}
-  #tools{gap:6px;flex-direction:column}
-  #tr{align-items:flex-end}
-  .ub{min-height:74px;font-size:13px;border-radius:16px}.ub .ic{font-size:27px}.ub .co{font-size:13px}.ub .ct{font-size:11px;top:4px;right:7px}
-  .ab,#acts .ab{min-height:66px;font-size:12px;border-radius:14px}.ab .ic{font-size:24px}.ab .co{font-size:12px}
-  #buy{gap:8px}#acts{gap:7px}
-  #bar{border-radius:22px 22px 0 0;border-width:3px 0 0;box-shadow:0 -4px 0 rgba(0,0,0,.25)}
-  #meName{font-size:19px}
-  #stats b{font-size:16px}
-  #sciBar{min-height:60px;font-size:12px;border-radius:14px;border:2px solid var(--ink);background:linear-gradient(180deg,#3a2f6e,#251d4d)}
-  #zHome{width:52px;height:52px;font-size:22px}
-  .btn{font-size:18px;padding:13px 18px;min-height:50px}
-  .btn.play{font-size:30px;min-height:70px}
-  .card{border-radius:22px;padding:18px 16px}
-  .logoT{font-size:40px}
-  .tab{padding:9px 14px;font-size:15px}
-  .fe{font-size:12px}
-  .fr{font-size:12px;min-height:30px}
+/* ===== tabletop skin: printed board, cardboard tiles, wooden tokens. Warm paper, ink text, a serif for headings. */
+:root{
+  --ink:#2d2722;--ink2:#5c5148;--muted:#8a7d70;
+  --paper:#f6efde;--paper2:#ece2cb;--card:#fffaf0;--line:#d9ccb0;--edge:#b9a888;
+  --wood:#8a5a33;--wood2:#6e4524;
+  --gold:#b8860b;--coin:#e9b949;--hot:#c8412e;--ok:#3f8f5a;--you:#2f6fdf;--sea:#93b8c6;
+  --red:#c8553d;--red2:#a63f2a;--blue:#2f6fdf;--green:#3f8f5a;--ochre:#d39a2a;
+  --f-display:"Fraunces","Gowun Batang",Georgia,serif;
+  --f-body:"Alegreya Sans","Gowun Dodum",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-num:"Alegreya Sans","Gowun Dodum",system-ui,sans-serif;
+  --sh:0 1px 0 rgba(255,255,255,.6) inset,0 2px 0 var(--edge),0 6px 14px rgba(60,40,20,.18);
+  color-scheme:light;
 }
-#sVP{font:400 15px var(--f-display);color:#ffd84d;background:linear-gradient(180deg,#3a2f12,#251e0b);border:2px solid var(--ink);border-radius:10px;padding:2px 8px;text-align:right;box-shadow:0 2px 0 var(--ink);text-shadow:0 1.5px 0 rgba(0,0,0,.5)}
-#sVP.hot{animation:glowp 1.2s ease-in-out infinite}
-#sLand i{font-style:normal;font-size:.8em;margin-left:3px}#sLand i.up{color:#5fe0a8}#sLand i.dn{color:#ff5b52}
-.lr{grid-template-columns:18px 22px 1fr 34px 46px}.lr .vp{font:400 13px var(--f-display);color:#ffd84d;text-align:right}
+html,body{background:var(--sea);color:var(--ink);font-family:var(--f-body);font-weight:500}
+body{font-variant-numeric:tabular-nums}
+button:focus-visible{outline:3px solid var(--you);outline-offset:2px}
+.btn,.tb,.tab,.ub,.ab,.sc,.node,.fe,.fr,.mkc,.lrc{-webkit-tap-highlight-color:transparent}
+
+/* cards and panels: thick paper with a printed edge */
+.panel{background:var(--paper);border:1.5px solid var(--line);border-radius:14px;box-shadow:var(--sh);color:var(--ink)}
+.card{background:var(--paper) linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,0) 120px);border:1.5px solid var(--line);border-radius:18px;
+  box-shadow:0 1px 0 rgba(255,255,255,.7) inset,0 3px 0 var(--edge),0 24px 60px rgba(40,25,10,.35);color:var(--ink);padding:22px 22px 20px}
+.overlay{background:rgba(48,36,24,.42)}
+.big{font:900 38px/1.05 var(--f-display);letter-spacing:-.01em;color:var(--ink);text-shadow:none;font-variation-settings:"SOFT" 50,"WONK" 1}
+.eyebrow{display:inline-block;font:800 12px var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--red);background:none;padding:0}
+.lead,.hint{color:var(--ink2);font-weight:500}
+.hint{font-size:13px}
+.row{gap:10px}
+
+/* buttons: painted wooden tokens */
+.btn{font:800 16px/1.1 var(--f-body);letter-spacing:.01em;color:var(--ink);background:var(--card);border:1.5px solid var(--edge);border-radius:12px;padding:10px 16px;
+  box-shadow:0 2px 0 var(--edge),0 4px 10px rgba(60,40,20,.12);text-shadow:none;transition:transform .06s,box-shadow .06s}
+.btn:active:not(:disabled){transform:translateY(2px);box-shadow:0 0 0 var(--edge)}
+.btn.pri,.btn.gold{background:var(--red);border-color:var(--red2);color:#fff8ec;box-shadow:0 2px 0 var(--red2),0 6px 14px rgba(166,63,42,.3)}
+.btn:disabled{opacity:.45;filter:saturate(.4);cursor:not-allowed}
+.btn[aria-pressed="true"]{outline:3px solid var(--ochre);outline-offset:1px}
+.tb{background:var(--card);border:1.5px solid var(--edge);border-radius:999px;box-shadow:0 2px 0 var(--edge);color:var(--ink);font-weight:800}
+.tb[aria-pressed="true"]{border-color:var(--you);box-shadow:0 2px 0 var(--you)}
+.tb:active{transform:translateY(2px);box-shadow:none}
+.tab{background:transparent;border:1.5px solid var(--edge);border-radius:999px;font:800 14px var(--f-body);padding:6px 14px;color:var(--ink2);box-shadow:none}
+.tab[aria-selected="true"],.tab[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.lnk{color:var(--red)}
+
+/* HUD: leaderboard as a score track */
+#lb{background:var(--paper)}
+#lb h3{font:800 11px var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--red)}
+#lb h3 button{color:var(--ink2)}
+.lr{grid-template-columns:18px 22px 1fr 40px 38px;font-weight:700;color:var(--ink);border-radius:8px}
+.lr .rk{font:800 12px var(--f-num);color:var(--muted)}
+.lr .sw{width:11px;height:11px;border-radius:50%;box-shadow:0 0 0 1.5px rgba(45,39,34,.35)}
+.lr .vp{font:800 13px var(--f-num);color:var(--gold);text-align:right}
+.lr .pc{font:700 11px var(--f-num);color:var(--ink2);text-align:right}
+.lr.me{background:rgba(47,111,223,.12);outline:1.5px solid rgba(47,111,223,.45)}
+.lr.dead{opacity:.4}
+.lr .df{font-style:normal;font-size:.75em;opacity:.55;margin-left:1px}.lr.isdec .nm{opacity:.6}
+.sup{color:var(--gold)}
+
+/* clock: the round track */
+#clock{padding:7px 14px 8px;min-width:190px}
+#clockP{font:800 11px var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--red);margin:0 0 5px}
+#rtrack{display:flex;gap:4px;justify-content:center;margin-bottom:4px}
+#rtrack:empty{display:none}
+#rtrack i{width:12px;height:12px;border-radius:50%;background:var(--paper2);box-shadow:inset 0 0 0 1.5px var(--edge)}
+#rtrack i.fin{box-shadow:inset 0 0 0 1.5px var(--red)}
+#rtrack i.done{background:var(--ink2);box-shadow:none}
+#rtrack i.now{background:var(--coin);box-shadow:0 0 0 2px var(--ink);transform:scale(1.15)}
+#clockT{font:800 24px/1 var(--f-display);color:var(--ink);text-shadow:none;letter-spacing:.02em}
+#clock.dm{border-color:var(--hot);box-shadow:0 2px 0 var(--hot),0 0 0 3px rgba(200,65,46,.2)}
+#clock.dm #clockT{color:var(--hot)}
+#pbar{height:4px;background:var(--paper2);margin-top:6px}
+#pbar i{background:var(--ink2)}
+#pbar b{display:none}
+
+/* feed: little printed notes with a colour edge */
+.fe{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--edge);border-radius:8px;color:var(--ink);font-weight:700;box-shadow:0 2px 6px rgba(60,40,20,.12)}
+.fe.hot{border-left-color:var(--hot)}.fe.good{border-left-color:var(--ok)}.fe.gold{border-left-color:var(--ochre)}
+#toast{font:800 18px/1.25 var(--f-body);color:var(--ink)!important;text-shadow:none;background:var(--paper);padding:8px 16px;border-radius:999px;border:1.5px solid var(--line);box-shadow:0 8px 20px rgba(40,25,10,.25);top:22%;max-width:calc(100% - 32px);text-align:center}
+#fronts{top:calc(env(safe-area-inset-top,0px) + 96px)}
+#banner{top:calc(env(safe-area-inset-top,0px) + 136px)}
+
+/* fronts */
+.fr{border:1.5px solid var(--edge);background:var(--card);color:var(--ink);box-shadow:0 2px 0 var(--edge);font:800 12px var(--f-body);letter-spacing:.04em}
+.fr .tug{background:var(--paper2)}
+.fr.win{border-color:var(--ok);box-shadow:0 2px 0 var(--ok)}.fr.win .st{color:var(--ok)}
+.fr.lose{border-color:var(--hot);box-shadow:0 2px 0 var(--hot);animation:none}.fr.lose .st{color:var(--hot)}
+.fr.even .st{color:var(--gold)}
+#banner{color:var(--ink)}#banner b{color:var(--you)}
+
+/* the dock: a player board */
+#bar{background:var(--paper) repeating-linear-gradient(90deg,rgba(120,90,50,.035) 0 2px,transparent 2px 6px);border:1.5px solid var(--line);color:var(--ink)}
+#me,#stats,#econ{border-right:1.5px dashed var(--line)}
+#meName{font:900 21px/1.05 var(--f-display);color:var(--ink);text-shadow:none}
+#meSay{color:var(--red);font-weight:700}
+#meTrait{color:var(--ok);font-weight:700}
+#tgt{color:var(--ink2);font-weight:700}
+#stats span{color:var(--muted);font-weight:700}
+#stats b{font:800 15px var(--f-num);color:var(--ink)}
+#stats b.g{color:var(--gold)}
+#sLand i{font-style:normal;font-size:.8em;margin-left:3px}#sLand i.up{color:var(--ok)}#sLand i.dn{color:var(--hot)}
+#sVP{font:800 15px var(--f-num);color:var(--ink);background:var(--coin);border:1.5px solid #a77d1f;border-radius:999px;padding:3px 10px;box-shadow:0 2px 0 #a77d1f;text-shadow:none}
+#sVP.hot{background:#f5cf5e;box-shadow:0 2px 0 #a77d1f,0 0 0 3px rgba(233,185,73,.35)}
+#rates{color:var(--ink2);font-family:var(--f-num)}#rates b{color:var(--ink)}
+
+/* unit cards: white card with a coloured band, cost on a coin */
+.ub{background:var(--card);border:1.5px solid var(--edge);border-radius:12px;color:var(--ink);font:800 12px/1.1 var(--f-body);box-shadow:0 2px 0 var(--edge);overflow:hidden;padding-top:9px;text-shadow:none}
+.ub::before{content:"";position:absolute;left:0;right:0;top:0;height:5px;background:var(--band,var(--edge))}
+.ub.farm{--band:#7fae4e}.ub.melee{--band:#c8553d}.ub.ranged{--band:#d39a2a}.ub.def{--band:#3e6fa8}
+.ub .co{font:800 12px var(--f-num);color:var(--ink);background:var(--coin);border-radius:999px;padding:0 7px;margin-top:2px;box-shadow:inset 0 -1.5px 0 rgba(0,0,0,.15)}
+.ub .ct{font:800 10px var(--f-num);color:var(--muted);top:7px}
+.ub.can{border-color:var(--ink2);box-shadow:0 2px 0 var(--ink2)}
+.ub.on{background:#eef6e6;border-color:var(--ok);box-shadow:0 2px 0 var(--ok),0 0 0 2px rgba(63,143,90,.25)}
+.ub.on .co{background:var(--ok);color:#fff}
+.ub .ln{background:var(--ok)}
+.ub:disabled{opacity:.5}
+.ub:active:not(:disabled){transform:translateY(2px);box-shadow:none}
+/* action tiles */
+.ab{background:var(--card);border:1.5px solid var(--edge);border-radius:12px;color:var(--ink);font:800 11.5px/1.1 var(--f-body);box-shadow:0 2px 0 var(--edge);text-shadow:none}
+.ab .co{font:800 11px var(--f-num);color:var(--gold)}
+.ab .lv{font:800 9.5px var(--f-num);color:var(--muted)}
+.ab.can{border-color:var(--ink2);box-shadow:0 2px 0 var(--ink2)}
+.ab.on{background:#e8eefb;border-color:var(--you);box-shadow:0 2px 0 var(--you)}
+.ab:disabled{opacity:.45}
+.ab:active:not(:disabled){transform:translateY(2px);box-shadow:none}
+#ab_decline{background:#f3e6ea}
+#dockTog{background:var(--card);border:1.5px solid var(--edge);color:var(--ink2)}
+/* research */
+#sciBar{color:#5b3fa8;font-weight:800}
+#sciBar i{background:var(--paper2)}#sciBar b{background:linear-gradient(90deg,#6c4fc2,#9b83e0)}
+#sci{border:1.5px solid #9b83e0;box-shadow:0 3px 0 #9b83e0,0 16px 40px rgba(60,40,20,.3)}
+.sciHead{font:900 17px var(--f-display);color:var(--ink)}
+#sciCount{color:var(--muted)}
+.sc{background:var(--card);border:1.5px solid var(--edge);border-radius:14px;box-shadow:0 2px 0 var(--edge);color:var(--ink)}
+.sc:active{transform:translateY(2px);box-shadow:none}
+.sk{color:var(--muted)}.sk kbd{border-color:var(--line)}
+.sn{font:800 16px var(--f-display)}
+.sc.l0{border-color:#c99a2a}.sc.l1{border-color:#4f7fd0}.sc.l2{border-color:#4f9a62}
+.sc.l0 .sn{color:#9a6b12}.sc.l1 .sn{color:#2a5bb8}.sc.l2 .sn{color:#2f7a48}
+.sd{color:var(--ink2)}.sciFoot{color:var(--muted)}
+#treeRp{color:#5b3fa8}#treeRp i{background:var(--paper2)}#treeRp b{background:linear-gradient(90deg,#6c4fc2,#9b83e0)}
+.lane.l0{--lc:#b8860b}.lane.l1{--lc:#2f6fdf}.lane.l2{--lc:#3f8f5a}
+.lh b{font:800 16px var(--f-display)}.lh span{color:var(--muted)}
+.node{background:var(--card);border:1.5px solid var(--line);border-radius:10px;color:var(--ink)}
+.node .nt small,.node .ns{color:var(--muted)}
+.node.done{background:color-mix(in srgb,var(--lc) 12%,var(--card))}
+/* leaderboard table */
+.bd{color:var(--ink)}.bd.head{font:800 11px var(--f-body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.bd .pt{font:800 14px var(--f-num);color:var(--gold)}.bd.me{background:rgba(47,111,223,.12);outline:1.5px solid rgba(47,111,223,.45)}
+/* lobby */
+#lbSay{color:var(--red)}#lbSay small{color:var(--muted)}
+#roster{background:var(--paper2);border:1px solid var(--line)}
+#roster figure{color:var(--ink2)}
+.perks .k{color:var(--muted);font-weight:700}
+#lbCount{font:800 14px var(--f-num);color:var(--ink2)}
+.supbadge{background:var(--coin);color:var(--ink);font:800 11px var(--f-body)}
+#perkPick{border-color:var(--ochre);background:rgba(211,154,42,.1)}
+.pchip{background:var(--card);border:1px solid var(--line);color:var(--ink)}.pchip.me{border-color:var(--you);color:var(--you)}
+#lbRowWrap{margin-top:12px}#lbRowWrap .k{font:800 12px var(--f-body);letter-spacing:.12em;text-transform:uppercase;color:var(--red);margin-bottom:7px}
+#lbRow{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.lrc{position:relative;display:flex;flex-direction:column;align-items:center;gap:1px;padding:8px 4px 7px;border-radius:12px;border:1.5px solid var(--edge);color:var(--ink);background:var(--card);box-shadow:0 2px 0 var(--edge);text-align:center}
+.lrc.on{border-color:var(--ink);box-shadow:0 2px 0 var(--ink),0 0 0 3px rgba(233,185,73,.55);background:#fff6dc}
+.lrc:active{transform:translateY(2px);box-shadow:none}
+.lrc .f{font-size:22px;line-height:1}.lrc .p{position:absolute;top:5px;left:6px;font-size:13px}.lrc b{font:800 12px/1.1 var(--f-body)}
+.lrc .c{font:800 11px var(--f-num);color:var(--gold)}
+/* login: a box cover */
+.card.login{text-align:center;width:min(420px,100%);padding-top:16px;overflow:hidden;position:relative}
+.card.login::before{content:"";position:absolute;left:0;right:0;top:0;height:8px;background:repeating-linear-gradient(90deg,#c8553d 0 18px,#d39a2a 18px 36px,#3f8f5a 36px 54px,#2f6fdf 54px 72px,#8a5cc2 72px 90px)}
+.lgTop{display:flex;justify-content:flex-end;margin-top:6px}
+.logo{font-size:56px;line-height:1;margin:6px auto 2px;filter:drop-shadow(0 3px 0 rgba(60,40,20,.25))}
+.logoT{justify-content:center;font-size:46px;margin:4px 0 0;color:var(--ink)}
+.login .lead{margin:6px auto 16px;max-width:320px;font-style:italic}
+.lgActs{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+.btn.play{font:900 26px var(--f-display);letter-spacing:.02em;padding:15px 18px;border-radius:14px;text-transform:none}
+.acct,.guest{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;text-align:left;color:var(--ink)}
+.guest{align-items:stretch;text-align:center}.guest .btn{align-self:stretch}
+.acct small,.guest small{color:var(--ink2)}
+#lgGoogle{background:#fff;color:var(--ink);border-color:var(--edge)}
+.guest input{background:#fff;border:1.5px solid var(--edge);border-radius:10px;color:var(--ink);font-weight:700}
+.room{text-align:center;color:var(--muted)}
+/* score panel */
+#vpPop{position:absolute;z-index:6;left:50%;transform:translateX(-50%);bottom:calc(var(--dock,180px) + 14px);width:min(400px,calc(100% - 16px));padding:12px 14px;max-height:calc(100% - var(--dock,180px) - 90px);overflow:auto}
+.vpHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.vpHead b{font:900 20px var(--f-display);color:var(--ink)}
+.vn{display:grid;grid-template-columns:30px 1fr auto;gap:8px;align-items:center;padding:9px 10px;border-radius:12px;background:var(--card);border:1px solid var(--line);margin-bottom:6px}
+.vn .flag{font-size:24px}.vn b{display:block;font:800 16px var(--f-display);color:var(--ink)}.vn small{display:block;font-size:12px;color:var(--ink2);line-height:1.35}
+.vn .vv{font:800 20px var(--f-num);color:var(--gold);text-align:right}.vn .vv small{font:700 11px var(--f-body);color:var(--muted)}
+.vn.dec{opacity:.8;background:var(--paper2)}
+.vgoal{margin:8px 0;padding:8px 10px;border-radius:10px;background:#eef6e6;border:1.5px dashed var(--ok);font-weight:800;color:#2f6b45}
+/* combo row */
+#mkRow{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.mkc{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;padding:30px 8px 10px;border-radius:14px;border:1.5px solid var(--edge);color:var(--ink);background:var(--card);box-shadow:0 2px 0 var(--edge),0 6px 14px rgba(60,40,20,.12);overflow:hidden}
+.mkc::before{content:"";position:absolute;left:0;right:0;top:0;height:22px;background:var(--wood)}
+.mkc:first-child::before{background:var(--ok)}
+.mkc:active:not(:disabled){transform:translateY(2px);box-shadow:none}
+.mkc:disabled{opacity:.45;filter:saturate(.3)}
+.mkc .mf{font-size:34px;line-height:1}.mkc .mp{position:absolute;top:2px;left:0;right:0;font-size:15px;line-height:18px}
+.mkc b{font:800 17px/1.1 var(--f-display);color:var(--ink)}.mkc small{font-size:12px;color:var(--ink2);line-height:1.3}.mkc .mt{color:var(--ok);font-weight:700}
+.mkc .mcost{margin-top:5px;font:800 14px var(--f-num);color:var(--ink);background:var(--coin);border-radius:999px;padding:2px 11px;box-shadow:inset 0 -1.5px 0 rgba(0,0,0,.15)}.mkc .mcost em{font-style:normal;color:var(--ok)}
+/* round splash: a paper ribbon */
 #splash{position:fixed;left:50%;top:36%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;opacity:0;z-index:20;width:max-content;max-width:calc(100% - 24px)}
 #splash.go{animation:spl 1.65s ease-out forwards}
-.spT{font:400 30px/1.1 var(--f-display);letter-spacing:.02em;text-shadow:0 4px 0 #0a1122,2px 2px 0 #0a1122,-2px 2px 0 #0a1122,2px -2px 0 #0a1122,-2px -2px 0 #0a1122}
-.spV{display:inline-block;margin-top:8px;font:400 18px var(--f-display);color:#ffd84d;background:#0a1122;border-radius:99px;padding:4px 14px}
-@keyframes spl{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}12%{opacity:1;transform:translate(-50%,-50%) scale(1.12)}22%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-70%) scale(1)}}
-#king{position:absolute;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 112px);z-index:3;pointer-events:none;font:400 16px var(--f-display);letter-spacing:.02em;color:#fff;padding:7px 14px;border-radius:14px;border:2px solid var(--ink);background:linear-gradient(180deg,#a3263a,#6b1424);box-shadow:0 4px 0 rgba(0,0,0,.4);text-shadow:0 2px 0 rgba(0,0,0,.45);animation:frp 1s ease-in-out infinite alternate}
-#king.mine{background:linear-gradient(180deg,#ffd84d,#e09a12);color:#3a2100;text-shadow:0 1px 0 rgba(255,255,255,.4)}
-#vpPop{position:absolute;z-index:6;left:50%;transform:translateX(-50%);bottom:calc(var(--dock,180px) + 14px);width:min(400px,calc(100% - 16px));padding:12px 14px;max-height:calc(100% - var(--dock,180px) - 90px);overflow:auto}
-.vpHead{display:flex;justify-content:space-between;align-items:center;font:400 20px var(--f-display);margin-bottom:8px}.vpHead b{font-weight:400;color:#ffd84d;text-shadow:0 2px 0 var(--ink)}
-.vr{display:grid;grid-template-columns:28px 1fr auto;gap:6px;align-items:center;padding:6px 8px;border-radius:10px;background:rgba(0,0,0,.25);margin-bottom:4px;font-weight:800;opacity:.6}
-.vr.on{opacity:1}.vr b{font:400 18px var(--f-display);color:#ffd84d}
-.vgoal{margin:8px 0;padding:8px 10px;border-radius:10px;background:rgba(95,224,168,.14);border:2px solid #165c3e;font-weight:800;color:#bff3d8}
-.vct{display:grid;gap:3px}.vc{display:grid;grid-template-columns:1fr 24px 40px auto;gap:6px;align-items:center;font-size:13px;font-weight:800;padding:4px 8px;border-radius:8px}
-.vc.on{background:rgba(95,224,168,.16);outline:2px solid #2a8c5e}.vc b{font:400 13px var(--f-display);color:#ffd84d}
+.spT{display:inline-block;font:900 28px/1.15 var(--f-display);color:var(--ink);background:var(--paper);padding:10px 22px;border-radius:12px;border:1.5px solid var(--line);border-bottom:5px solid var(--acc,var(--coin));box-shadow:0 14px 30px rgba(40,25,10,.3)}
+.spS{font:800 14px var(--f-body);color:var(--ink);margin-top:6px;background:var(--paper);display:inline-block;padding:3px 12px;border-radius:999px;border:1px solid var(--line)}
+.spV{display:inline-block;margin-top:8px;font:800 17px var(--f-num);color:var(--ink);background:var(--coin);border-radius:99px;padding:4px 14px;box-shadow:0 2px 0 #a77d1f}
+@keyframes spl{0%{opacity:0;transform:translate(-50%,-40%) scale(.9)}12%{opacity:1;transform:translate(-50%,-50%) scale(1.04)}22%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-56%)}}
+#zoom .tb{border-radius:12px}
+@media (prefers-reduced-motion:reduce){#splash.go{animation-duration:.01s}}
+
+/* phones: big tap targets */
 @media (max-width:760px), (pointer:coarse) and (max-height:520px){
-  .lr{grid-template-columns:12px 16px 1fr 30px}.lr .pc{display:none}
-  #king{left:162px;transform:none;top:calc(env(safe-area-inset-top,0px) + 124px);font-size:13px;padding:5px 10px}
-  .spT{font-size:24px}
+  .tb{height:42px;min-width:42px;font-size:16px;justify-content:center}
+  #tools{gap:6px;flex-direction:column}
+  #tr{align-items:flex-end}
+  .ub{min-height:74px;font-size:13px;border-radius:14px}.ub .ic{font-size:26px}.ub .co{font-size:13px}.ub .ct{font-size:11px;right:7px}
+  .ab,#acts .ab{min-height:64px;font-size:12px;border-radius:12px}.ab .ic{font-size:23px}.ab .co{font-size:12px}
+  #buy{gap:8px}#acts{gap:7px}
+  #bar{border-radius:20px 20px 0 0;border-width:1.5px 0 0;box-shadow:0 -6px 20px rgba(40,25,10,.18)}
+  #me,#stats,#econ{border-right:0}
+  #meName{font-size:20px}
+  #stats b{font-size:16px}
+  #sciBar{min-height:60px;font-size:12px;border-radius:12px;border:1.5px solid var(--edge);background:var(--card)}
+  #zHome{width:52px;height:52px;font-size:22px;border-radius:50%}
+  .btn{font-size:17px;padding:12px 18px;min-height:48px}
+  .btn.play{font-size:26px;min-height:66px}
+  .card{border-radius:18px;padding:18px 16px}
+  .logoT{font-size:40px}
+  .lr{grid-template-columns:12px 16px 1fr 34px}.lr .pc{display:none}
+  .spT{font-size:22px}
   #sVP{font-size:16px}
+  #clock{min-width:0;padding:5px 10px 6px}#rtrack i{width:9px;height:9px}#rtrack{gap:3px}#clockT{font-size:18px}
+  #fronts{top:calc(env(safe-area-inset-top,0px) + 86px)}
+  #toast{font-size:15px;top:auto;bottom:calc(var(--dock,250px) + 70px)}
+  #sci{top:calc(env(safe-area-inset-top,0px) + 150px)}
+  #mkRow{grid-template-columns:1fr 1fr}.mkc .mf{font-size:28px}
 }
-.lr .df{font-style:normal;font-size:.75em;opacity:.55;margin-left:1px}.lr.isdec .nm{opacity:.6}
-.spS{font:800 14px var(--f-body);color:#dbe6f7;margin-top:6px;text-shadow:0 2px 0 #0a1122}
-.vn{display:grid;grid-template-columns:30px 1fr auto;gap:8px;align-items:center;padding:8px 10px;border-radius:12px;background:rgba(0,0,0,.28);margin-bottom:6px}
-.vn .flag{font-size:24px}.vn b{display:block;font:400 16px var(--f-display);letter-spacing:.02em}.vn small{display:block;font-size:11.5px;color:#9db3d6;line-height:1.35}
-.vn .vv{font:400 20px var(--f-display);color:#ffd84d;text-align:right}.vn .vv small{font:700 10.5px var(--f-body);color:#9db3d6}
-.vn.dec{opacity:.75;background:rgba(80,80,100,.25)}
-#mkRow{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.mkc{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;padding:12px 8px 10px;border-radius:16px;border:2px solid var(--ink);color:#fff;
-  background:linear-gradient(180deg,#34508a,#1f3058);box-shadow:inset 0 2px 0 rgba(255,255,255,.18),0 4px 0 var(--ink)}
-.mkc:first-child{background:linear-gradient(180deg,#3f7a5a,#22503a)}
-.mkc:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
-.mkc:disabled{filter:grayscale(.8) brightness(.6)}
-.mkc .mf{font-size:34px;line-height:1}.mkc .mp{position:absolute;top:8px;left:10px;font-size:20px}
-.mkc b{font:400 17px/1.1 var(--f-display);letter-spacing:.02em}.mkc small{font-size:11.5px;color:#c3d3ee;line-height:1.3}.mkc .mt{color:#9be36b}
-.mkc .mcost{margin-top:4px;font:400 15px var(--f-display);color:#ffd84d;background:#0a1122;border-radius:99px;padding:3px 10px}.mkc .mcost em{font-style:normal;color:#5fe0a8}
-@media (max-width:760px){#mkRow{grid-template-columns:1fr 1fr}.mkc .mf{font-size:28px}}
-#lbRowWrap{margin-top:10px}#lbRowWrap .k{font:400 13px var(--f-display);color:#ffd84d;letter-spacing:.03em;margin-bottom:6px}
-#lbRow{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.lrc{position:relative;display:flex;flex-direction:column;align-items:center;gap:1px;padding:7px 4px 6px;border-radius:12px;border:2px solid var(--ink);color:#fff;background:linear-gradient(180deg,#2f4675,#1c2a4b);box-shadow:inset 0 2px 0 rgba(255,255,255,.14),0 3px 0 var(--ink);text-align:center}
-.lrc.on{background:linear-gradient(180deg,#ffe066,#ffb21a);color:#3a2100;box-shadow:inset 0 2px 0 rgba(255,255,255,.45),0 3px 0 var(--ink)}
-.lrc:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
-.lrc .f{font-size:22px;line-height:1}.lrc .p{position:absolute;top:4px;left:6px;font-size:13px}.lrc b{font:400 12px/1.1 var(--f-display);letter-spacing:.02em}.lrc .c{font:400 11px var(--f-display);color:#ffd84d}.lrc.on .c{color:#7a3d00}
 </style>
 
 <canvas id="map" data-i18n-aria="map.aria" aria-label="World map battlefield"></canvas>
 <div id="loading" data-i18n="loading">Unrolling the map…</div>
 <div id="hud">
   <div id="lb" class="panel collapsed"><h3><span data-i18n="lb.head">Rank · Land</span><button id="lbTog" type="button" data-i18n-aria="lb.toggle" aria-label="Expand ranking">▾</button></h3><div id="lbRows"></div></div>
-  <div id="clock" class="panel"><div id="clockT">00:00</div><div id="clockP">Expansion</div><div id="pbar"><i id="pfill"></i><b style="left:50%"></b></div></div>
+  <div id="clock" class="panel"><div id="clockP">Expansion</div><div id="rtrack" aria-hidden="true"></div><div id="clockT">00:00</div><div id="pbar"><i id="pfill"></i></div></div>
   <div id="tr">
     <div id="tools">
       <button class="tb" id="bNet" type="button" data-i18n-title="tool.net" title="Friends with this page open" hidden>👥 1</button>
@@ -923,7 +1018,7 @@ function regName(r){const k=LANG+r;let v=regNameCache.get(k);if(v)return v;const
   else{let best=null;for(const q of RC){if(q.ci!==R0.ci||regOf[q.c]!==r)continue;if(!best||q.rk<best.rk||(q.rk===best.rk&&q.cap>best.cap))best=q;}
     v=best?(LANG==='ko'?`${locName(R0.ci)} ${best.ko}`:`${locName(R0.ci)} · ${best.en}`):`${locName(R0.ci)} ${R0.i+1}`;}
   regNameCache.set(k,v);return v;}
-const NC_EXTRA=['#ff8fab','#a0c4ff','#caffbf','#ffd6a5','#bdb2ff','#9bf6ff','#fdffb6','#ffc6ff','#80ed99','#f4845f','#56cfe1','#e5989b','#b8f2e6','#f6bd60','#84a59d','#c77dff'];
+const NC_EXTRA=['#e8697a','#4f86c6','#6fb07a','#d9a441','#9b7bd4','#47b5b5','#c46a3b','#a3577e','#7d9b3a','#3e6f8f','#cf5a3c','#5d8a6b','#b88a2e','#6a5aa8','#2f8f8f','#a84a4a'];
 
 // ================= real cities (Natural Earth 1:50m): [cell, 한국어 이름, 수도 여부, 인구 등급]
 const CITIES=[[69759,"도쿄",1,76,"Tokyo"],[93041,"멕시코시티",1,73,"Mexico City"],[86940,"다카",1,71,"Dhaka"],[170883,"부에노스아이레스",1,71,"Buenos Aires"],[77462,"카이로",1,71,"Cairo"],[63952,"베이징",1,70,"Beijing"],[99240,"마닐라",1,70,"Manila"],[40755,"모스크바",1,70,"Moscow"],[50764,"파리",1,70,"Paris"],[66853,"서울",1,70,"Seoul"],[130173,"자카르타",1,70,"Jakarta"],[46439,"런던",1,69,"London"],[137726,"리마",1,69,"Lima"],[69582,"테헤란",1,69,"Tehran"],[127110,"킨샤사",1,69,"Kinshasa"],[113971,"보고타",1,69,"Bogotá"],[85562,"타이베이",1,68,"Taipei"],[101361,"방콕",1,68,"Bangkok"],[62132,"뉴욕",0,73,"New York City"],[92665,"뭄바이",0,73,"Mumbai"],[155066,"상파울루",0,73,"São Paulo"],[168698,"산티아고",1,68,"Santiago"],[62992,"마드리드",1,67,"Madrid"],[79714,"델리",0,72,"Delhi"],[118646,"싱가포르",1,67,"Singapore"],[132867,"루안다",1,67,"Luanda"],[73168,"바그다드",1,67,"Baghdad"],[76202,"상하이",0,72,"Shanghai"],[88376,"콜카타",0,72,"Kolkata"],[98345,"하르툼",1,67,"Khartoum"],[85413,"리야드",1,66,"Riyadh"],[90571,"하노이",1,66,"Hanoi"],[65005,"워싱턴 D.C.",1,66,"Washington"],[71403,"로스앤젤레스",0,71,"Los Angeles"],[84733,"카라치",0,71,"Karachi"],[153633,"리우데자네이루",0,71,"Rio de Janeiro"],[113391,"아비장",1,66,"Abidjan"],[71191,"오사카",0,71,"Osaka"],[143544,"브라질리아",1,66,"Brasília"],[63785,"앙카라",1,66,"Ankara"],[45026,"베를린",1,65,"Berlin"],[68046,"알제",1,65,"Algiers"],[61617,"이스탄불",0,70,"Istanbul"],[60143,"로마",1,65,"Rome"],[64691,"평양",1,65,"Pyongyang"],[71058,"카불",1,65,"Kabul"],[65926,"아테네",1,65,"Athens"],[168876,"케이프타운",1,65,"Cape Town"],[111245,"라고스",0,70,"Lagos"],[107717,"아디스아바바",1,65,"Addis Ababa"],[122833,"나이로비",1,65,"Nairobi"],[60664,"시카고",0,70,"Chicago"],[106065,"카라카스",1,65,"Caracas"],[87706,"광저우",0,69,"Guangzhou"],[130758,"다르에스살람",1,65,"Dar es Salaam"],[65141,"리스본",1,64,"Lisbon"],[48661,"키예프",1,64,"Kyiv"],[99685,"다카르",1,64,"Dakar"],[88428,"선전",0,69,"Shenzhen"],[72432,"다마스쿠스",1,64,"Damascus"],[76908,"우한",0,69,"Wuhan"],[68060,"튀니스",1,64,"Tunis"],[88427,"홍콩",0,69,"Hong Kong"],[51512,"빈",1,64,"Vienna"],[64674,"톈진",0,69,"Tianjin"],[102040,"첸나이",0,69,"Chennai"],[102755,"벵갈루루",0,68,"Bengaluru"],[75388,"라호르",0,68,"Lahore"],[73826,"트리폴리",1,63,"Tripoli"],[61698,"타슈켄트",1,63,"Tashkent"],[88034,"아바나",1,63,"Havana"],[93819,"산토도밍고",1,63,"Santo Domingo"],[78333,"충칭",0,68,"Chongqing"],[96276,"하이데라바드",0,68,"Hyderabad"],[62378,"바쿠",1,63,"Baku"],[112679,"아크라",1,63,"Accra"],[78935,"쿠웨이트",1,63,"Kuwait City"],[99088,"사나",1,63,"Sanaa"],[93815,"포르토프랭스",1,63,"Port-au-Prince"],[57292,"부쿠레슈티",1,63,"Bucharest"],[97001,"아마라바티",0,68,"Amaravati"],[157204,"아순시온",1,63,"Asunción"],[83719,"마이애미",0,67,"Miami"],[149312,"벨루오리존치",0,67,"Belo Horizonte"],[72431,"베이루트",1,63,"Beirut"],[63569,"필라델피아",0,67,"Philadelphia"],[43615,"민스크",1,63,"Minsk"],[87625,"아마다바드",0,67,"Ahmedabad"],[105693,"호찌민",0,67,"Ho Chi Minh City"],[47888,"브뤼셀",1,62,"Brussels"],[57801,"토론토",0,67,"Toronto"],[45762,"바르샤바",1,62,"Warsaw"],[70907,"라바트",1,62,"Rabat"],[121162,"키토",1,62,"Quito"],[148055,"안타나나리보",1,62,"Antananarivo"],[52238,"부다페스트",1,62,"Budapest"],[60843,"바르셀로나",0,67,"Barcelona"],[115583,"야운데",1,62,"Yaoundé"],[73606,"댈러스",0,67,"Dallas"],[61086,"선양",0,67,"Shenyang"],[144223,"라파스",1,62,"La Paz"],[107654,"아부자",1,62,"Abuja"],[146582,"하라레",1,62,"Harare"],[94107,"푸네",0,67,"Pune"],[169862,"시드니",0,67,"Sydney"],[34980,"상트페테르부르크",0,67,"Saint Petersburg"],[170887,"몬테비데오",1,62,"Montevideo"],[88382,"치타공",0,67,"Chattogram"],[87707,"둥관",0,67,"Dongguan"],[72191,"애틀랜타",0,67,"Atlanta"],[102583,"바마코",1,62,"Bamako"],[106171,"코나크리",1,62,"Conakry"],[59977,"보스턴",0,67,"Boston"],[77929,"휴스턴",0,66,"Houston"],[104249,"프놈펜",1,62,"Phnom Penh"],[111962,"로메",1,62,"Lomé"],[83982,"도하",1,62,"Doha"],[116483,"쿠알라룸푸르",1,62,"Kuala Lumpur"],[157384,"마푸투",1,62,"Maputo"],[100981,"산살바도르",1,62,"San Salvador"],[120665,"캄팔라",1,62,"Kampala"],[90873,"과달라하라",0,66,"Guadalajara"],[175609,"멜버른",0,66,"Melbourne"],[76020,"알렉산드리아",0,66,"Alexandria"],[76888,"청두",0,66,"Chengdu"],[59953,"디트로이트",0,66,"Detroit"],[96311,"양곤",0,66,"Yangon"],[158096,"프리토리아",1,61,"Pretoria"],[71857,"시안",0,66,"Xi'an"],[142976,"루사카",1,61,"Lusaka"],[163696,"포르투알레그리",0,66,"Porto Alegre"],[106751,"산호세",1,61,"San José"],[108200,"파나마시티",1,61,"Panama City"],[90505,"수라트",0,66,"Surat"],[35676,"스톡홀름",1,61,"Stockholm"],[83679,"몬테레이",0,66,"Monterrey"],[74757,"난징",0,66,"Nanjing"],[54932,"몬트리올",0,66,"Montreal"],[82653,"구이양",0,66,"Guiyang"],[132049,"헤시피",0,66,"Recife"],[55333,"하얼빈",0,66,"Harbin"],[126282,"포르탈레자",0,66,"Fortaleza"],[58135,"우루무치",0,66,"Ürümqi"],[59446,"소피아",1,61,"Sofia"],[72855,"피닉스",0,66,"Phoenix"],[48628,"프라하",1,61,"Prague"],[139243,"사우바도르",0,65,"Salvador"],[70458,"부산",0,65,"Busan"],[65634,"샌프란시스코",0,65,"San Francisco"],[103316,"와가두구",1,61,"Ouagadougou"],[55648,"오타와",1,61,"Ottawa"],[158816,"요하네스버그",0,65,"Johannesburg"],[34249,"헬싱키",1,60,"Helsinki"],[63089,"예레반",1,60,"Yerevan"],[117810,"모가디슈",1,60,"Mogadishu"],[60929,"트빌리시",1,60,"Tbilisi"],[56560,"베오그라드",1,60,"Belgrade"],[111808,"메데인",0,65,"Medellin"],[65297,"두샨베",1,60,"Dushanbe"],[39986,"코펜하겐",1,60,"Copenhagen"],[70473,"나고야",0,65,"Nagoya"],[58210,"창춘",0,65,"Changchun"],[72345,"카사블랑카",0,65,"Casablanca"],[75311,"암만",1,60,"Amman"],[44267,"더블린",1,60,"Dublin"],[64683,"다롄",0,65,"Dalian"],[83320,"칸푸르",0,65,"Kanpur"],[103337,"카노",0,65,"Kano"],[111217,"몬로비아",1,60,"Monrovia"],[73870,"텔아비브",0,65,"Tel Aviv"],[45729,"암스테르담",1,60,"Amsterdam"],[75310,"예루살렘",1,60,"Jerusalem"],[157221,"쿠리치바",0,65,"Curitiba"],[51955,"시애틀",0,65,"Seattle"],[99538,"과테말라 시티",1,60,"Guatemala City"],[68275,"쯔보",0,65,"Zibo"],[89718,"지다",0,65,"Jeddah"],[77640,"항저우",0,65,"Hangzhou"],[103350,"은자메나",1,60,"N'Djamena"],[55818,"밀라노",0,65,"Milan"],[84805,"쿤밍",0,65,"Kunming"],[82591,"자이푸르",0,65,"Jaipur"],[73565,"샌디에이고",0,65,"San Diego"],[66825,"타이위안",0,65,"Taiyuan"],[48617,"프랑크푸르트",0,65,"Frankfurt"],[69000,"칭다오",0,65,"Qingdao"],[131624,"수라바야",0,65,"Surabaya"],[100265,"테구시갈파",1,60,"Tegucigalpa"],[94525,"킹스턴",1,60,"Kingston"],[68273,"지난",0,64,"Jinan"],[72619,"후쿠오카",0,64,"Fukuoka"],[153625,"캄피나스",0,64,"Campinas"],[92712,"네피도",1,60,"Naypyidaw"],[88440,"가오슝",0,64,"Kaohsiung"],[103405,"지부티",1,60,"Djibouti"],[103147,"마나과",1,60,"Managua"],[101164,"니아메",1,60,"Niamey"],[68834,"알레포",0,64,"Aleppo"],[163141,"더반",0,64,"Durban"],[82601,"러크나우",0,64,"Lucknow"],[61599,"티라나",1,60,"Tirana"],[81170,"카트만두",1,60,"Kathmandu"],[52413,"울란바토르",1,59,"Ulaanbaatar"],[71147,"정저우",0,64,"Zhengzhou"],[86281,"타이중",0,64,"Taichung"],[110527,"이바단",0,64,"Ibadan"],[56333,"미니애폴리스",0,64,"Minneapolis"],[83398,"푸저우",0,64,"Fuzhou"],[80505,"창사",0,64,"Changsha"],[65934,"이즈미르",0,64,"İzmir"],[123540,"키갈리",1,59,"Kigali"],[68967,"란저우",0,64,"Lanzhou"],[58243,"삿포로",0,64,"Sapporo"],[85555,"샤먼",0,64,"Xiamen"],[124040,"과야킬",0,64,"Guayaquil"],[59549,"비슈케크",1,59,"Bishkek"],[34941,"오슬로",1,59,"Oslo"],[112881,"조지타운",0,64,"George Town"],[114877,"방기",1,59,"Bangui"],[108334,"프리타운",1,59,"Freetown"],[94547,"산후안",0,64,"San Juan"],[68879,"마슈하드",0,64,"Mashhad"],[90518,"나그푸르",0,64,"Nagpur"],[62521,"진시",0,64,"Lianshan"],[66108,"스자좡",0,64,"Shijiazhuang"],[58213,"지린",0,64,"Jilin City"],[98344,"옴두르만",0,64,"Omdurman"],[130895,"반둥",0,64,"Bandung"],[80521,"원저우",0,64,"Wenzhou"],[79791,"난창",0,64,"Nanchang"],[72506,"이슬라마바드",1,59,"Islamabad"],[80835,"탬파",0,64,"Tampa"],[49072,"밴쿠버",0,64,"Vancouver"],[63510,"덴버",0,64,"Denver"],[111243,"코토누",1,59,"Cotonou"],[45716,"버밍엄",0,64,"Birmingham"],[95605,"비엔티안",1,59,"Vientiane"],[64286,"볼티모어",0,64,"Baltimore"],[116126,"칼리",0,64,"Cali"],[66161,"센다이",0,64,"Sendai"],[61587,"나폴리",0,64,"Naples"],[44275,"맨체스터",0,63,"Manchester"],[39288,"리가",1,59,"Riga"],[94648,"누악쇼트",1,59,"Nouakchott"],[86875,"무스카트",1,59,"Muscat"],[64979,"세인트루이스",0,63,"St. Louis"],[93043,"푸에블라",0,63,"Puebla City"],[66716,"아시가바트",1,59,"Ashgabat"],[76892,"난충",0,63,"Nanchong"],[55111,"자그레브",1,59,"Zagreb"],[88416,"난닝",0,63,"Nanning"],[122663,"벨렝",0,63,"Belém"],[84050,"파트나",0,63,"Patna"],[71155,"짜오좡",0,63,"Zaozhuang"],[66841,"옌타이",0,63,"Yantai"],[115757,"메단",0,63,"Medan"],[146393,"산타크루스데라시에라",0,63,"Santa Cruz de la Sierra"],[71874,"쉬저우",0,63,"Xuzhou"],[57996,"사라예보",1,58,"Sarajevo"],[70436,"린이",0,63,"Linyi"],[105336,"마라카이보",0,63,"Maracaibo"],[52977,"키시너우",1,58,"Chișinău"],[71904,"히로시마",0,63,"Hiroshima"],[62499,"바오터우",0,63,"Baotou"],[75474,"허페이",0,63,"Hefei"],[88351,"인도르",0,63,"Indore"],[144981,"고이아니아",0,63,"Goiânia"],[90572,"하이퐁",0,63,"Haiphong"],[72593,"쑤저우",0,63,"Suzhou"],[73305,"난양",0,63,"Nanyang"],[140827,"릴롱궤",1,58,"Lilongwe"],[78363,"닝보",0,63,"Ningbo"],[114859,"두알라",0,63,"Douala"],[61396,"클리블랜드",0,63,"Cleveland"],[54834,"포틀랜드",0,63,"Portland"],[99077,"아스마라",1,58,"Asmara"],[159785,"브리즈번",0,63,"Brisbane"],[62839,"피츠버그",0,63,"Pittsburgh"],[68529,"라스베이거스",0,63,"Las Vegas"],[85429,"아부다비",1,58,"Abu Dhabi"],[70471,"교토",0,63,"Kyoto"],[105330,"바랑키야",0,63,"Barranquilla"],[150235,"포트루이스",1,58,"Port Louis"],[106064,"발렌시아",0,62,"Valencia"],[43579,"함부르크",0,62,"Hamburg"],[89066,"바도다라",0,62,"Vadodara"],[125519,"마나우스",0,62,"Manaus"],[75480,"우시",0,62,"Wuxi"],[125129,"팔렘방",0,62,"Palembang"],[71405,"샌버너디노",0,62,"San Bernardino"],[119899,"리브르빌",1,58,"Libreville"],[87634,"보팔",0,62,"Bhopal"],[62503,"후허하오터",0,62,"Hohhot"],[104913,"코임바토르",0,62,"Coimbatore"],[53889,"다칭",0,62,"Daqing"],[67076,"산호세",0,62,"San Jose"],[55815,"토리노",0,62,"Turin"],[76201,"쑤저우",0,62,"Suzhou"],[76831,"루디아나",0,62,"Ludhiana"],[53167,"치치하얼",0,62,"Qiqihar"],[61805,"안산",0,62,"Anshan"],[64271,"신시내티",0,62,"Cincinnati"],[68268,"한단",0,62,"Handan"],[73903,"이스파한",0,62,"Isfahan"],[42170,"빌뉴스",1,57,"Vilnius"],[64917,"새크라멘토",0,62,"Sacramento"],[86992,"산터우",0,62,"Shantou"],[81876,"아그라",0,62,"Agra"],[90580,"잔장",0,62,"Zhanjiang"],[88379,"쿨나",0,62,"Khulna"],[92378,"산티아고데로스카바예로스",0,62,"Santiago de los Caballeros"],[166911,"퍼스",0,62,"Perth"],[95566,"비샤카파트남",0,62,"Visakhapatnam"],[77542,"물탄",0,62,"Multan"],[106352,"코치",0,62,"Kochi"],[74668,"구지란왈라",0,62,"Gujranwala"],[57982,"피렌체",0,62,"Florence"],[63058,"부르사",0,62,"Bursa"],[90156,"레온",0,62,"León de Los Aldama"],[60162,"스코페",1,57,"Skopje"],[91947,"나시크",0,62,"Nashik"],[78643,"샌안토니오",0,62,"San Antonio"],[64250,"캔자스시티",0,62,"Kansas City"],[69014,"대전",0,62,"Daejeon"],[78330,"네이장",0,62,"Neijiang"],[84836,"취안저우",0,62,"Quanzhou"],[48672,"하르키우",0,62,"Kharkiv"],[84736,"하이데라바드",0,62,"Hyderabad"],[165831,"코르도바",0,62,"Córdoba"],[74033,"화이난",0,62,"Huainan"],[105494,"카두나",0,62,"Kaduna"],[73605,"포트워스",0,62,"Fort Worth"],[70453,"광주",0,62,"Gwangju"],[63547,"인디애나폴리스",0,62,"Indianapolis"],[107008,"하르게이사",1,57,"Hargeisa"],[55089,"리옹",0,62,"Lyon"],[65972,"타브리즈",0,62,"Tabriz"],[45009,"헤이그",0,61,"The Hague"],[110050,"다바오",0,61,"Davao City"],[57969,"마르세유",0,61,"Marseille"],[78995,"메루트",0,61,"Meerut"],[76169,"몐양",0,61,"Mianyang"],[130901,"스마랑",0,61,"Semarang"],[59442,"프리슈티나",1,57,"Pristina"],[80434,"파리다바드",0,61,"Faridabad"],[163132,"블룸폰테인",1,57,"Bloemfontein"],[41565,"노보시비르스크",0,61,"Novosibirsk"],[58504,"밀워키",0,61,"Milwaukee"],[90439,"메카",0,61,"Mecca"],[84711,"두바이",0,61,"Dubai"],[174229,"오클랜드",0,61,"Auckland"],[137934,"루붐바시",0,61,"Lubumbashi"],[84765,"바라나시",0,61,"Varanasi"],[79397,"올랜도",0,61,"Orlando"],[86933,"아산솔",0,61,"Asansol"],[68846,"모술",0,61,"Mosul"],[39361,"예카테린부르크",0,61,"Yekaterinburg"],[71783,"페샤와르",0,61,"Peshawar"],[89832,"만달레이",0,61,"Mandalay"],[88372,"잠셰드푸르",0,61,"Jamshedpur"],[130007,"음부지마이",0,61,"Mbuji-Mayi"],[107076,"마두라이",0,61,"Madurai"],[68110,"아다나",0,61,"Adana"],[87639,"자발푸르",0,61,"Jabalpur"],[40047,"니즈니노브고로드",0,61,"Nizhny Novgorod"],[60357,"츠펑",0,61,"Chifeng"],[51503,"뮌헨",0,61,"Munich"],[51514,"브라티슬라바",1,56,"Bratislava"],[72598,"화이안",0,61,"Huai'an"],[128039,"마카사르",0,61,"Makassar"],[89061,"라지코트",0,61,"Rajkot"],[86932,"단바드",0,61,"Dhanbad"],[78225,"시라즈",0,61,"Shiraz"],[54372,"제네바",0,61,"Geneva"],[71131,"톈수이",0,61,"Tianshui"],[82649,"류판수이",0,61,"Liupanshui"],[67308,"세비야",0,61,"Seville"],[75389,"암리차르",0,61,"Amritsar"],[103287,"비사우",1,56,"Bissau"],[149318,"빌라벨랴",0,61,"Vila Velha"],[58833,"알마티",0,61,"Almaty"],[167998,"로사리오",0,61,"Rosario"],[84763,"알라하바드",0,61,"Allahabad"],[111971,"베닌시티",0,61,"Benin City"],[134207,"마세이오",0,61,"Maceió"],[35689,"탈린",1,56,"Tallinn"],[180709,"웰링턴",1,56,"Wellington"],[74560,"벵가지",0,61,"Benghazi"],[69322,"롤리",0,61,"Raleigh"],[77204,"오스틴",0,61,"Austin"],[40671,"글래스고",0,61,"Glasgow"],[171277,"애들레이드",0,61,"Adelaide"],[83673,"토레온",0,61,"Torreón"],[71789,"스리나가르",0,61,"Srinagar"],[44380,"사마라",0,61,"Samara"],[42266,"옴스크",0,61,"Omsk"],[88420,"위린",0,61,"Yulin"],[40778,"카잔",0,60,"Kazan"],[92670,"아우랑가바드",0,60,"Aurangabad"],[46931,"캘거리",0,60,"Calgary"],[52937,"취리히",0,60,"Zürich"],[68069,"발레타",1,56,"Valletta"],[74018,"안캉",0,60,"Ankang"],[139351,"우암부",0,60,"Huambo"],[90522,"빌라이",0,60,"Bhilai"],[41522,"첼랴빈스크",0,60,"Chelyabinsk"],[129169,"나타우",0,60,"Natal"],[163134,"마세루",1,56,"Maseru"],[70019,"멤피스",0,60,"Memphis"],[43332,"에드먼턴",0,60,"Edmonton"],[95551,"솔라푸르",0,60,"Solapur"],[52999,"로스토프나도누",0,60,"Rostov-on-Don"],[51549,"드니프로",0,60,"Dnipro"],[68243,"시닝",0,60,"Xining"],[67887,"노퍽",0,60,"Norfolk"],[47886,"릴",0,60,"Lille"],[87650,"란치",0,60,"Ranchi"],[124831,"상루이스",0,60,"São Luís"],[47302,"누르술탄",1,55,"Nur-Sultan"],[160822,"플로리아노폴리스",0,60,"Florianópolis"],[169611,"포트엘리자베스",0,60,"Port Elizabeth"],[114134,"포트하커트",0,60,"Port Harcourt"],[53900,"자무쓰",0,60,"Jiamusi"],[61413,"브리지포트",0,60,"Bridgeport"],[42232,"우파",0,60,"Ufa"],[82665,"헝양",0,60,"Hengyang"],[59242,"버펄로",0,60,"Buffalo"],[85399,"메디나",0,60,"Medina"],[71629,"페스",0,60,"Fez"],[97775,"다낭",0,60,"Da Nang"],[84798,"바오산",0,60,"Baoshan"],[101969,"아덴",0,60,"Aden"],[37192,"페름",0,60,"Perm"],[76057,"아바즈",0,60,"Ahwaz"],[125698,"부줌부라",1,55,"Bujumbura"],[83306,"조드푸르",0,60,"Jodhpur"],[88717,"산루이스포토시",0,60,"San Luis Potosí"],[53700,"오데사",0,60,"Odessa"],[66092,"인촨",0,60,"Yinchuan"],[77236,"잭슨빌",0,60,"Jacksonville"],[51555,"도네츠크",0,60,"Donetsk"],[84820,"구이린",0,60,"Guilin"],[50848,"볼고그라드",0,60,"Volgograd"],[172018,"캔버라",1,55,"Canberra"],[83343,"구와하티",0,60,"Guwahati"],[76833,"찬디가르",0,60,"Chandigarh"],[83316,"괄리오르",0,60,"Gwalior"],[62056,"솔트레이크시티",0,60,"Salt Lake City"],[56061,"지시",0,60,"Jixi"],[90900,"메리다",0,60,"Mérida"],[81227,"핑샹",0,60,"Pingxiang"],[108513,"티루바난타푸람",0,60,"Thiruvananthapuram"],[104191,"코지코드",0,60,"Kozhikode"],[109088,"오그보모쇼",0,60,"Ogbomosho"],[105637,"티루치라팔리",0,60,"Trichy"],[112210,"제너럴산토스",0,60,"General Santos"],[68568,"털사",0,60,"Tulsa"],[54389,"류블랴나",1,55,"Ljubljana"],[40145,"크라스노야르스크",0,60,"Krasnoyarsk"],[66664,"코니아",0,60,"Konya"],[66445,"리치먼드",0,60,"Richmond"],[128434,"테레지나",0,60,"Teresina"],[83415,"나하",0,60,"Naha"],[69986,"앨버커키",0,60,"Albuquerque"],[104066,"마이두구리",0,60,"Maiduguri"],[167982,"멘도사",0,60,"Mendoza"],[99150,"후블리",0,59,"Hubli"],[173014,"콘셉시온",0,59,"Concepción"],[114349,"반다르스리브가완",1,55,"Bandar Seri Begawan"],[103473,"마이소르",0,59,"Mysore"],[105329,"카르타헤나",0,59,"Cartagena"],[73569,"멕시칼리",0,59,"Mexicali"],[105357,"포트오브스페인",1,55,"Port of Spain"],[58204,"퉁랴오",0,59,"Tongliao"],[126438,"몸바사",0,59,"Mombasa"],[61367,"오마하",0,59,"Omaha"],[68586,"내슈빌",0,59,"Nashville"],[58674,"빌바오",0,59,"Bilbao"],[90523,"라이푸르",0,59,"Raipur"],[104196,"살렘",0,59,"Salem"],[75223,"마라케시",0,59,"Marrakesh"],[76775,"바스라",0,59,"Basra"],[128730,"반다르람풍",0,59,"Bandar Lampung"],[66625,"팔레르모",0,59,"Palermo"],[46432,"카디프",0,59,"Cardiff"],[88003,"탐피코",0,59,"Ciudad Madero Tamaulipas"],[76111,"잘란다르",0,59,"Jalandhar"],[122240,"파당",0,59,"Padang"],[167977,"발파라이소",0,59,"Valparaíso"],[66034,"야르칸드현",0,59,"Yarkant County"],[134574,"포트모르즈비",1,55,"Port Moresby"],[57962,"툴루즈",0,59,"Toulouse"],[46518,"보로네시",0,59,"Voronezh"],[91971,"부바네스와르",0,59,"Bhubaneswar"],[46532,"사라토프",0,59,"Saratov"],[112691,"와리",0,59,"Warri"],[159349,"산미겔데투쿠만",0,59,"San Miguel de Tucumán"],[62325,"테살로니키",0,59,"Thessaloniki"],[84751,"코타",0,59,"Kota"],[79066,"웨양",0,59,"Yueyang"],[53654,"베른",1,54,"Bern"],[74298,"투손",0,59,"Tucson"],[144216,"아레키파",0,59,"Arequipa"],[106447,"세부",0,59,"Cebu City"],[86217,"라지샤히",0,59,"Rajshahi"],[85105,"쿨리아칸",0,59,"Culiacán"],[63718,"발렌시아",0,59,"Valencia"],[143527,"쿠이아바",0,59,"Cuiabá"],[81156,"알리가르",0,59,"Aligarh"],[132345,"말랑",0,59,"Malang"],[153754,"빈트후크",1,54,"Windhoek"],[49368,"리비우",0,59,"Lviv"],[56518,"보르도",0,59,"Bordeaux"],[69479,"오랑",0,59,"Oran"],[111123,"조지타운",1,54,"Georgetown"],[79347,"치와와",0,59,"Chihuahua City"],[73949,"잠무",0,59,"Jammu"],[70004,"오클라호마시티",0,59,"Oklahoma City"],[79717,"모라다바드",0,59,"Muradabad"],[77939,"뉴올리언스",0,59,"New Orleans"],[150010,"캄푸그란지",0,59,"Campo Grande"],[102029,"망갈로르",0,59,"Mangalore"],[110764,"삼보앙가",0,59,"Zamboanga City"],[77534,"퀘타",0,59,"Quetta"],[131961,"트루히요",0,59,"Trujillo"],[129284,"카낭가",0,59,"Kananga"],[112569,"파라마리보",1,54,"Paramaribo"],[48639,"크라쿠프",0,59,"Kraków"],[58524,"로체스터",0,59,"Rochester"],[75026,"엘패소",0,59,"El Paso"],[101248,"타이즈",0,59,"Ta'izz"],[96988,"콜라푸르",0,59,"Kolhapur"],[108954,"시우다드과야나",0,59,"Ciudad Guayana"],[42877,"그단스크",0,59,"Gdańsk"],[101890,"소코토",0,59,"Sokoto"],[85547,"사오관",0,59,"Shaoguan"],[95919,"아카풀코",0,59,"Acapulco de Juárez"],[75371,"칸다하르",0,59,"Kandahar"],[63853,"사마르칸트",0,59,"Samarkand"],[133811,"딜리",1,54,"Dili"],[150177,"불라와요",0,58,"Bulawayo"],[111974,"에누구",0,58,"Enugu"],[85163,"나소",1,54,"Nassau"],[66629,"카타니아",0,58,"Catania"],[148549,"수크레",1,54,"Sucre"],[70266,"니코시아",1,54,"Nicosia"],[74608,"나자프",0,58,"Najaf"],[58527,"시러큐스",0,58,"Syracuse"],[127103,"푸앵트누아르",0,58,"Pointe-Noire"],[69312,"녹스빌",0,58,"Knoxville"],[110680,"콜롬보",1,53,"Colombo"],[62424,"안디잔",0,58,"Andijan"],[55878,"크라스노다르",0,58,"Krasnodar"],[56536,"제노바",0,58,"Genoa"],[42936,"울리야놉스크",0,58,"Ulyanovsk"],[128557,"키퀴트",0,58,"Kikwit"],[49125,"위니펙",0,58,"Winnipeg"],[156651,"가보로네",1,53,"Gaborone"],[53497,"퀘벡",0,58,"Quebec City"],[76024,"포트사이드",0,58,"Port Said"],[93394,"난데드",0,58,"Nanded"],[111229,"야무수크로",1,53,"Yamoussoukro"],[47187,"드레스덴",0,58,"Dresden"],[67800,"프레즈노",0,58,"Fresno"],[61632,"삼순",0,58,"Samsun"],[83945,"룩소르",0,58,"Luxor"],[37879,"야로슬라블",0,58,"Yaroslavl"],[68773,"콩스탕틴",0,58,"Constantine"],[125869,"반자르마신",0,58,"Banjarmasin"],[70288,"키르쿠크",0,58,"Kirkuk"],[44447,"바르나울",0,58,"Barnaul"],[78618,"에르모시요",0,58,"Hermosillo"],[68316,"나가노",0,58,"Nagano"],[58943,"블라디보스토크",0,58,"Vladivostok"],[45928,"이르쿠츠크",0,58,"Irkutsk"],[143709,"블랜타이어",0,58,"Blantyre"],[59587,"이저우",0,58,"Yizhou"],[51750,"하바롭스크",0,58,"Khabarovsk"],[93047,"베라크루스",0,58,"Veracruz"],[119930,"키상가니",0,58,"Kisangani"],[99536,"케트살테낭고",0,58,"Quetzaltenango"],[118659,"쿠칭",0,58,"Kuching"],[88426,"마카오",0,58,"Macau"],[109789,"부아케",0,58,"Bouaké"],[147863,"우베를란지아",0,58,"Uberlândia"],[154345,"소로카바",0,58,"Sorocaba"],[175203,"마르델플라타",0,57,"Mar del Plata"],[91648,"산티아고데쿠바",0,57,"Santiago de Cuba"],[132341,"수라카르타",0,57,"Surakarta"],[151464,"히베이랑프레투",0,57,"Ribeirão Preto"],[46550,"오렌부르크",0,57,"Orenburg"],[80353,"타부크",0,57,"Tabuk"],[58122,"이닝",0,57,"Yining City"],[90185,"캉쿤",0,57,"Cancun"],[168423,"뉴캐슬",0,57,"Newcastle"],[43734,"노보쿠즈네츠크",0,57,"Novokuznetsk"],[83684,"마타모로스",0,57,"Matamoros"],[40129,"톰스크",0,57,"Tomsk"],[72625,"마쓰야마",0,57,"Matsuyama"],[50042,"루앙",0,57,"Rouen"],[95926,"오아하카",0,57,"Oaxaca de Juárez"],[148748,"베이라",0,57,"Beira"],[71017,"하마단",0,57,"Hamadan"],[161946,"골드코스트",0,57,"Gold Coast"],[146875,"수바",1,52,"Suva"],[42199,"랴잔",0,57,"Ryazan"],[38651,"튜멘",0,57,"Tyumen"],[113590,"반다아체",0,57,"Banda Aceh"],[156469,"살타",0,57,"Salta"],[44369,"펜자",0,57,"Penza"],[77465,"수에즈",0,57,"Suez"],[64591,"카슈가르",0,57,"Kashgar City"],[75309,"가자",0,57,"Gaza City"],[40673,"에든버러",0,57,"Edinburgh"],[68055,"안나바",0,57,"Annaba"],[91234,"아콜라",0,57,"Akola"],[54456,"아스트라한",0,57,"Astrakhan"],[61592,"바리",0,57,"Bari"],[120497,"마카파",0,57,"Macapá"],[28396,"레이캬비크",1,52,"Reykjavík"],[124985,"므완자",0,57,"Mwanza"],[64950,"콜로라도스프링스",0,57,"Colorado Springs"],[66805,"우웨이",0,57,"Wuwei"],[92594,"포트수단",0,57,"Port Sudan"],[166558,"산타페",0,57,"Santa Fe"],[56542,"볼로냐",0,57,"Bologna"],[78275,"사하란푸르",0,57,"Saharanpur"],[96273,"굴바르가",0,57,"Gulbarga"],[138522,"페이라지산타나",0,57,"Feira de Santana"],[96653,"툭스틀라구티에레스",0,57,"Tuxtla Gutiérrez"],[71764,"헤라트",0,57,"Herat"],[75348,"야즈드",0,57,"Yazd"],[41572,"케메로보",0,57,"Kemerovo"],[115577,"말라보",1,52,"Malabo"],[60259,"쉼켄트",0,57,"Shymkent"],[81832,"반다르아바스",0,57,"Bandar Abbas"],[126213,"이키토스",0,57,"Iquitos"],[68174,"마자르이샤리프",0,57,"Mazar-i-Sharif"],[36459,"키로프",0,57,"Kirov"],[49466,"카라간다",0,57,"Karaganda"],[42108,"벨파스트",0,57,"Belfast"],[97801,"바기오",0,57,"Baguio"],[166542,"산후안",0,57,"San Juan"],[122993,"발릭파판",0,56,"Balikpapan"],[112700,"바멘다",0,56,"Bamenda"],[87702,"우저우",0,56,"Wuzhou"],[50775,"스트라스부르",0,56,"Strasbourg"],[109655,"산크리스토발",0,56,"San Cristóbal"],[52916,"낭트",0,56,"Nantes"],[60158,"포드고리차",1,52,"Podgorica"],[107666,"가루아",0,56,"Garoua"],[73339,"나가사키",0,56,"Nagasaki"],[42160,"칼리닌그라드",0,56,"Kaliningrad"],[80800,"러레이도",0,56,"Laredo"],[160973,"웰콤",0,56,"Welkom"],[44348,"브랸스크",0,56,"Bryansk"],[77217,"배턴루지",0,56,"Baton Rouge"],[81782,"아시우트",0,56,"Asyut"],[136490,"콜웨지",0,56,"Kolwezi"],[44397,"마그니토고르스크",0,56,"Magnitogorsk"],[138449,"우앙카요",0,56,"Huancayo"],[70916,"우지다",0,56,"Taza"],[67479,"허톈",0,56,"Hotan"],[139376,"키트웨",0,56,"Kitwe"],[130038,"잔지바르",0,56,"Zanzibar City"],[119228,"엠발레",0,56,"Mbale"],[99072,"카살라",0,56,"Kassala"],[39311,"트베리",0,56,"Tver"],[32906,"수르구트",0,56,"Surgut"],[72197,"컬럼비아",0,56,"Columbia"],[94157,"치앙마이",0,56,"Chiang Mai"],[128358,"피우라",0,56,"Piura"],[101940,"엘오베이드",0,56,"Al-Ubayyid"],[103369,"니알라",0,56,"Nyala"],[142998,"남풀라",0,56,"Nampula"],[105004,"일로일로",0,56,"Iloilo City"],[74550,"미스라타",0,56,"Misrata"],[137966,"모로니",1,51,"Moroni"],[119005,"파스토",0,56,"San Juan de Pasto"],[162977,"카시아스두술",0,56,"Caxias do Sul"],[37919,"니즈니타길",0,56,"Nizhny Tagil"],[60652,"디모인",0,56,"Des Moines"],[81204,"시창",0,56,"Xichang"],[56587,"세바스토폴",0,56,"Sevastopol"],[59382,"비고",0,56,"Vigo"],[113248,"마니살레스",0,56,"Manizales"],[87267,"마사틀란",0,56,"Juarez"],[120126,"고론탈로",0,56,"Gorontalo"],[81136,"라르카나",0,56,"Larkana"],[184305,"크라이스트처치",0,56,"Christchurch"],[55883,"스타브로폴",0,56,"Stavropol"],[84773,"바갈푸르",0,56,"Bhagalpur"],[140616,"쿠스코",0,56,"Cuzco"],[46655,"울란우데",0,56,"Ulan-Ude"],[104751,"보보디울라소",0,56,"Bobo Dioulasso"],[56392,"핼리팩스",0,56,"Halifax"],[59542,"타라즈",0,56,"Taraz"],[160088,"포사다스",0,56,"Posadas"],[27801,"아르한겔스크",0,56,"Arkhangelsk"],[125897,"암본",0,56,"Ambon"],[74501,"사피",0,55,"Safi"],[119950,"엘도레트",0,55,"Eldoret"],[133402,"침보테",0,55,"Chimbote"],[81520,"누에보라레도",0,55,"Nuevo Laredo"],[51965,"스포캔",0,55,"Spokane"],[108217,"메리다",0,55,"Mérida"],[125713,"아루샤",0,55,"Arusha"],[147302,"치팅귀자",0,55,"Chitungwiza"],[98952,"프라이아",1,51,"Praia"],[168175,"이스트런던",0,55,"East London"],[57727,"보이시",0,55,"Boise"],[72627,"고치",0,55,"Kōchi"],[99204,"나콘랏차시마",0,55,"Nakhon Ratchasima"],[144992,"몬테스 클라로스",0,55,"Montes Claros"],[64694,"원산",0,55,"Wonsan"],[45873,"파블로다르",0,55,"Pavlodar"],[63480,"리노",0,55,"Reno"],[58039,"소치",0,55,"Sochi"],[57967,"몽펠리에",0,55,"Montpellier"],[69501,"수스",0,55,"Sousse"],[52975,"이아시",0,55,"Iași"],[75502,"미야자키",0,55,"Miyazaki"],[49332,"룩셈부르크",1,50,"Luxembourg"],[66590,"코르도바",0,55,"Córdoba"],[42184,"스몰렌스크",0,55,"Smolensk"],[157930,"시우다드델에스테",0,55,"Ciudad del Este"],[166575,"펠로타스",0,55,"Pelotas"],[105508,"마루아",0,55,"Maroua"],[63848,"부하라",0,55,"Bukhara"],[22026,"무르만스크",0,55,"Murmansk"],[49485,"외스케멘",0,55,"Oskemen"],[78901,"파이윰",0,55,"Faiyum"],[86105,"아스완",0,55,"Aswan"],[48760,"세메이",0,55,"Semey"],[132690,"푸카이파",0,55,"Pucallpa"],[155019,"안토파가스타",0,55,"Antofagasta"],[45946,"치타",0,55,"Chita"],[142118,"비토리아 다 콩키스타",0,55,"Vitória da Conquista"],[58767,"날치크",0,55,"Nalchik"],[133432,"포르투벨류",0,55,"Porto Velho"],[56576,"콘스탄차",0,55,"Constanța"],[60400,"하코다테",0,55,"Hakodate"],[120666,"진자",0,55,"Jinja"],[45767,"브레스트",0,55,"Brest"],[56650,"키질로르다",0,55,"Kyzylorda"],[111244,"포르토노보",0,55,"Porto-Novo"],[81899,"팀부",1,50,"Thimphu"],[35719,"볼로그다",0,55,"Vologda"],[109817,"마쿠르디",0,55,"Makurdi"],[157219,"폰타그로사",0,55,"Ponta Grossa"],[133626,"므베야",0,55,"Mbeya"],[64458,"칼리아리",0,55,"Cagliari"],[50512,"빅토리아",0,55,"Victoria"],[63248,"신의주",0,55,"Sinuiju"],[124762,"쿠엥카",0,55,"Cuenca"],[120658,"부템보",0,55,"Butembo"],[135967,"쿠팡",0,55,"Kupang"],[48657,"지토미르",0,55,"Zhytomyr"],[176635,"바이아블랑카",0,54,"Bahía Blanca"],[147099,"타크나",0,54,"Tacna"],[141328,"이카",0,54,"Ica"],[100407,"카올라크",0,54,"Kaolack"],[80084,"코퍼스크리스티",0,54,"Corpus Christi"],[120636,"음반다카",0,54,"Mbandaka"],[55103,"베네치아",0,54,"Venice"],[158822,"음바바네",1,50,"Mbabane"],[40706,"말뫼",0,54,"Malmö"],[50772,"낭시",0,54,"Nancy"],[32108,"페트로자보츠크",0,54,"Petrozavodsk"],[48714,"악퇴베",0,54,"Aktobe"],[134198,"페트롤리나",0,54,"Petrolina"],[32460,"앵커리지",0,54,"Anchorage"],[32087,"탐페레",0,54,"Tampere"],[134864,"히우브랑쿠",0,54,"Rio Branco"],[101210,"알파시르",0,54,"Al-Fashir"],[107003,"디레다와",0,54,"Dire Dawa"],[130755,"모로고로",0,54,"Morogoro"],[74339,"잭슨",0,54,"Jackson"],[116341,"아루아",0,54,"Arua"],[73612,"슈리브포트",0,54,"Shreveport"],[40163,"브라츠크",0,54,"Bratsk"],[129266,"마타디",0,54,"Matadi"],[45207,"안가르스크",0,54,"Angarsk"],[106290,"베르베라",0,54,"Berbera"],[49321,"르아브르",0,54,"Le Havre"],[176623,"네우켄",0,54,"Neuquén"],[54604,"우란하오터",0,54,"Ulan Hot"],[31579,"야쿠츠크",0,54,"Yakutsk"],[116878,"보아비스타",0,54,"Boa Vista"],[64567,"투르크메나바트",0,54,"Türkmenabat"],[55086,"클레르몽페랑",0,54,"Clermont-Ferrand"],[101894,"마라디",0,54,"Niamey"],[50279,"하이라얼",0,54,"Hailar"],[65360,"장예",0,54,"Zhangye"],[124090,"산타렝",0,54,"Santarém"],[101177,"잔데르",0,54,"Zinder"],[60239,"누쿠스",0,54,"Nukus"],[56273,"세일럼",0,54,"Salem"],[135320,"호니아라",1,49,"Honiara"],[149260,"이키케",0,54,"Iquique"],[104199,"퐁디셰리",0,54,"Pondicherry"],[58771,"그로즈니",0,54,"Grozny"],[55839,"노비사드",0,54,"Novi Sad"],[142281,"나칼라",0,54,"Nacala"],[93032,"콜리마",0,53,"Colima"],[56554,"바냐루카",0,53,"Banja Luka"],[158643,"포르모사",0,53,"Formosa"],[48855,"블라고베셴스크",0,53,"Blagoveshchensk"],[77231,"탤러해시",0,53,"Tallahassee"],[78302,"라싸",0,53,"Lhasa"],[130031,"도도마",0,53,"Dodoma"],[52203,"오를레앙",0,53,"Orléans"],[55107,"트리에스테",0,53,"Trieste"],[34210,"베르겐",0,53,"Bergen"],[51476,"렌",0,53,"Rennes"],[94921,"라오아그",0,53,"Laoag"],[104114,"바히르다르",0,53,"Bahir Dar"],[129298,"칼레미",0,53,"Kalemie"],[92339,"캄페체",0,53,"Campeche"],[73766,"푼샬",0,53,"Funchal"],[37856,"프스코프",0,53,"Pskov"],[45506,"새스커툰",0,53,"Saskatoon"],[58967,"구시로",0,53,"Kushiro"],[74347,"몽고메리",0,53,"Montgomery"],[50048,"랭스",0,53,"Reims"],[115794,"타라칸",0,53,"Tarakan"],[50039,"캉",0,53,"Caen"],[151671,"생드니",0,53,"Saint-Denis"],[85819,"라파스",0,53,"La Paz"],[141536,"카브웨",0,53,"Kabwe"],[146593,"켈리마느",0,53,"Quelimane"],[107645,"파라쿠",0,53,"Parakou"],[81693,"엘아윤",0,53,"Laayoune"],[119415,"트르나테",0,53,"Ternate"],[44597,"페트로파블롭스크캄차츠키",0,53,"Petropavlovsk-Kamchatsky"],[68028,"지브롤터",0,53,"Gibraltar"],[147819,"아리카",0,53,"Arica"],[140415,"아피아",1,48,"Apia"],[151654,"피아나란초아",0,53,"Fianarantsoa"],[53023,"아티라우",0,53,"Atyrau"],[69996,"애머릴로",0,53,"Amarillo"],[70679,"샌타바버라",0,53,"Santa Barbara"],[73824,"주와라",0,53,"Zuwara"],[74357,"서배너",0,53,"Savannah"],[91265,"시트웨",0,53,"Sittwe"],[66723,"마리",0,53,"Mary"],[75738,"노갤러스",0,53,"Nogales"],[53925,"유즈노사할린스크",0,52,"Yuzhno-Sakhalinsk"],[48390,"리자이나",0,52,"Regina"],[86973,"바이청",0,52,"Baicheng"],[180214,"푸에르토몬트",0,52,"Puerto Montt"],[169604,"조지",0,52,"George"],[52930,"디종",0,52,"Dijon"],[125201,"자야푸라",0,52,"Jayapura"],[109782,"은제레코레",0,52,"Nzérékoré"],[43742,"아바칸",0,52,"Abakan"],[128421,"마라바",0,52,"Marabá"],[21416,"노릴스크",0,52,"Norilsk"],[146571,"리빙스턴",0,52,"Livingstone"],[101924,"알주나이나",0,52,"Geneina"],[53446,"파고",0,52,"Fargo"],[59403,"안도라라베야",1,47,"Andorra la Vella"],[70763,"윌밍턴",0,52,"Wilmington"],[106983,"말라칼",0,52,"Malakal"],[117764,"붐바",0,52,"Bumba"],[178053,"발디비아",0,52,"Valdivia"],[152150,"타리하",0,52,"Tarija"],[101201,"아베셰",0,52,"Abéché"],[138509,"바헤이라스",0,52,"Barreiras"],[107838,"수랏타니",0,52,"Surat Thani"],[52674,"올림피아",0,52,"Olympia"],[108392,"문두",0,52,"Moundou"],[102674,"곤다르",0,52,"Gondar"],[66099,"위린",0,52,"Yulin"],[57766,"수폴스",0,52,"Sioux Falls"],[60923,"바투미",0,52,"Batumi"],[51733,"베이안",0,52,"Bei'an"],[102086,"바탐방",0,52,"Battambang"],[143733,"마하장가",0,52,"Mahajanga"],[163657,"라세레나",0,52,"La Serena"],[144650,"케언스",0,52,"Cairns"],[55082,"리모주",0,52,"Limoges"],[139346,"벵겔라",0,52,"Benguela"],[58704,"페루자",0,52,"Perugia"],[87686,"거주",0,52,"Gejiu"],[101757,"킹스타운",1,47,"Kingstown"],[63916,"자위관",0,52,"Jiayuguan City"],[175670,"해밀턴",0,52,"Hamilton"],[29900,"트론헤임",0,52,"Trondheim"],[117064,"굴루",0,52,"Gulu"],[104620,"빌렘스타트",0,52,"Willemstad"],[174455,"로스앙헬레스",0,52,"Los Ángeles"],[123538,"고마",0,52,"Goma"],[49324,"아미앵",0,52,"Amiens"],[52376,"아러타이",0,52,"Altay City"],[185984,"코모도로리바다비아",0,51,"Comodoro Rivadavia"],[63189,"둔황",0,51,"Dunhuang"],[148973,"타운즈빌",0,51,"Townsville"],[64653,"스쭈이산",0,51,"Shizuishan"],[127713,"카시아스",0,51,"Caxias"],[142944,"모사메드스",0,51,"Moçâmedes"],[145416,"포트빌라",1,46,"Port Vila"],[64248,"토피카",0,51,"Topeka"],[146221,"파페에테",0,51,"Papeete"],[52094,"세인트존스",0,51,"St. John's"],[130973,"라에",0,51,"Lae"],[144427,"테트",0,51,"Tete"],[101846,"반줄",1,46,"Banjul"],[160059,"코피아포",0,51,"Copiapó"],[156666,"샤이샤이",0,51,"Xai-Xai"],[52932,"브장송",0,51,"Besançon"],[46590,"에키바스투즈",0,51,"Ekibastuz"],[169598,"우스터",0,51,"Worcester"],[109855,"와우",0,51,"Wau"],[135032,"말란즈",0,51,"Malanje"],[142226,"루방구",0,51,"Lubango"],[74527,"가르다이아",0,51,"Ghardaia"],[45126,"루드니",0,51,"Rudniy"],[65716,"찰스턴",0,51,"Charleston"],[101867,"세구",0,51,"Ségou"],[125674,"반둔두",0,51,"Bandundu"],[96855,"아가데즈",0,51,"Agadez"],[187180,"더니딘",0,51,"Dunedin"],[196777,"푼타아레나스",0,51,"Punta Arenas"],[97559,"가오",0,51,"Gao"],[122058,"포르장티",0,51,"Port-Gentil"],[99730,"타우아",0,51,"Tahoua"],[154527,"톨리아라",0,51,"Toliara"],[106181,"캉칸",0,51,"Kankan"],[114183,"주바",0,50,"Juba"],[110681,"캔디",0,50,"Kandy"],[173751,"산타로사",0,50,"Santa Rosa"],[138680,"펨바",0,50,"Pemba"],[137228,"음주주",0,50,"Mzuzu"],[108194,"다비드",0,50,"David"],[102087,"시엠레아프",0,50,"Siem Reap"],[57974,"모나코",1,46,"Monaco"],[52939,"파두츠",1,46,"Vaduz"],[46628,"키질",0,50,"Kyzyl"],[54382,"트렌토",0,50,"Trento"],[68949,"거얼무",0,50,"Golmud"],[97436,"세인트존스",1,46,"Saint John's"],[133796,"라바",0,50,"Raba"],[101245,"아사브",0,50,"Assab"],[54862,"빌링스",0,50,"Billings"],[80057,"과이마스",0,50,"Guaymas"],[69702,"허우마",0,50,"Houma"],[57985,"안코나",0,50,"Ancona"],[65439,"사카타",0,50,"Sakata"],[38005,"우스티일림스크",0,50,"Ust-Ilimsk"],[81748,"세바",0,50,"Sabha"],[51301,"선더베이",0,50,"Thunder Bay"],[148564,"코룸바",0,50,"Corumbá"],[101958,"메켈레",0,50,"Mek'ele"],[180217,"산카를로스데바릴로체",0,50,"Bariloche"],[35221,"마가단",0,50,"Magadan"],[64472,"카탄차로",0,50,"Catanzaro"],[57093,"벌링턴",0,50,"Burlington"],[138140,"다윈",0,50,"Darwin"],[152611,"누메아",0,50,"Noumea"],[69268,"샌타페이",0,50,"Santa Fe"],[151615,"프랜시스타운",0,50,"Francistown"],[57984,"산마리노",1,45,"San Marino"],[117022,"에볼로와",0,49,"Ebolowa"],[127319,"파레파레",0,49,"Parepare"],[90326,"누아디부",0,49,"Nouadhibou"],[140825,"치파타",0,49,"Chipata"],[53640,"푸아티에",0,49,"Poitiers"],[195341,"리오가예고스",0,49,"Río Gallegos"],[105312,"리몬",0,49,"Limón"],[142070,"트리니다드",0,49,"Trinidad"],[54191,"수세인트마리",0,49,"Sault Ste. Marie"],[122101,"음바라라",0,49,"Mbarara"],[138698,"안치라나나",0,49,"Antsiranana"],[174168,"벤디고",0,49,"Bendigo"],[58762,"수후미",0,49,"Sukhumi"],[182814,"호바트",0,49,"Hobart"],[109802,"아타크파메",0,49,"Atakpamé"],[24248,"보르쿠타",0,49,"Vorkuta"],[79017,"르카쩌",0,49,"Xigazê"],[50248,"에르데네트",0,49,"Erdenet"],[100417,"케이스",0,49,"Kayes"],[88211,"타만라세트",0,49,"Tamanrasset"],[119945,"봄보",0,49,"Bombo"],[136307,"리베랄타",0,49,"Riberalta"],[31354,"순스발",0,49,"Sundsvall"],[168351,"만두라",0,49,"Mandurah"],[61350,"샤이엔",0,49,"Cheyenne"],[53412,"미줄라",0,49,"Missoula"],[161682,"어핑턴",0,49,"Upington"],[62311,"포텐차",0,48,"Potenza"],[96833,"팀북투",0,48,"Timbuktu"],[103177,"오라녜스타트",0,48,"Oranjestad"],[60146,"라퀼라",0,48,"L’Aquila"],[63105,"투르크멘바시",0,48,"Türkmenbaşy"],[117203,"푸트라자야",0,48,"Putrajaya"],[51977,"그레이트폴스",0,48,"Great Falls"],[154741,"록햄프턴",0,48,"Rockhampton"],[121383,"마사카",0,48,"Masaka"],[136316,"지 파라나",0,48,"Ji-Paraná"],[69976,"플래그스태프",0,48,"Flagstaff"],[53438,"비즈마크",0,48,"Bismarck"],[37095,"크리스티안산",0,48,"Kristiansand"],[139199,"빌헤나",0,48,"Vilhena"],[127133,"카송고",0,48,"Kasongo"],[127106,"케이스",0,48,"Kayes"],[125135,"탄중판단",0,48,"Tanjung Pandan"],[112721,"밤바리",0,48,"Bambari"],[114015,"카옌",0,48,"Cayenne"],[66549,"폰타델가다",0,48,"Ponta Delgada"],[59187,"캐스퍼",0,48,"Casper"],[126940,"레티시아",0,48,"Leticia"],[129528,"마운트하겐",0,48,"Mount Hagen"],[177833,"네이피어",0,48,"Napier"],[29924,"바사",0,48,"Vaasa"],[27424,"페어뱅크스",0,48,"Fairbanks"],[131974,"크루제이로 두 술",0,48,"Cruzeiro do Sul"],[60857,"아작시오",0,47,"Ajaccio"],[112544,"푸에르토아야쿠초",0,47,"Puerto Ayacucho"],[20557,"트롬쇠",0,47,"Tromsø"],[92209,"힐로",0,47,"Hilo"],[153749,"월비스베이",0,47,"Walvis Bay"],[60869,"캄포바소",0,47,"Campobasso"],[154493,"마할라피에",0,47,"Mahalapye"],[54201,"노스 베이",0,47,"North Bay"],[26324,"룰레오",0,47,"Luleå"],[153053,"세로웨",0,47,"Serowe"],[120675,"메루",0,47,"Meru"],[186695,"코이아이케",0,47,"Coyhaique"],[95942,"벨모판",1,42,"Belmopan"],[91053,"아타르",0,46,"Atar"],[123507,"프랑스빌",0,46,"Franceville"],[119940,"포트포털",0,46,"Fort Portal"],[54233,"샬럿타운",0,46,"Charlottetown"],[61312,"유리카",0,46,"Eureka"],[134888,"알타 플로레스타",0,46,"Alta Floresta"],[30827,"미르니",0,46,"Mirny"],[130250,"고로카",0,46,"Goroka"],[51277,"마이놋",0,46,"Minot"],[169138,"오렌지",0,46,"Orange"],[53415,"헬레나",0,46,"Helena"],[54239,"시드니",0,46,"Sydney"],[165482,"캘굴리",0,46,"Kalgoorlie"],[41390,"더글러스",0,46,"Douglas"],[51317,"티민스",0,45,"Timmins"],[24891,"로바니에미",0,45,"Rovaniemi"],[55094,"아오스타",0,45,"Aosta"],[168726,"두라스노",0,45,"Durazno"],[51709,"처이발상",0,45,"Choibalsan"],[151118,"마운트아이자",0,45,"Mount Isa"],[101150,"젠네",0,45,"Djenné"],[167697,"더보",0,45,"Dubbo"],[71795,"레",0,45,"Leh"],[36811,"주노",0,45,"Juneau"],[51663,"허브드",0,45,"Khovd"],[181427,"블레넘",0,45,"Blenheim"],[115451,"코티카",0,45,"Cottica"],[49120,"브랜든",0,45,"Brandon"],[155427,"앨리스스프링스",0,44,"Alice Springs"],[162589,"제럴턴",0,44,"Geraldton"],[136329,"콜리더",0,44,"Colíder"],[43845,"오하",0,44,"Okha"],[171234,"올버니",0,44,"Albany"],[93300,"동골라",0,44,"Karma"],[183109,"라우손",0,44,"Rawson"],[33709,"렌스크",0,44,"Lensk"],[150153,"오티와롱고",0,44,"Otjiwarongo"],[36610,"알단",0,44,"Aldan"],[113291,"생로랑뒤마로니",0,44,"Saint-Laurent-du-Maroni"],[86086,"알자우프",0,44,"Al Jawf"],[149436,"그루트폰테인",0,44,"Grootfontein"],[57100,"오거스타",0,44,"Augusta"],[33209,"화이트호스",0,44,"Whitehorse"],[165543,"아미데일",0,44,"Armidale"],[168394,"화이앨라",0,44,"Whyalla"],[39017,"포트맥머리",0,43,"Fort McMurray"],[97533,"카에디",0,43,"Kaédi"],[180652,"데본포트",0,43,"Devonport"],[62048,"엘코",0,43,"Elko"],[31091,"옐로나이프",0,43,"Yellowknife"],[39718,"포트 세인트 존",0,43,"Fort St. John"],[166730,"미델부르크",0,43,"Middelburg"],[159516,"케이트만스호프",0,43,"Keetmanshoop"],[166962,"브로큰힐",0,42,"Broken Hill"],[151073,"카르타",0,42,"Karratha"],[170572,"그리피스",0,42,"Griffith"],[50573,"인터네셔널 폴스",0,42,"International Falls"],[159510,"뤼데리츠",0,42,"Lüderitz"],[58168,"달란자드가드",0,42,"Dalanzadgad"],[27616,"누크",0,42,"Nuuk"],[41860,"프린스루퍼트",0,42,"Prince Rupert"],[150358,"포트헤들랜드",0,42,"Port Hedland"],[173452,"왕가라타",0,41,"Wangaratta"],[57039,"피어",0,41,"Pierre"],[40484,"탐슨",0,41,"Thompson"],[171271,"포트링컨",0,41,"Port Lincoln"],[146764,"브룸",0,41,"Broome"],[142235,"메농그",0,41,"Menongue"],[113453,"오보",0,41,"Obo"],[176323,"포틀랜드",0,41,"Portland"],[109121,"엔델레",0,41,"N'Délé"],[121138,"산타 크루즈",0,41,"Santa Cruz"],[34239,"마리에함",0,40,"Mariehamn"],[163835,"스프링보크",0,40,"Springbok"],[28074,"아나디리",0,40,"Anadyr"],[44866,"래브라도 시티",0,40,"Labrador City"],[138501,"알보라다",0,40,"Alvorada"],[169790,"부셀톤",0,40,"Busselton"],[141744,"캐서린",0,40,"Katherine"],[19126,"함메르페스트",0,40,"Hammerfest"],[36774,"코디액",0,40,"Kodiak"],[28006,"우스 네라",0,40,"Ust-Nera"],[38249,"싯카",0,40,"Sitka"],[56791,"달네고르스크",0,39,"Dalnegorsk"],[127383,"라바울",0,39,"Rabaul"],[193175,"엘칼라파테",0,39,"El Calafate"],[33156,"베설",0,38,"Bethel"],[29022,"이칼루이트",0,38,"Iqaluit"],[119019,"미투",0,38,"Mitú"],[17897,"틱시",0,38,"Tiksi"],[35205,"오호츠크",0,37,"Okhotsk"],[39725,"피스 리버",0,37,"Peace River"],[24012,"시시미우트",0,37,"Sisimiut"],[18046,"배로",0,36,"Utqiagvik"],[23669,"바타가이",0,36,"Batagay"],[32467,"발데즈",0,36,"Valdez"],[35960,"팔라나",0,36,"Palana"],[27389,"놈",0,35,"Nome"],[45233,"부카차차",0,35,"Bukachacha"],[28075,"우골니예 코피",0,35,"Ugolnye Kopi"],[188867,"푸에르토 데시도",0,35,"Puerto Deseado"],[25086,"지간스크",0,35,"Zhigansk"],[17124,"카탕가",0,35,"Khatanga"],[19375,"초쿠르다크",0,34,"Chokurdakh"],[19502,"프루도 베이",0,34,"Prudhoe Bay"],[195363,"스탠리",0,33,"Stanley"],[32571,"아리밧",0,33,"Arviat"],[21076,"이글루릭",0,32,"Igloolik"],[21029,"캠브리지 베이",0,32,"Cambridge Bay"],[96820,"아윤엘아트루스",0,32,"Ayoun el Atrous"],[28161,"도슨시티",0,31,"Dawson City"],[23169,"쿠글룩투크",0,31,"Kugluktuk"],[36943,"쿠주아크",0,31,"Kuujjuaq"],[41244,"쿠주아라픽",0,31,"Kuujjuarapik"],[8311,"롱이어비엔",0,31,"Longyearbyen"],[39116,"나인",0,31,"Nain"],[16088,"우페르나빅",0,31,"Upernavik"],[15641,"딕손",0,31,"Dikson"],[36170,"처칠",0,30,"Churchill"],[24667,"나우자트",0,30,"Naujaat"],[20332,"탈로요크",0,29,"Taloyoak"],[8860,"카낙",0,28,"Qaanaaq"],[14588,"악틱 베이",0,28,"Arctic Bay"],[25302,"포트 굿 호프",0,28,"Fort Good Hope"],[33976,"포트 스미스",0,27,"Fort Smith"],[83140,"비르레흘루",0,27,"Bir Lehlou"],[83191,"트마사",0,27,"Tmassa"],[21628,"포인트 호프",0,27,"Point Hope"],[18632,"니즈네얀스크",0,26,"Nizhneyansk"],[29698,"체스터필드 인렛",0,26,"Chesterfield Inlet"],[117069,"모로토",0,26,"Moroto Town"],[13130,"리솔루트",0,24,"Resolute"],[41074,"콜드베이",0,23,"Cold Bay"],[157605,"윈도라",0,22,"Windorah"],[32669,"나르사수아크",0,22,"Narsarsuaq"],[40504,"포트 세번",0,21,"Fort Severn"],[68956,"둘란",0,20,"Dulan"],[21563,"암바르치크",0,10,"Ambarchik"]];
@@ -1335,7 +1430,7 @@ function btPair(z){const L=[];for(const [id,o] of z.s){const n=G.nations[id];if(
   if(L.length<2)return null;L.sort((p,q)=>q[1].m-p[1].m);return L;}
 const G={state:'idle',t:0,nations:[],units:[],projs:[],fx:[],bubbles:[],cities:[],cityAt:new Map(),dm:0,borderT:0,cityT:0,checkT:0,winner:null,endT:0,lobbyT:0,speed:1,feedQ:[]};
 const ME={status:'queued',nid:-1,perkEarned:false,perk:null,locCell:-1,pick:null,lastRank:0,wins:0};
-const NATION_COLORS=['#46d4ff','#ff6b6b','#ffd166','#06d6a0','#c77dff','#ff9f1c','#8ac926','#f15bb5','#4d96ff','#e76f51','#2ec4b6','#b5838d','#fca311','#9b5de5','#00bbf9','#e9c46a'];
+const NATION_COLORS=['#2f6fdf','#d64545','#e0a12c','#3f9e5a','#8a5cc2','#e07b39','#2aa3a3','#d0569a','#8a5a33','#5b6770','#8fb339','#c9a227','#1d3f6e','#b5462f','#5fa8d3','#7a2e52'];
 const hexRGB=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
 
 function makeNation(id,ci,cell,isPlayer){
@@ -2133,11 +2228,11 @@ const pack=(r,g,b)=>(255<<24)|(b<<16)|(g<<8)|r;
 (function buildBase(){
   for(let i=0;i<NC;i++){const x=i%W,c=ctry[i];
     if(!c){let coast=false;for(const nb of [i-1,i+1,i-W,i+W])if(nb>=0&&nb<NC&&ctry[nb]){coast=true;break;}
-      const y=i/W|0;const shade=Math.round(6*Math.sin(y*.05)+4);baseCol[i]=coast?pack(24,44,66):pack(11+(shade>>1),24+shade,40+shade);continue;}
+      const y=i/W|0;const shade=Math.round(6*Math.sin(y*.05)+4);baseCol[i]=coast?pack(178,206,214):pack(146+shade,184+shade,198+shade);continue;}
     const h=hash(META[c-1].en);let v=(h%15)-7;
     let border=0;for(const nb of [x<W-1?i+1:-1,i+W<NC?i+W:-1]){if(nb<0||!ctry[nb])continue;if(regOf[nb]!==regOf[i]){border=2;break;}if(ctry[nb]!==c)border=1;}
-    if(border===2){v-=14;realB[i]=1;}else if(border===1)v-=5;if(!foreignF[c])foreignF[c]=h%3===0?.74:h%3===1?.84:.92;
-    baseCol[i]=pack(clamp(58+v,0,255),clamp(66+v,0,255),clamp(60+v+(h>>4)%5,0,255));}
+    if(border===2){realB[i]=1;baseCol[i]=pack(150,128,102);continue;}else if(border===1)v-=12;if(!foreignF[c])foreignF[c]=h%3===0?.74:h%3===1?.84:.92;
+    baseCol[i]=pack(clamp(233+v,0,255),clamp(222+v,0,255),clamp(194+v-(h>>4)%6,0,255));}
 })();
 let fullRedraw=true;
 function cellColor(i){
@@ -2145,9 +2240,9 @@ function cellColor(i){
   const n=G.nations[o],b=baseCol[i],br=b&255,bg=(b>>8)&255,bb=(b>>16)&255;const x=i%W;
   let edge=false;for(const nb of [x>0?i-1:-1,x<W-1?i+1:-1,i-W,i+W]){if(nb<0||nb>=NC)continue;const on=owner[nb];if(on!==o&&on!==-2){edge=true;break;}}
   const [r,g,bl]=n.rgb;
-  if(edge)return pack(Math.min(255,r*1.05+20)|0,Math.min(255,g*1.05+20)|0,Math.min(255,bl*1.05+20)|0);
+  if(edge)return pack(r*.68|0,g*.68|0,bl*.68|0);
   // land outside the nation's own real country is shaded per country, and real borders stay visible
-  const home=ctry[i]-1===n.ci,a=n.dec?.26:home?(n.isPlayer?.6:.52):(n.isPlayer?.5:.44),f=(home?1:foreignF[ctry[i]]||.85)*(realB[i]?.72:1);
+  const home=ctry[i]-1===n.ci,a=n.dec?.3:home?(n.isPlayer?.7:.62):(n.isPlayer?.58:.5),f=(home?1:(1+(foreignF[ctry[i]]||.85))/2)*(realB[i]?.7:1);
   return pack(((br*(1-a)+r*a)*f)|0,((bg*(1-a)+g*a)*f)|0,((bb*(1-a)+bl*a)*f)|0);
 }
 function flushMap(){
@@ -2183,13 +2278,13 @@ function zoomAt(sx,sy,f){const wx=(sx-cam.ox)/cam.s,wy=(sy-cam.oy)/cam.s;cam.s=c
 // ---- render caches
 const EMOJI_FONT=px=>`${px}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
 const txtCache=new Map();
-function textImg(text,font,fill,stroke){
-  const k=text+'|'+font+'|'+fill+'|'+stroke;let c=txtCache.get(k);if(c)return c;
+function textImg(text,font,fill,stroke,halo='rgba(0,0,0,.72)'){
+  const k=text+'|'+font+'|'+fill+'|'+stroke+'|'+halo;let c=txtCache.get(k);if(c)return c;
   if(txtCache.size>1500)txtCache.clear();
   const m=document.createElement('canvas').getContext('2d');m.font=font;const w=Math.ceil(m.measureText(text).width)+stroke*2+4;
   const px=parseInt(font.match(/(\d+)px/)[1]);const h=Math.ceil(px*1.35)+stroke*2;
   c=document.createElement('canvas');c.width=w*DPR;c.height=h*DPR;const g=c.getContext('2d');g.scale(DPR,DPR);g.font=font;g.textAlign='center';g.textBaseline='middle';
-  if(stroke){g.lineJoin='round';g.lineWidth=stroke;g.strokeStyle='rgba(0,0,0,.72)';g.strokeText(text,w/2,h/2);}
+  if(stroke){g.lineJoin='round';g.lineWidth=stroke;g.strokeStyle=halo;g.strokeText(text,w/2,h/2);}
   g.fillStyle=fill;g.fillText(text,w/2,h/2);
   const out={canvas:c,width:w,height:h};txtCache.set(k,out);return out;
 }
@@ -2309,13 +2404,13 @@ function drawBattles(s,SX,SY,vis){
     const fa=textImg(nA.flag,EMOJI_FONT(12),'#000',0),fb=textImg(nB.flag,EMOJI_FONT(12),'#000',0);
     drawRec(fa,bx-fa.width-1,by+bh/2-fa.height/2);drawRec(fb,bx+bw+1,by+bh/2-fb.height/2);
     if(b.mine){const mp=b.A===me.id?p:1-p,st=mp>.6?'win':mp<.4?'lose':'even';
-      const tx=textImg(tr('bt.'+st),'800 11px "IBM Plex Sans KR",system-ui,sans-serif',st==='win'?'#5fe0a8':st==='lose'?'#ff5b52':'#ffd84d',3);drawRec(tx,X-tx.width/2,by+bh+2);}
+      const tx=textImg(tr('bt.'+st),'800 11px "Alegreya Sans","Gowun Dodum",system-ui,sans-serif',st==='win'?'#5fe0a8':st==='lose'?'#ff5b52':'#ffd84d',3);drawRec(tx,X-tx.width/2,by+bh+2);}
   }
 }
 function draw(){
   flushMap();
   ctx.setTransform(DPR,0,0,DPR,0,0);
-  ctx.fillStyle='#0a1626';ctx.fillRect(0,0,VW,VH);
+  ctx.fillStyle='#93b8c6';ctx.fillRect(0,0,VW,VH);
   ctx.imageSmoothingEnabled=false;
   const s=cam.s;
   ctx.drawImage(off,cam.ox,cam.oy,W*s,H*s);
@@ -2339,7 +2434,7 @@ function draw(){
       for(let j=0;j<L.length;j+=3){ctx.moveTo(L[j]+L[j+2],L[j+1]);ctx.arc(L[j],L[j+1],L[j+2],0,6.283);}ctx.fill();}
     ctx.globalAlpha=.85;const sr=Math.max(1.5,s*.28);
     for(const [c,L] of sparks){ctx.fillStyle=c;ctx.beginPath();for(let j=0;j<L.length;j+=2)ctx.rect(L[j]-sr/2,L[j+1]-sr/2,sr,sr);ctx.fill();}
-    for(const f of txts){const a=f.life/f.max;ctx.globalAlpha=Math.min(1,a*1.6);const t=textImg(f.t,`800 ${f.t.length>4?15:13}px "IBM Plex Sans KR",system-ui,sans-serif`,f.c,3);drawRec(t,SX(f.x)-t.width/2,SY(f.y)-(1-a)*26-t.height/2);}
+    for(const f of txts){const a=f.life/f.max;ctx.globalAlpha=Math.min(1,a*1.6);const t=textImg(f.t,`800 ${f.t.length>4?15:13}px "Alegreya Sans","Gowun Dodum",system-ui,sans-serif`,f.c,3);drawRec(t,SX(f.x)-t.width/2,SY(f.y)-(1-a)*26-t.height/2);}
     for(const f of ups){const a=f.life/f.max;ctx.globalAlpha=Math.min(1,a*1.5);const t=textImg(f.t,EMOJI_FONT(13),'#000',0);drawRec(t,SX(f.x)-t.width/2,SY(f.y)-(1-a)*20-t.height);}
     ctx.globalAlpha=1;
   }
@@ -2347,7 +2442,7 @@ function draw(){
   const cityR=clamp(s*1.5,4,22);
   for(const c of G.cities){if(!vis(c.x,c.y))continue;const n=G.nations[c.owner];const x=SX(c.x+.5),y=SY(c.y+.5);
     const r=Math.round(c.type==='capital'?cityR*1.25:cityR);const ic=cityIcon(c.type,n.color,r);drawRec(ic,x-ic.width/2,y-ic.height/2+1);
-    if(s>=3.2||(c.type==='capital'&&s>=1.8)){const fs=clamp(s*1.05,10,15)|0;const t=textImg(c.name,`${c.type==='capital'?700:600} ${fs}px "IBM Plex Sans KR",system-ui,sans-serif`,c.type==='capital'?'#ffe08a':'#f2f5f8',3);
+    if(s>=3.2||(c.type==='capital'&&s>=1.8)){const fs=clamp(s*1.05,10,15)|0;const t=textImg(c.name,`${c.type==='capital'?800:700} ${fs}px "Alegreya Sans","Gowun Dodum",system-ui,sans-serif`,c.type==='capital'?'#7a2e1c':'#3a322b',3,'rgba(246,239,222,.92)');
       drawRec(t,x-t.width/2,y+r+1);}
   }
   // farm plots: one strip of crops per farmer working that city
@@ -2387,7 +2482,7 @@ function draw(){
       ctx.drawImage(sp,X-sz/2,Y-bob-sz*.92,sz,sz);
       if(g.he&&ty!=='hero'){const cr=textImg('👑',EMOJI_FONT(14),'#000',0);drawRec(cr,X-cr.width/2,Y-sz*1.02-cr.height);}
       // headcount badge
-      if(N>=2){const fs=N>=100?16:N>=25?15:13,t=textImg(String(N),`${fs}px "Lilita One","Black Han Sans",sans-serif`,N>=100?'#ffe08a':'#ffffff',3);
+      if(N>=2){const fs=N>=100?16:N>=25?15:13,t=textImg(String(N),`800 ${fs}px "Alegreya Sans","Gowun Dodum",sans-serif`,N>=100?'#ffe08a':'#ffffff',3);
         const bw=t.width+4,bh=fs+6,bx=X+sz*.18,by=Y-sz*.95;ctx.fillStyle='#0a1122';ctx.beginPath();ctx.roundRect(bx-1.5,by-1.5,bw+3,bh+3,8);ctx.fill();
         ctx.fillStyle=n.color;ctx.beginPath();ctx.roundRect(bx,by,bw,bh,7);ctx.fill();drawRec(t,bx+2,by+bh/2-t.height/2);}
       const hp=g.hp/N;if(hp<.95){const w=sz*.62;ctx.fillStyle='#0a1122';ctx.fillRect(X-w/2-1,Y+sz*.17-1,w+2,5);ctx.fillStyle=hp>.5?'#5fe0a8':'#ff5b52';ctx.fillRect(X-w/2,Y+sz*.17,w*hp,3);}
@@ -2420,17 +2515,17 @@ function draw(){
   // nation labels (cached bitmaps, font size snapped to 2px steps)
   for(const n of G.nations){if(!n.alive||n.cells<25)continue;let fs=Math.min(38,Math.sqrt(n.cells)*s*.16);if(fs<9)continue;fs=(fs/2|0)*2;
     const X=SX(n.lx+.5),Y=SY(n.ly+.5);if(X<-200||X>VW+200||Y<-50||Y>VH+50)continue;
-    const t=textImg(n.name,`${fs}px "Black Han Sans","IBM Plex Sans KR",sans-serif`,n.isPlayer?'#ffffff':'rgba(255,255,255,.92)',Math.max(2,fs*.18));drawRec(t,X-t.width/2,Y-t.height/2);
-    const sub=textImg(`${n.flag}${(n.loot||[]).map(ci=>flagOf(META[ci].a2)).join('')} ${n.units}`,`${Math.max(9,fs*.48)|0}px "IBM Plex Mono",monospace`,'rgba(255,255,255,.85)',3);drawRec(sub,X-sub.width/2,Y+fs*.82-sub.height/2);
-    if(n.human&&!n.isPlayer&&n.pname){const t2=textImg('👤 '+n.pname,`700 ${Math.max(10,fs*.45)|0}px "IBM Plex Sans KR",sans-serif`,'#46d4ff',3);drawRec(t2,X-t2.width/2,Y+fs*1.5-t2.height/2);}
-    if(n.sup){const t3=textImg('★ SUPER',`${Math.max(9,fs*.42)|0}px "IBM Plex Sans KR",sans-serif`,'#f3c34f',3);drawRec(t3,X-t3.width/2,Y-fs*.8-t3.height/2);}
+    const t=textImg(LANG==='ko'?n.name:n.name.toUpperCase(),`800 ${fs}px "Fraunces","Gowun Batang",Georgia,serif`,n.isPlayer?'#1c3f86':'#2d2722',Math.max(2,fs*.16),'rgba(246,239,222,.9)');drawRec(t,X-t.width/2,Y-t.height/2);
+    const sub=textImg(`${n.flag}${(n.loot||[]).map(ci=>flagOf(META[ci].a2)).join('')} ${n.units}`,`700 ${Math.max(10,fs*.48)|0}px "Alegreya Sans","Gowun Dodum",sans-serif`,'#3a322b',3,'rgba(246,239,222,.9)');drawRec(sub,X-sub.width/2,Y+fs*.82-sub.height/2);
+    if(n.human&&!n.isPlayer&&n.pname){const t2=textImg('👤 '+n.pname,`800 ${Math.max(10,fs*.45)|0}px "Alegreya Sans","Gowun Dodum",sans-serif`,'#2f6fdf',3,'rgba(246,239,222,.9)');drawRec(t2,X-t2.width/2,Y+fs*1.5-t2.height/2);}
+    if(n.sup){const t3=textImg('★ SUPER',`800 ${Math.max(9,fs*.42)|0}px "Alegreya Sans",sans-serif`,'#9a6b12',3,'rgba(246,239,222,.9)');drawRec(t3,X-t3.width/2,Y-fs*.8-t3.height/2);}
   }
   drawBattles(s,SX,SY,vis);
   ctx.textAlign='center';ctx.textBaseline='middle';
   // speech bubbles
   for(const b of G.bubbles){if(!b.me&&s<2.5)continue;const X=SX(b.x),Y=SY(b.y)-Math.max(18,s*2.4)-(1-b.life/b.max)*14;if(X<-100||X>VW+100||Y<-40||Y>VH+40)continue;
     const a=Math.min(1,b.life/.4,(b.max-b.life)/.2);ctx.globalAlpha=a;
-    const fs=b.me?15:12;ctx.font=`700 ${fs}px "IBM Plex Sans KR",system-ui,sans-serif`;const w=ctx.measureText(b.text).width+14,h=fs+10;
+    const fs=b.me?15:12;ctx.font=`700 ${fs}px "Alegreya Sans","Gowun Dodum",system-ui,sans-serif`;const w=ctx.measureText(b.text).width+14,h=fs+10;
     ctx.fillStyle=b.me?'#fff':'rgba(255,255,255,.9)';ctx.beginPath();ctx.roundRect(X-w/2,Y-h,w,h,8);ctx.fill();
     ctx.beginPath();ctx.moveTo(X-5,Y-1);ctx.lineTo(X,Y+6);ctx.lineTo(X+5,Y-1);ctx.fill();
     ctx.strokeStyle=b.c;ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(X-w/2,Y-h,w,h,8);ctx.stroke();
@@ -2470,7 +2565,7 @@ $('fronts').addEventListener('click',e=>{const b=e.target.closest('.fr');if(!b)r
 const SPQ=[];let spBusy=false;
 function splash(text,col,vp,sub){SPQ.push([text,col,vp,sub]);if(!spBusy)spNext();}
 function spNext(){const it=SPQ.shift();if(!it){spBusy=false;return;}spBusy=true;const el=$('splash');
-  el.innerHTML=`<div class="spT" style="color:${it[1]}">${esc(it[0])}</div>`+(it[3]?`<div class="spS">${esc(it[3])}</div>`:'')+(it[2]!==undefined?`<div class="spV">⭐ ${it[2]}</div>`:'');
+  el.innerHTML=`<div class="spT" style="--acc:${it[1]}">${esc(it[0])}</div>`+(it[3]?`<div class="spS">${esc(it[3])}</div>`:'')+(it[2]!==undefined?`<div class="spV">⭐ ${it[2]}</div>`:'');
   el.classList.remove('go');void el.offsetWidth;el.classList.add('go');setTimeout(spNext,1700);}
 // the next region to finish
 function nextGoal(n){
@@ -2510,7 +2605,9 @@ $('mkX').addEventListener('click',()=>{$('market').hidden=true;});
 function renderClock(){
   const t=G.state==='lobby'?0:G.t;
   if(G.state==='play'){const r=Math.min(ROUNDS,(G.roundsPaid|0)+1),left=Math.max(0,r*ROUND_LEN-G.t);$('clockT').textContent=fmtT(left);
-    $('clockP').textContent=tr('ph.round',r,ROUNDS);$('clock').classList.toggle('dm',left<10);$('pfill').style.width=((1-left/ROUND_LEN)*100)+'%';return;}
+    $('clockP').textContent=tr('ph.round',r,ROUNDS);$('clock').classList.toggle('dm',left<10);$('pfill').style.width=((1-left/ROUND_LEN)*100)+'%';
+    setHTML('rtrack',Array.from({length:ROUNDS},(_,i)=>`<i class="${i<r-1?'done':i===r-1?'now':''}${i>=ROUNDS-3?' fin':''}"></i>`).join(''));return;}
+  setHTML('rtrack','');
   $('clockT').textContent=fmtT(t);
   const neu=G.state==='play'?G.nations.reduce((s,n)=>s-n.cells,TOTAL_LAND)/TOTAL_LAND:1;
   const ph=tr(G.state==='lobby'?'ph.lobby':G.state==='end'?'ph.end':G.dm===3?'ph.sd':G.dm===2?'ph.dm2':G.dm===1?'ph.dm1':neu>.06?'ph.exp':'ph.war');
