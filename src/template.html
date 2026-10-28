@@ -536,11 +536,126 @@ button:focus-visible{outline:3px solid var(--you);outline-offset:2px}
   #sci{top:calc(env(safe-area-inset-top,0px) + 150px)}
   #mkRow{grid-template-columns:1fr 1fr}.mkc .mf{font-size:28px}
 }
+/* ===== phone layout, after current mobile games: a slim status row on top, the map in the middle,
+   four big production cards and four big actions at the bottom; everything else in bottom sheets. */
+.mOnly{display:none}
+#sheet{position:fixed;inset:0;z-index:30}
+#sheet .shBack{position:absolute;inset:0;background:rgba(48,36,24,.45)}
+#sheet .shCard{position:absolute;left:0;right:0;bottom:0;max-height:82%;overflow:auto;border-radius:22px 22px 0 0;padding:8px 14px calc(env(safe-area-inset-bottom,0px) + 16px);animation:shUp .22s ease-out}
+@keyframes shUp{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+.shGrip{width:44px;height:5px;border-radius:3px;background:var(--line);margin:2px auto 8px}
+.shHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.shHead b{font:900 24px var(--f-display);color:var(--ink)}
+#shX{width:48px;height:48px;border-radius:50%;border:1.5px solid var(--edge);background:var(--card);font-size:20px;color:var(--ink);box-shadow:0 2px 0 var(--edge)}
+#sheet[data-k="up"] #menuGrid,#sheet[data-k="up"] #lbHold,#sheet[data-k="menu"] #upGrid,#sheet[data-k="menu"] #lbHold,#sheet[data-k="lb"] #upGrid,#sheet[data-k="lb"] #menuGrid{display:none}
+#upGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#upGrid .ab{width:auto;min-height:84px;flex-direction:row;justify-content:flex-start;gap:12px;padding:12px 14px;font:800 17px/1.15 var(--f-body);text-align:left;border-radius:16px}
+#upGrid .ab .ic{font-size:34px}
+#upGrid .ab .co{position:absolute;right:12px;bottom:10px;font:800 16px var(--f-num);color:var(--ink);background:var(--coin);border-radius:999px;padding:1px 10px}
+#upGrid .ab .lv{position:absolute;top:8px;right:12px;font:800 13px var(--f-num)}
+#upGrid .ab.locked .co{background:var(--paper2);color:var(--muted)}
+#menuGrid #tools{display:grid!important;grid-template-columns:1fr 1fr;gap:10px;width:100%}
+#menuGrid .tb{height:64px;border-radius:16px;font-size:26px;justify-content:flex-start;gap:12px;padding:0 16px;width:100%;min-width:0}
+#menuGrid .tb::after{content:attr(title);font:800 16px var(--f-body);color:var(--ink);text-align:left;line-height:1.15}
+#lbHold #lb{position:static;width:auto;padding:4px 2px;background:none;border:0;box-shadow:none}
+#lbHold #lb h3{display:none}
+#lbHold .lr{grid-template-columns:26px 30px 1fr 56px 52px!important;font-size:17px!important;padding:9px 6px!important;gap:6px!important}
+#lbHold .lr .pc,#lbHold .lr .un{display:block!important;font-size:14px}
+#lbHold .lr .vp{font-size:17px}
+#lbHold .lr .rk{font-size:15px}
+#lbHold #lbRows .lr{display:grid!important}
+#ab_more{display:none}
+
+html.mobile body{font-size:16px}
+html.mobile #hud{padding:calc(env(safe-area-inset-top,0px) + 8px) 10px 0}
+html.mobile .mOnly{display:flex}
+html.mobile #lb{display:block}
+/* top row: rank pill · round pill · menu */
+html.mobile #mRank{position:absolute;left:10px;top:calc(env(safe-area-inset-top,0px) + 8px);height:52px;align-items:center;gap:8px;padding:0 14px 0 10px;border-radius:999px;font:800 18px var(--f-num);color:var(--ink);pointer-events:auto}
+html.mobile #mRank .flag{font-size:24px}html.mobile #mRank .s{color:var(--gold)}
+html.mobile #mMenu{position:absolute;right:10px;top:calc(env(safe-area-inset-top,0px) + 8px);width:52px;height:52px;border-radius:50%;align-items:center;justify-content:center;font-size:24px;color:var(--ink);pointer-events:auto}
+html.mobile #clock{left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 8px);height:52px;min-width:0;padding:5px 14px;display:flex;flex-direction:column;justify-content:center;border-radius:999px}
+html.mobile #clockP,html.mobile #pbar{display:none}
+html.mobile #rtrack{margin:0 0 3px;gap:3px}html.mobile #rtrack i{width:8px;height:8px}
+html.mobile #clockT{font-size:20px;text-align:center}
+html.mobile #tr{top:calc(env(safe-area-inset-top,0px) + 68px);right:10px;left:10px;width:auto;max-width:none;align-items:center}
+html.mobile #feed{max-width:100%;align-items:center}
+html.mobile .fe{font-size:15px;padding:7px 12px;max-width:100%;animation:fin .3s ease-out,feOut .6s ease-in 5s forwards}
+html.mobile .fe:nth-child(n+2){display:none}
+@keyframes feOut{to{opacity:0;transform:translateY(-6px)}}
+html.mobile #fronts{left:10px;right:10px;transform:none;top:calc(env(safe-area-inset-top,0px) + 112px);flex-direction:row;flex-wrap:wrap;justify-content:center;gap:6px}
+html.mobile .fr{font-size:14px;min-height:38px;padding:4px 12px 4px 10px}html.mobile .fr .flag{font-size:20px}html.mobile .fr .tug{width:46px;height:8px}
+html.mobile .fr:nth-child(n+3){display:none}
+html.mobile #banner{top:auto;bottom:calc(var(--dock,300px) + 10px);left:10px;right:10px;transform:none;max-width:none;font-size:15px;padding:10px 12px}
+html.mobile #toast{font-size:16px;bottom:calc(var(--dock,300px) + 70px);top:auto}
+html.mobile #zoom{right:12px;bottom:calc(var(--dock,300px) + 12px)}
+html.mobile #zHome{width:56px;height:56px;font-size:24px}
+html.mobile #splash{top:34%}html.mobile .spT{font-size:24px}
+/* bottom: the player board */
+html.mobile #bar{left:0;right:0;bottom:0;transform:none;max-width:none;display:grid;grid-template-columns:1fr;grid-template-areas:"me" "stats" "econ" "acts";gap:10px;
+  padding:10px 12px calc(env(safe-area-inset-bottom,0px) + 12px);border-radius:22px 22px 0 0;border-width:1.5px 0 0}
+html.mobile #me{grid-area:me;flex-direction:row;align-items:center;gap:10px;padding:0;border:0;min-width:0}
+html.mobile #meName{font-size:20px;flex:none}
+html.mobile #meSay,html.mobile #meTrait{display:none}
+html.mobile #tgt{font-size:14px;flex:1;min-width:0;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.mobile #bar.info #tgt{white-space:normal}
+html.mobile #stats{grid-area:stats;display:grid;grid-template-rows:auto auto;grid-auto-flow:column;grid-auto-columns:1fr;gap:0 8px;padding:8px 6px;border:0;border-radius:14px;background:var(--card);box-shadow:inset 0 0 0 1.5px var(--line)}
+html.mobile #stats span{font-size:13px;text-align:center;color:var(--muted);font-weight:800}
+html.mobile #stats b{font-size:19px;text-align:center}
+html.mobile #sVP{font-size:17px;padding:2px 8px;justify-self:center}
+html.mobile #econ{grid-area:econ;display:grid;grid-template-columns:1fr;gap:8px;border:0;padding:0}
+html.mobile #buy{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+html.mobile .ub{min-height:88px;font-size:15px;border-radius:16px;padding-top:12px;gap:2px}
+html.mobile .ub .ic{font-size:32px}
+html.mobile .ub .co{font-size:15px;padding:1px 9px}
+html.mobile .ub .ct{font-size:13px;top:9px;right:8px}
+html.mobile #rates{display:none}
+html.mobile #sciBar{min-height:48px;width:auto;flex-direction:row;align-items:center;gap:10px;font-size:16px;padding:0 14px;border-radius:14px;background:var(--card);border:1.5px solid var(--edge)}
+html.mobile #sciBar i{flex:1;height:10px;border-radius:5px}
+html.mobile #acts{grid-area:acts;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:0}
+html.mobile #ab_more{display:flex}
+html.mobile #acts .ab{min-height:70px;font-size:15px;border-radius:16px;gap:2px}
+html.mobile #acts .ab .ic{font-size:28px}
+html.mobile #acts .ab .co{font-size:14px}
+html.mobile #ab_more.can{border-color:var(--ok);box-shadow:0 2px 0 var(--ok)}
+html.mobile #ab_more .co{color:var(--ok);font-size:16px}
+html.mobile #ab_charge{background:#fbe9e4}
+html.mobile #dockTog{display:flex;top:-18px;width:64px;height:28px;border-radius:14px;font-size:15px}
+html.mobile #bar.min #econ,html.mobile #bar.min #acts{display:none}
+html.mobile #vpPop{bottom:calc(var(--dock,300px) + 10px);width:calc(100% - 20px);font-size:16px}
+html.mobile #sci{top:calc(env(safe-area-inset-top,0px) + 70px);width:calc(100% - 20px)}
+html.mobile .sciHead{font-size:18px}html.mobile .sn{font-size:17px}html.mobile .sd{display:block;font-size:13px}
+html.mobile .sc{min-height:130px}
+/* dialogs read like a phone game: bigger type everywhere */
+html.mobile .card{font-size:16px}
+html.mobile .hint{font-size:14px}
+html.mobile .lead{font-size:16px}
+html.mobile .big{font-size:32px}
+html.mobile .perks{font-size:15px}
+html.mobile .mkc{padding:30px 8px 12px}html.mobile .mkc b{font-size:17px}html.mobile .mkc small{font-size:13px}html.mobile .mkc .mcost{font-size:16px}
+html.mobile .lrc{min-height:82px}html.mobile .lrc b{font-size:14px}html.mobile .lrc .f{font-size:26px}html.mobile .lrc .c{font-size:14px}
+html.mobile .tab{font-size:16px;padding:10px 16px}
+html.mobile .bd{font-size:15px}
+html.mobile .node .nt b{font-size:15px}html.mobile .node .nt small{font-size:13px}
+html.mobile #help li{font-size:15px;line-height:1.5;margin-bottom:6px}
+html.mobile #hud:has(#sci:not([hidden])) #fronts{display:none}
+html.mobile #mRank{height:48px;font-size:16px;gap:6px;padding:0 12px 0 8px}html.mobile #mRank .flag{font-size:20px}
+html.mobile #mMenu{width:48px;height:48px}
+html.mobile #clock{height:48px;padding:4px 12px}html.mobile #rtrack i{width:7px;height:7px}html.mobile #rtrack{gap:2px}html.mobile #clockT{font-size:19px}
+/* landscape phones: board on the side is too tall, so stats and production share a row */
+@media (pointer:coarse) and (max-height:520px) and (orientation:landscape){
+  html.mobile #bar{grid-template-columns:auto 1fr;grid-template-areas:"stats econ" "acts acts";gap:8px}
+  html.mobile #me{display:none}
+  html.mobile .ub{min-height:62px}html.mobile #acts .ab{min-height:52px}
+  html.mobile #fronts{display:none}
+}
 </style>
 
 <canvas id="map" data-i18n-aria="map.aria" aria-label="World map battlefield"></canvas>
 <div id="loading" data-i18n="loading">Unrolling the map…</div>
 <div id="hud">
+  <button id="mRank" class="mOnly panel" type="button" aria-label="Ranking"></button>
+  <button id="mMenu" class="mOnly panel" type="button" aria-label="Menu">☰</button>
   <div id="lb" class="panel collapsed"><h3><span data-i18n="lb.head">Rank · Land</span><button id="lbTog" type="button" data-i18n-aria="lb.toggle" aria-label="Expand ranking">▾</button></h3><div id="lbRows"></div></div>
   <div id="clock" class="panel"><div id="clockP">Expansion</div><div id="rtrack" aria-hidden="true"></div><div id="clockT">00:00</div><div id="pbar"><i id="pfill"></i></div></div>
   <div id="tr">
@@ -584,6 +699,7 @@ button:focus-visible{outline:3px solid var(--you);outline-offset:2px}
   </div>
 </div>
 <div id="toast"></div>
+<div id="sheet" hidden><div class="shBack"></div><div class="shCard panel" role="dialog" aria-labelledby="shTitle"><div class="shGrip"></div><div class="shHead"><b id="shTitle"></b><button id="shX" type="button" aria-label="Close">✕</button></div><div id="upGrid"></div><div id="menuGrid"></div><div id="lbHold"></div></div></div>
 <div id="vpPop" class="panel" hidden role="dialog" aria-labelledby="vpTitle"><div class="vpHead"><b id="vpTitle"></b><button class="tb" id="vpX" type="button" aria-label="Close">✕</button></div><div id="vpBody"></div></div>
 
 <div id="lobby" class="overlay" hidden>
@@ -740,7 +856,7 @@ const I18N={
  'f.decline':['🥀 {0} goes into decline','🥀 {0} 쇠퇴'],'f.newNation':['🆕 {0} enters the map: {1}','🆕 {0} 등장: {1}'],
  't.outPick':['Your nation fell. Pick a new one!','나라가 멸망했습니다. 새 나라를 고르세요!'],
  'bn.pick':['Your nation fell. Take a new nation from the row to keep scoring.','나라가 멸망했습니다. 새 나라를 골라 계속 점수를 내세요.'],'bn.pickGo':['Pick a nation','새 나라 고르기'],
- 'btn.decline':['Decline','쇠퇴'],'btn.declineTip':['Put this nation into decline: it stops growing but keeps scoring 1⭐ per region. Then take a fresh nation from the row.','이 나라를 쇠퇴시킵니다. 더는 성장하지 않지만 지역마다 1⭐씩 계속 냅니다. 그리고 새 나라를 고릅니다.'],
+ 'btn.more':['Upgrade','업그레이드'],'btn.moreTip':['Upgrades, cities and heroes','업그레이드 · 도시 · 영웅'],'sh.up':['Upgrades','업그레이드'],'sh.menu':['Menu','메뉴'],'sh.lb':['Ranking','순위'],'btn.decline':['Decline','쇠퇴'],'btn.declineTip':['Put this nation into decline: it stops growing but keeps scoring 1⭐ per region. Then take a fresh nation from the row.','이 나라를 쇠퇴시킵니다. 더는 성장하지 않지만 지역마다 1⭐씩 계속 냅니다. 그리고 새 나라를 고릅니다.'],
  'mk.eye':['You have {0}⭐','보유 ⭐ {0}'],'mk.titleDec':['Decline and pick a new nation','쇠퇴하고 새 나라 고르기'],'mk.titleNew':['Pick a new nation','새 나라 고르기'],
  'mk.leadDec':['{0} stops growing and producing but keeps scoring 1⭐ per region every round. You can have one declined nation; an older one vanishes. The first combo is free, each later one costs 1⭐ that stays on the combos you skip.','{0}은(는) 성장과 생산을 멈추지만 매 라운드 지역마다 1⭐씩 계속 냅니다. 쇠퇴국은 하나만 둘 수 있고, 예전 쇠퇴국은 사라집니다. 첫 조합은 무료, 뒤로 갈수록 1⭐씩 더 들고 그 ⭐는 건너뛴 조합 위에 쌓입니다.'],
  'mk.leadNew':['The first combo is free, each later one costs 1⭐ that stays on the combos you skip. Stars left on a combo go to whoever takes it.','첫 조합은 무료, 뒤로 갈수록 1⭐씩 더 들고 그 ⭐는 건너뛴 조합 위에 쌓입니다. 조합에 쌓인 ⭐는 고른 사람이 가져갑니다.'],
@@ -2556,6 +2672,7 @@ function renderLB(){
   const rk=ranking();const rows=[];const meN=G.nations.find(n=>n.isPlayer);
   rk.forEach((n,i)=>{n.rank=i+1;});
   const meR=rk.find(x=>x.pid===ME.pid),show=rk.slice(0,10);if(meR&&!show.includes(meR))show.push(meR);
+  setHTML('mRank',meR&&G.score?`<span class="flag">${meR.flag}</span><b>#${rk.indexOf(meR)+1}</b><span class="s">⭐${G.score[meR.pid]|0}</span>`:`<b>🏆</b>`);
   const decF=pid=>G.nations.filter(x=>x.pid===pid&&x.alive&&x.dec).map(x=>`<i class="df">${x.flag}</i>`).join('');
   for(const n of show){rows.push(`<div class="lr${n.pid===ME.pid?' me':''}${n.alive?'':' dead'}${n.dec?' isdec':''}"><span class="rk">${n.rank}</span><span class="flag">${n.flag}${decF(n.pid)}</span><span class="nm"><i class="sw" style="background:${n.color}"></i>${n.human&&!n.isPlayer?'👤':''}${n.name}${n.sup?'<span class="sup">★</span>':''}</span><span class="vp">⭐${G.score?G.score[n.pid]|0:0}</span><span class="pc">${n.regions|0}🗺</span></div>`);}
   setHTML('lbRows',rows.join(''));
@@ -2636,6 +2753,7 @@ const BTN=[
  {id:'charge',ic:'📯',nmK:'btn.charge',tipK:'btn.chargeTip'},
  {id:'auto',ic:'🤖',nmK:'btn.auto',tipK:'btn.autoTip'},
  {id:'decline',ic:'🥀',nmK:'btn.decline',tipK:'btn.declineTip'},
+ {id:'more',ic:'⬆️',nmK:'btn.more',tipK:'btn.moreTip'},
 ];
 // tap = switch that unit's production line on/off (it keeps building while gold allows)
 $('buy').addEventListener('click',e=>{const el=e.target.closest('.ub');if(!el)return;const i=+el.id.slice(2);const n=myNation();if(!n)return;userActed=true;issue(11,i,n.lines[i]?0:1);try{navigator.vibrate&&navigator.vibrate(10);}catch(e){}});
@@ -2650,7 +2768,7 @@ $('dockTog').addEventListener('click',e=>{e.stopPropagation();const b=$('bar');b
 try{if(localStorage.getItem('ttm_dock')==='min'){$('bar').classList.add('min');$('dockTog').textContent='▴';}}catch(e){}
 $('meName').addEventListener('click',()=>$('bar').classList.toggle('info'));
 let dockH=0;function syncDock(){const b=$('bar');const h=b.hidden?0:b.offsetHeight;if(h!==dockH){dockH=h;document.documentElement.style.setProperty('--dock',h+'px');}}
-acts.addEventListener('click',e=>{const el=e.target.closest('.ab');if(!el)return;const b=BTN.find(x=>'ab_'+x.id===el.id);if(!b)return;{const n=myNation();if(!n)return;userActed=true;
+function onAct(e){const el=e.target.closest('.ab');if(!el)return;const b=BTN.find(x=>'ab_'+x.id===el.id);if(!b)return;if(b.id==='more'){userActed=true;openSheet('up');return;}{const n=myNation();if(!n)return;userActed=true;
   const ui=UPG.findIndex(x=>x.k===b.id);
   if(ui>=0){if(canUp(n,UPG[ui]))issue(0,ui);}
   else if(b.id==='city'){if(!canCity(n))return;placing=placing==='ranged'?null:placing==='melee'?'ranged':'melee';cv.classList.toggle('placing',!!placing);
@@ -2659,8 +2777,29 @@ acts.addEventListener('click',e=>{const el=e.target.closest('.ab');if(!el)return
   else if(b.id==='charge'){if(canCharge(n))issue(3);}
   else if(b.id==='auto'){issue(9,n.auto?0:1);}
   else if(b.id==='decline'){if(canDecline(n))openMarket();}
+  if(b.id==='city'&&placing)closeSheet();
   try{navigator.vibrate&&navigator.vibrate(10);}catch(e){}
-  updateBar();}});
+  updateBar();}}
+acts.addEventListener('click',onAct);$('upGrid').addEventListener('click',onAct);
+// ---- phones: few big controls. Upgrades, city and hero live in a bottom sheet; the tool buttons move into the menu sheet;
+// the ranking opens from the rank pill. Desktop keeps everything on screen.
+const MOBILE_Q=window.matchMedia?matchMedia('(max-width:760px), (pointer:coarse) and (max-height:520px)'):{matches:false,addEventListener(){}};
+const SHEET_BTNS=[...UPG.map(u=>u.k),'city','hero'];
+function layoutMobile(){
+  const m=MOBILE_Q.matches;document.documentElement.classList.toggle('mobile',m);
+  for(const id of SHEET_BTNS){const el=$('ab_'+id);if(!el)continue;if(m&&el.parentNode!==$('upGrid'))$('upGrid').appendChild(el);else if(!m&&el.parentNode!==acts)acts.insertBefore(el,$('ab_charge'));}
+  const tl=$('tools');if(m&&tl.parentNode!==$('menuGrid'))$('menuGrid').appendChild(tl);else if(!m&&tl.parentNode!==$('tr'))$('tr').prepend(tl);
+  const lb=$('lb');if(m&&lb.parentNode!==$('lbHold'))$('lbHold').appendChild(lb);else if(!m&&lb.parentNode!==$('hud'))$('hud').insertBefore(lb,$('clock'));
+  if(!m)closeSheet();
+}
+function openSheet(kind){const sh=$('sheet');sh.hidden=false;sh.dataset.k=kind;setText('shTitle',tr('sh.'+kind));if(kind==='lb')$('lb').classList.remove('collapsed');updateBar();}
+function closeSheet(){$('sheet').hidden=true;}
+$('shX').addEventListener('click',closeSheet);$('sheet').querySelector('.shBack').addEventListener('click',closeSheet);
+$('mMenu').addEventListener('click',()=>{userActed=true;openSheet('menu');});
+$('mRank').addEventListener('click',()=>{userActed=true;openSheet('lb');});
+$('menuGrid').addEventListener('click',e=>{if(e.target.closest('#bBoard,#bHelp'))closeSheet();});
+MOBILE_Q.addEventListener&&MOBILE_Q.addEventListener('change',layoutMobile);
+layoutMobile();
 function myNation(){const n=G.nations.find(x=>x.isPlayer);return n&&n.alive&&G.state==='play'?n:null;}
 const domMemo=new Map();
 function setHTML(id,h){if(domMemo.get(id)===h)return;domMemo.set(id,h);$(id).innerHTML=h;}
@@ -2685,6 +2824,7 @@ function updateBar(){
   const ec=$('ab_city'),lc=share(n)<ACT.city.unlock;ec.querySelector('.co').textContent=lc?`🔒${(ACT.city.unlock*100).toFixed(1)}%`:cityCost(n);ec.disabled=lc||(!placing&&n.gold<cityCost(n));ec.classList.toggle('locked',lc);ec.classList.toggle('on',!!placing);ec.classList.toggle('can',!ec.disabled&&!placing);
   ec.querySelector('.lv').textContent=placing==='ranged'?'🏹':placing==='melee'?'🛡':'';
   const eh=$('ab_hero'),lh=share(n)<ACT.hero.unlock;eh.querySelector('.co').textContent=lh?`🔒${(ACT.hero.unlock*100).toFixed(0)}%`:n.heroCD>0?Math.ceil(n.heroCD)+'s':ACT.hero.cost;eh.disabled=!canHero(n);eh.classList.toggle('locked',lh);eh.classList.toggle('can',canHero(n));
+  {const em=$('ab_more'),any=UPG.some(u=>canUp(n,u))||canHero(n)||(canCity(n)&&n.gold>=cityCost(n));em.classList.toggle('can',any);em.querySelector('.co').textContent=any?'●':'';}
   {const ed=$('ab_decline'),ok=canDecline(n);ed.disabled=!ok;ed.classList.toggle('can',ok&&n.cells<n.peak*.6);ed.querySelector('.co').textContent=G.t<DECLINE_MIN_T?`${Math.ceil(DECLINE_MIN_T-G.t)}s`:'';}
   UNITS.forEach((U,i)=>{const el=$('ub'+i),ok=canBuy(n,i),on=n.lines[i];el.classList.toggle('can',ok);el.classList.toggle('on',on);el.setAttribute('aria-pressed',on?'true':'false');
     const full=U.t==='farm'?n.farmers>=farmCap(n):n.units>=unitCap(n);
@@ -3111,7 +3251,7 @@ function setLang(l){
   applyI18n();txtCache.clear();domMemo.clear();
   for(const n of G.nations){n.name=locName(n.ci);n.cul=getCulture(n.ci);n.tr=getTrait(n.ci);}
   for(const c of G.cities)c.name=cityNameAt(c.cell);
-  renderButtons();$('bLang').textContent=LANG==='ko'?'EN':'한';
+  $('upGrid').innerHTML='';renderButtons();layoutMobile();$('bLang').textContent=LANG==='ko'?'EN':'한';
   $('banner').dataset.s='';lobbyKey='';
   if(G.state==='lobby'&&ME.pick&&!$('lobby').hidden&&rouletteT<=0)showPick();
   if(!$('tree').hidden)renderTree();
