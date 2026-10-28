@@ -1362,22 +1362,50 @@ function updateTargets(n){
     if(n.tgtT<=0||n.target===null||!n.border.has(n.target)){
       n.target=null;const opts=[...n.border.keys()].filter(b=>G.nations[b].alive);
       if(opts.length){let best=-1,bs=-1;const me=strength(n);
-        for(const b of opts){const s=(n.border.get(b).n+20)/pw125(strength(G.nations[b])/me+0.2)*srnd(.6,1.4);if(s>bs){bs=s;best=b;}}
+        for(const b of opts){const s=(n.border.get(b).n+20)/pw125(strength(G.nations[b])/me+0.2)*srnd(.6,1.4)*vpWorth(n,b);if(s>bs){bs=s;best=b;}}
         n.target=best;}
       n.tgtT=srnd(14,30);
     }
-    if(n.target!==null)tc=n.border.get(n.target).s;
+    if(n.target!==null){tc=n.border.get(n.target).s;
+      // push toward the enemy capital closest to the front: capitals are worth a victory point each
+      const cap=capFocus(n,n.target,tc);if(cap>=0)tc=tc.slice().sort((a,b)=>dist2(a,cap)-dist2(b,cap)).slice(0,16);}
   }
   n.tgtCells=tc;
   // neutral frontier targets
   const neu=[];
-  if(n.nAdj>0){for(let k=0;k<30&&n.front.length;k++){const c=n.front[sri(n.front.length)];if(owner[c]!==n.id)continue;const nb=neutralNb(c);if(nb>=0)neu.push(nb);}}
+  if(n.nAdj>0){const gk=goalCont(n);
+    for(let k=0;k<30&&n.front.length;k++){const c=n.front[sri(n.front.length)];if(owner[c]!==n.id)continue;const nb=neutralNb(c);if(nb>=0){neu.push(nb);if(gk>=0&&contOfC[ctry[nb]]===gk)neu.push(nb,nb);}}}
   if(!tc.length&&!neu.length){ // overseas: nearest foreign land
     let best=-1,bd=1e9;const cx=n.lx,cy=n.ly;
     for(let k=0;k<500;k++){const c=landIdx[sri(TOTAL_LAND)];if(owner[c]===n.id)continue;const d=(c%W-cx)**2+((c/W|0)-cy)**2;if(d<bd){bd=d;best=c;}}
     if(best>=0)neu.push(best);
   }
   n.neuCells=neu;
+}
+// ---- AI and autopilot: how much a war against b is worth in victory points
+function vpWorth(n,b){
+  const t=G.nations[b];let w=1;
+  // gang up on whoever is close to winning (the crown is visible to everyone)
+  const top=G.nations.reduce((a,x)=>x.alive&&(x.vp|0)>(a.vp|0)?x:a,t);
+  if(G.king===b)w*=3;else if(top===t&&(t.vp|0)>=VP_WIN-5&&(t.vp|0)>(n.vp|0))w*=1.8;
+  // enemy-held capitals, one victory point each
+  let caps=0;for(const c of G.cities)if(c.cap0>=0&&c.owner===b)caps++;w*=1+.35*Math.min(3,caps);
+  // continents: break the rival's hold, or finish taking one we are close to
+  if(G.cont&&G.cc){const rec=n.border.get(b);const k=rec&&rec.s.length?contOfC[ctry[rec.s[0]]]:-1;
+    if(k>=0){if(G.cont[k].o===b)w*=1.8;else if(G.cont[k].o!==n.id){const sh=G.cc[n.id*6+k]/contTot[k];if(sh>=.4)w*=1+sh*1.5;}}}
+  return w;
+}
+// the enemy capital (a starting capital still held by b) nearest to our front, if it is within reach
+function capFocus(n,b,front){
+  if(!front.length)return -1;const f=front[0],fx=f%W,fy=f/W|0;let best=-1,bd=60*60;
+  for(const c of G.cities){if(!(c.cap0>=0)||c.owner!==b)continue;const d=(c.x-fx)**2+(c.y-fy)**2;if(d<bd){bd=d;best=c.cell;}}
+  return best;
+}
+// the continent worth expanding into: the one we hold most of without controlling it yet
+function goalCont(n){
+  if(!G.cc||!G.cont)return -1;let gk=-1,bs=.25;
+  for(let k=0;k<6;k++){if(G.cont[k].o===n.id)continue;const sh=G.cc[n.id*6+k]/contTot[k];if(sh>bs){bs=sh;gk=k;}}
+  return gk;
 }
 function strength(n){return n.units*(1+.15*n.lv.atk)*(1+.2*n.lv.hp)+n.cells*.03+5}
 // ---- economy: gold flows in on its own; every unit is bought one at a time.
