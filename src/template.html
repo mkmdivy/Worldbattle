@@ -692,6 +692,14 @@ html.mobile #mRank .gap{font-size:14px}
 .pfHall em{font-style:normal;font-weight:800;font-size:14px;display:flex;justify-content:space-between;gap:8px}.pfHall em small{color:var(--muted);font-weight:800}
 html.mobile .logo{font-size:40px;margin:0 auto}html.mobile .logoT{font-size:34px}html.mobile .login .lead{margin:4px auto 10px;font-size:15px}
 html.mobile .pfAv{width:84px;height:84px}html.mobile .pfAv span{font-size:46px}html.mobile .pfName{font-size:24px}html.mobile .pfStats b{font-size:21px}html.mobile .pfSig{font-size:15px}
+
+.ldr{display:inline-flex;align-items:center;gap:8px;vertical-align:middle}.ldr img{width:30px;height:30px;border-radius:50%;box-shadow:0 1px 0 var(--edge)}
+.ldr span{display:flex;flex-direction:column;line-height:1.1;text-align:left}.ldr small{font-size:11px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.06em}.ldr b{font-weight:800;color:var(--ink)}
+.ldr.big img{width:52px;height:52px}.ldr.big b{font:800 17px var(--f-display)}
+.ldr.sm{gap:5px;margin:2px 0}.ldr.sm img{width:22px;height:22px}.ldr.sm small{font-size:9.5px}.ldr.sm b{font-size:12px}
+.ldrMini{width:30px;height:30px;border-radius:50%;vertical-align:middle;margin-right:6px;box-shadow:0 1px 0 var(--edge)}
+.vn .ldrMini{width:40px;height:40px;margin:0}
+html.mobile .ldr.big img{width:60px;height:60px}html.mobile .ldr.big b{font-size:19px}html.mobile .ldrMini{width:34px;height:34px}html.mobile .ldr.sm b{font-size:13px}
 </style>
 
 <canvas id="map" data-i18n-aria="map.aria" aria-label="World map battlefield"></canvas>
@@ -951,7 +959,7 @@ const I18N={
  'lb.cap':['Capital','시작 수도'],'lb.trait':['Trait','국가 특성'],'lb.troops':['Troops','병종'],'lb.super':['Super perks','슈퍼 특전'],
  'lb.superTxt':['Income +50% · cheaper units · bigger start','수입 +50% · 유닛 할인 · 시작 영토 확대'],
  'lb.perk':['Winner\'s perk','1등 특전'],'lb.perkX2':['Half-price troops','병력 반값'],'lb.perkLoc':['Choose your start','시작 위치 지정'],
- 'lb.secs':['{0}s','{0}초'],
+ 'lb.secs':['{0}s','{0}초'],'lb.leader':['Leader','지도자'],'f.leader':['🎖 {0} {1} now leads {2}','🎖 {0} {1}이(가) {2}을(를) 이끕니다'],
  'pf.new':['New commander','새 지휘관'],'pf.next':['{0} to {1}','{1}까지 {0}'],'pf.top':['Top tier','최고 등급'],'pf.rate':['Win rate','승률'],'pf.best':['Best ⭐','최고 ⭐'],
  'pf.sig':['Signature nation: {0} {1} · {2} wins','대표 국가: {0} {1} · {2}승'],'pf.sigPlay':['Most played: {0} {1} · {2} games · win with it to make it your signature','가장 많이 한 나라: {0} {1} · {2}판 · 이 나라로 이기면 대표 국가가 됩니다'],
  'pf.sigNone':['Win a game and that country becomes your signature nation','한 판 이기면 그 나라가 대표 국가가 됩니다'],
@@ -1791,6 +1799,62 @@ function strength(n){return n.units*(1+.15*n.lv.atk)*(1+.2*n.lv.hp)+n.cells*.03+
 // the counter triangle (shown on the unit cards): Assault beats Archers, Archers beat Guards, Guards beat Assault
 const CTR={melee:{ranged:1.6,def:.7},ranged:{def:1.6,melee:.7},def:{melee:1.6,ranged:.7}};
 const BEATS={melee:'ranged',ranged:'def',def:'melee'},T_IC={melee:'⚔',ranged:'🏹',def:'🛡',farm:'🌾'},T_IDX={farm:0,melee:1,ranged:2,def:3};
+// ---- national leaders (as of mid-2026; edit here when they change). Kind: p president, pm prime minister, c chancellor,
+// s party/supreme leader, k monarch, pr prince, e emir, cp crown prince, pope. f marks a woman, for the drawn portrait only.
+const LEADERS={
+ US:['Donald Trump','도널드 트럼프','p'],KR:['Lee Jae-myung','이재명','p'],KP:['Kim Jong Un','김정은','s'],JP:['Sanae Takaichi','다카이치 사나에','pm','f'],CN:['Xi Jinping','시진핑','p'],
+ TW:['Lai Ching-te','라이칭더','p'],RU:['Vladimir Putin','블라디미르 푸틴','p'],UA:['Volodymyr Zelenskyy','볼로디미르 젤렌스키','p'],GB:['Keir Starmer','키어 스타머','pm'],FR:['Emmanuel Macron','에마뉘엘 마크롱','p'],
+ DE:['Friedrich Merz','프리드리히 메르츠','c'],IT:['Giorgia Meloni','조르자 멜로니','pm','f'],ES:['Pedro Sánchez','페드로 산체스','pm'],PT:['Luís Montenegro','루이스 몬테네그루','pm'],BE:['Bart De Wever','바르트 더베버','pm'],
+ PL:['Donald Tusk','도날트 투스크','pm'],NO:['Jonas Gahr Støre','요나스 가르 스퇴레','pm'],FI:['Alexander Stubb','알렉산데르 스투브','p'],DK:['Mette Frederiksen','메테 프레데릭센','pm','f'],AT:['Christian Stocker','크리스티안 슈토커','c'],
+ GR:['Kyriakos Mitsotakis','키리아코스 미초타키스','pm'],TR:['Recep Tayyip Erdoğan','레제프 타이이프 에르도안','p'],SA:['Mohammed bin Salman','무함마드 빈 살만','cp'],AE:['Mohamed bin Zayed','무함마드 빈 자이드','p'],EG:['Abdel Fattah el-Sisi','압델 파타 엘시시','p'],
+ IN:['Narendra Modi','나렌드라 모디','pm'],PK:['Shehbaz Sharif','셰바즈 샤리프','pm'],ID:['Prabowo Subianto','프라보워 수비안토','p'],PH:['Ferdinand Marcos Jr.','페르디난드 마르코스','p'],VN:['Tô Lâm','또 럼','s'],
+ MY:['Anwar Ibrahim','안와르 이브라힘','pm'],SG:['Lawrence Wong','로런스 웡','pm'],AU:['Anthony Albanese','앤서니 앨버니지','pm'],NZ:['Christopher Luxon','크리스토퍼 럭슨','pm'],CA:['Mark Carney','마크 카니','pm'],
+ MX:['Claudia Sheinbaum','클라우디아 셰인바움','p','f'],BR:['Lula da Silva','룰라 다 시우바','p'],AR:['Javier Milei','하비에르 밀레이','p'],CL:['José Antonio Kast','호세 안토니오 카스트','p'],CU:['Miguel Díaz-Canel','미겔 디아스카넬','p'],
+ ZA:['Cyril Ramaphosa','시릴 라마포사','p'],NG:['Bola Tinubu','볼라 티누부','p'],KE:['William Ruto','윌리엄 루토','p'],ET:['Abiy Ahmed','아비 아머드','pm'],MA:['Mohammed VI','모하메드 6세','k'],
+ DZ:['Abdelmadjid Tebboune','압델마지드 테분','p'],KZ:['Kassym-Jomart Tokayev','카심조마르트 토카예프','p'],CZ:['Andrej Babiš','안드레이 바비시','pm'],RO:['Nicușor Dan','니쿠쇼르 단','p'],IE:['Micheál Martin','미홀 마틴','pm'],
+ VA:['Leo XIV','레오 14세','pope'],MC:['Albert II','알베르 2세','pr'],LI:['Hans-Adam II','한스아담 2세','pr'],MT:['Robert Abela','로버트 아벨라','pm'],QA:['Tamim bin Hamad','타밈 빈 하마드','e'],
+ JO:['Abdullah II','압둘라 2세','k'],SY:['Ahmed al-Sharaa','아흐마드 알샤라','p'],BY:['Alexander Lukashenko','알렉산드르 루카셴코','p'],AZ:['Ilham Aliyev','일함 알리예프','p'],UZ:['Shavkat Mirziyoyev','샵카트 미르지요예프','p'],
+ LK:['Anura Kumara Dissanayake','아누라 쿠마라 디사나야케','p'],KH:['Hun Manet','훈 마넷','pm'],IL:['Benjamin Netanyahu','베냐민 네타냐후','pm'],
+};
+const LEAD_T={p:['President','대통령'],pm:['Prime Minister','총리'],c:['Chancellor','총리'],s:['Leader','지도자'],k:['King','국왕'],pr:['Prince','대공'],e:['Emir','에미르'],cp:['Crown Prince','왕세자'],pope:['Pope','교황'],x:['Leader','지도자']};
+function leaderOf(ci){const a2=META[ci].a2||'',L=LEADERS[a2];if(!L)return {name:'',title:L2(...LEAD_T.x),kind:'x',f:0,a2};return {name:LANG==='ko'?L[1]:L[0],title:L2(...LEAD_T[L[2]]),kind:L[2],f:L[3]==='f'?1:0,a2};}
+// a drawn portrait, not a likeness: skin, hair and dress vary by country; crowns, headdresses and the papal mitre by office
+// skin tone by region, so the drawn leader roughly fits the country
+const SK_DARK=new Set('NG KE ET ZA GH CI SN CM CD AO TZ UG ZW ZM MZ MW RW BI SS SD SO ER ML NE TD BF GN SL LR GA CG CF NA BW MG TG BJ GM GW GQ LS SZ DJ HT JM'.split(' ')),
+  SK_BROWN=new Set('IN PK BD LK NP MM KH TH LA VN PH ID MY BR MX CO VE PE EC BO PY CU DO GT HN NI SV PA EG SA AE QA KW BH OM YE IQ IR SY JO LB IL PS TR AF DZ MA TN LY AZ UZ TJ TM KG KZ MN'.split(' ')),
+  SK_TAN=new Set('ES PT IT GR AR CL UY TW'.split(' '));
+const SKIN_OF=(a2,h)=>SK_DARK.has(a2)?3+((h>>>4)&1):SK_BROWN.has(a2)?1+((h>>>4)&1):SK_TAN.has(a2)?1:0;
+const ldrCache=new Map();
+function leaderImg(ci){
+  let u=ldrCache.get(ci);if(u)return u;const ld=leaderOf(ci),cu=getCulture(ci),h=hash((META[ci].en||'')+'ldr'),S=64;
+  const c=document.createElement('canvas');c.width=c.height=S*2;const g=c.getContext('2d');g.scale(2,2);
+  const skins=['#efc8a6','#e2b38b','#c98e63','#9a6440','#6e4529'],skin=skins[SKIN_OF(ld.a2,h)],hairs=['#2a2421','#4a3426','#8a8580','#d8d2c8','#6b4a2b','#c9a27a'],hair=ld.kind==='pope'?'#ece6dc':hairs[(h>>>5)%hairs.length];
+  g.fillStyle=cu.c1;g.beginPath();g.arc(32,32,32,0,6.283);g.fill();
+  g.save();g.beginPath();g.arc(32,32,32,0,6.283);g.clip();
+  // shoulders and dress
+  const gulf=ld.kind==='cp'||ld.kind==='e'||(ld.a2==='AE'),robe=ld.kind==='pope'?'#f4efe6':gulf?'#f6f3ec':ld.kind==='s'?'#3b3f46':['#1f2d48','#2b2b30','#3a3f52','#24324a'][(h>>>7)%4];
+  g.fillStyle=robe;g.beginPath();g.ellipse(32,66,26,22,0,0,6.283);g.fill();
+  if(!gulf&&ld.kind!=='pope'){g.fillStyle='#fff';g.beginPath();g.moveTo(26,46);g.lineTo(32,58);g.lineTo(38,46);g.fill();
+    if(ld.kind==='s'){g.fillStyle=robe;g.fillRect(27,45,10,6);}else{g.fillStyle=ld.f?cu.c2:['#b8322a','#2f5fb3','#3a7a4a','#7a3a8a'][(h>>>9)%4];g.beginPath();g.moveTo(31,48);g.lineTo(33,48);g.lineTo(34.5,58);g.lineTo(32,61);g.lineTo(29.5,58);g.fill();}}
+  if(ld.kind==='k'||ld.kind==='pr'){g.fillStyle='#b8322a';g.fillRect(14,50,36,4);}
+  // head
+  g.fillStyle=skin;g.fillRect(28,38,8,8);g.beginPath();g.ellipse(32,30,11,13,0,0,6.283);g.fill();
+  // hair or headdress
+  if(gulf){g.fillStyle='#fbfaf6';g.beginPath();g.moveTo(18,30);g.quadraticCurveTo(18,14,32,14);g.quadraticCurveTo(46,14,46,30);g.lineTo(48,52);g.lineTo(42,48);g.lineTo(42,26);g.lineTo(22,26);g.lineTo(22,48);g.lineTo(16,52);g.closePath();g.fill();
+    g.fillStyle='#222';g.fillRect(19,17,26,3);}
+  else if(ld.kind==='pope'){g.fillStyle='#f4efe6';g.beginPath();g.moveTo(22,22);g.lineTo(32,2);g.lineTo(42,22);g.closePath();g.fill();g.strokeStyle='#d4af37';g.lineWidth=1.5;g.beginPath();g.moveTo(32,4);g.lineTo(32,21);g.moveTo(27,13);g.lineTo(37,13);g.stroke();}
+  else{g.fillStyle=hair;g.beginPath();
+    if(ld.f){g.ellipse(32,26,13,12,0,Math.PI,0);g.fill();g.fillRect(19,24,5,18);g.fillRect(40,24,5,18);}
+    else if((h>>>11)%3===0){g.ellipse(32,22,11.5,7,0,Math.PI,0);g.fill();}
+    else{g.ellipse(32,23,12,9,0,Math.PI,0);g.fill();g.fillRect(20,21,3,8);g.fillRect(41,21,3,8);}}
+  if(ld.kind==='k'||ld.kind==='pr'){g.fillStyle='#e9b949';g.beginPath();g.moveTo(22,18);g.lineTo(24,8);g.lineTo(28,14);g.lineTo(32,6);g.lineTo(36,14);g.lineTo(40,8);g.lineTo(42,18);g.closePath();g.fill();g.strokeStyle='#8a6510';g.lineWidth=1;g.stroke();}
+  // face: two eyes and a small mouth, nothing more
+  g.fillStyle='#2a2421';g.beginPath();g.arc(27.5,31,1.4,0,6.283);g.arc(36.5,31,1.4,0,6.283);g.fill();
+  g.strokeStyle='#7a4a3a';g.lineWidth=1.2;g.beginPath();g.arc(32,35,3,.2*Math.PI,.8*Math.PI);g.stroke();
+  g.restore();g.strokeStyle='rgba(45,39,34,.5)';g.lineWidth=2;g.beginPath();g.arc(32,32,31,0,6.283);g.stroke();
+  u=c.toDataURL();ldrCache.set(ci,u);return u;
+}
+function leaderHTML(ci,cls){const ld=leaderOf(ci);return `<span class="ldr ${cls||''}"><img src="${leaderImg(ci)}" alt=""><span><small>${esc(ld.title)}</small><b>${esc(ld.name||'—')}</b></span></span>`;}
 const TYPE_C={farm:'#5f9a3c',melee:'#c8553d',ranged:'#d39a2a',def:'#3e6fa8',hero:'#d4af37'};
 const UNITS=[
  {t:'farm',  ic:'🌾',nm:'농부',  en:'Farmer', base:22,desc:'도시 주변에서 농사를 지어 골드 수입을 올립니다. 싸우지 않고, 적이 오면 도망칩니다',descEn:'Works the fields around a city for more gold. Never fights and runs from raiders'},
@@ -2123,7 +2187,7 @@ function newMatchCfg(cfg,mp){
   computeBorders();for(const n of G.nations)updateTargets(n);
   const humans=G.nations.filter(n=>n.human);
   if(mp&&humans.length>1)feed(tr('f.joined',humans.map(n=>`${n.flag} ${n.pname||tr('player')}`).join(', ')),'gold');
-  if(myId>=0){const p=G.nations[myId];flyTo(p.lx,p.ly,Math.max(fitScale()*2.2,6));setTimeout(()=>{splash(comboName(p.ci,p.pw),'#ffd84d',undefined,pwDesc(p.pw));splash(tr('sp.howWin',ROUNDS),'#2f6fdf',undefined,tr('sp.howWinB'));if(G.obj&&G.obj.length)splash('🏛 '+G.obj.map(o=>cityNameAt(o.cell)).join(' · '),'#e9b949',undefined,tr('sp.objB',OBJ_FIRST,OBJ_ROUND));},1200);setTimeout(()=>say(p,true),900);NET.hinted2=false;setTimeout(()=>feed(tr('f.hint1'),'gold'),1500);}
+  if(myId>=0){const p=G.nations[myId];flyTo(p.lx,p.ly,Math.max(fitScale()*2.2,6));setTimeout(()=>{{const ld=leaderOf(p.ci);splash(comboName(p.ci,p.pw),'#ffd84d',undefined,(ld.name?`${ld.title} ${ld.name} · `:'')+pwDesc(p.pw));}splash(tr('sp.howWin',ROUNDS),'#2f6fdf',undefined,tr('sp.howWinB'));if(G.obj&&G.obj.length)splash('🏛 '+G.obj.map(o=>cityNameAt(o.cell)).join(' · '),'#e9b949',undefined,tr('sp.objB',OBJ_FIRST,OBJ_ROUND));},1200);setTimeout(()=>say(p,true),900);NET.hinted2=false;setTimeout(()=>feed(tr('f.hint1'),'gold'),1500);}
   else flyTo(W/2,H/2*0.9,fitScale());
   lastWinner&&feed(tr('f.lastWin',lastWinner),'gold');
 }
@@ -2316,7 +2380,7 @@ function declineAndPick(n,idx){
   if(nn.pw===9)spawnUnit(nn,cap,'hero');
   nn.gold=120+r*60;G.borderT=0;
   feed(tr('f.newNation',`${nn.flag} ${comboName(nn.ci,nn.pw)}`,pwDesc(nn.pw)),was?'good':'gold');
-  if(was){ME.nid=id;ME.status='in';$('market').hidden=true;flyTo(nn.lx,nn.ly,Math.max(cam.s,5));setTimeout(()=>{splash(comboName(nn.ci,nn.pw),'#ffd84d');say(nn,true);},300);}
+  if(was){ME.nid=id;ME.status='in';$('market').hidden=true;{const ld=leaderOf(nn.ci);if(ld.name)feed(tr('f.leader',ld.title,ld.name,nn.name),'gold');}flyTo(nn.lx,nn.ly,Math.max(cam.s,5));setTimeout(()=>{splash(comboName(nn.ci,nn.pw),'#ffd84d');say(nn,true);},300);}
 }
 // AI: take the combo with the most stars left on it for the least cost
 function botRowChoice(pid){let bi=0,bv=-1e9;G.row.forEach((r,i)=>{if(i>G.score[pid])return;const v=r.bank-i+SR()*1.5+(META[r.ci].cells.length>200?1:0);if(v>bv){bv=v;bi=i;}});return bi;}
@@ -2820,7 +2884,7 @@ function renderVP(){
   const pid=ME.pid;if(pid===undefined||pid<0||!G.score){setHTML('vpBody','');return;}
   const act=activeOf(pid),dec=G.nations.filter(x=>x.pid===pid&&x.alive&&x.dec);
   setText('vpTitle',tr('vp.title',G.score[pid]|0,G.roundsPaid,ROUNDS));
-  const card=(n,isDec)=>{const b=payOf(n);return `<div class="vn${isDec?' dec':''}"><span class="flag">${n.flag}</span><div><b>${esc(isDec?n.name:comboName(n.ci,n.pw))}</b><small>${isDec?tr('vp.decN'):`${POWERS[n.pw][0]} ${esc(pwDesc(n.pw))} · ★ ${esc(n.tr.name)}`}</small></div><span class="vv">+${b.reg+b.pw}⭐<small>${tr('vp.regs',b.reg)}${b.pw?` · ${POWERS[n.pw][0]}+${b.pw}`:''}</small></span></div>`;};
+  const card=(n,isDec)=>{const b=payOf(n);return `<div class="vn${isDec?' dec':''}"><img class="ldrMini" src="${leaderImg(n.ci)}" alt=""><div><b>${esc(isDec?n.name:comboName(n.ci,n.pw))}</b><small>${isDec?tr('vp.decN'):`${POWERS[n.pw][0]} ${esc(pwDesc(n.pw))} · ★ ${esc(n.tr.name)}`}</small></div><span class="vv">+${b.reg+b.pw}⭐<small>${tr('vp.regs',b.reg)}${b.pw?` · ${POWERS[n.pw][0]}+${b.pw}`:''}</small></span></div>`;};
   const last=G.pays&&G.pays.get(pid);
   setHTML('vpBody',(act?card(act,false):`<p class="hint">${tr('vp.noAct')}</p>`)+dec.map(n=>card(n,true)).join('')+
     `<div class="vwin">${tr('vp.win',ROUNDS,(()=>{const rk=ranking(),me=rk.find(x=>x.pid===pid),i=rk.indexOf(me);return i===0?tr('vp.lead',(G.score[pid]|0)-(G.score[rk[1]?rk[1].pid:pid]|0)):tr('vp.behind',i+1,(G.score[rk[0].pid]|0)-(G.score[pid]|0));})())}</div>`+
@@ -2837,7 +2901,7 @@ function renderMarket(){
   setText('mkEye',tr('mk.eye',sc));setText('mkTitle',tr(act?'mk.titleDec':'mk.titleNew'));
   setHTML('mkLead',act?tr('mk.leadDec',`${act.flag} ${esc(act.name)}`):tr('mk.leadNew'));
   setHTML('mkRow',G.row.map((r,i)=>{const m=META[r.ci],ok=i<=sc;
-    return `<button class="mkc" type="button" data-i="${i}"${ok?'':' disabled'}><span class="mf">${flagOf(m.a2)}</span><span class="mp">${POWERS[r.pw][0]}</span><b>${esc(comboName(r.ci,r.pw))}</b><small>${esc(pwDesc(r.pw))}</small><small class="mt">★ ${esc(getTrait(r.ci).name)}</small><span class="mcost">${i?`−${i}⭐`:tr('mk.free')}${r.bank?` <em>+${r.bank}⭐</em>`:''}</span></button>`;}).join(''));
+    return `<button class="mkc" type="button" data-i="${i}"${ok?'':' disabled'}><span class="mf">${flagOf(m.a2)}</span><span class="mp">${POWERS[r.pw][0]}</span><b>${esc(comboName(r.ci,r.pw))}</b>${leaderHTML(r.ci,'sm')}<small>${esc(pwDesc(r.pw))}</small><small class="mt">★ ${esc(getTrait(r.ci).name)}</small><span class="mcost">${i?`−${i}⭐`:tr('mk.free')}${r.bank?` <em>+${r.bank}⭐</em>`:''}</span></button>`;}).join(''));
 }
 $('mkRow').addEventListener('click',e=>{const b=e.target.closest('.mkc');if(!b||b.disabled)return;userActed=true;issue(12,+b.dataset.i);$('market').hidden=true;});
 $('mkX').addEventListener('click',()=>{$('market').hidden=true;});
@@ -2936,7 +3000,7 @@ function setText(id,t){if(domMemo.get(id)===t)return;domMemo.set(id,t);$(id).tex
 function updateBar(){
   const n=myNation();const bar=$('bar');
   if(!n){bar.hidden=true;$('sci').hidden=true;return;}bar.hidden=false;
-  setHTML('meName',`<span class="flag">${n.flag}</span>${n.name}${n.sup?' <span class="supbadge">SUPER</span>':''}`);
+  setHTML('meName',`<img class="ldrMini" src="${leaderImg(n.ci)}" alt="" title="${esc(leaderOf(n.ci).title+' '+leaderOf(n.ci).name)}"><span class="flag">${n.flag}</span>${n.name}${n.sup?' <span class="supbadge">SUPER</span>':''}`);
   setText('meSay',`“${n.cul.say}” · ${n.cul.sayKo}`);
   const lt=(n.loot||[]).map(ci=>`${flagOf(META[ci].a2)} ${getTrait(ci).name}`);
   setText('meTrait',`★ ${n.tr.name} · ${n.tr.desc}`+(lt.length?` · +${lt.join(' +')}`:''));$('meTrait').title=n.tr.desc+(lt.length?'\n'+tr('loot.tip')+': '+lt.join(', '):'');
@@ -3006,7 +3070,7 @@ function showPick(){updRe();
   $('lbListen').onclick=()=>{userActed=true;speak(cu.say,cu.lang,true,cu);const vn=packKey(cu)?tr('voice.pack'):voiceName(cu.lang);$('lbListen').title=vn?tr('voice',vn):'';if(vn){toast('🎙 '+vn,'#9fd3ff');}};
   rosterHTML(cu,NATION_COLORS[0]);
   const trt=getTrait(pk.ci);
-  const rows=[[tr('lb.cap'),`🏰 ${cityNameAt(pk.cell)}`]];if(pk.pw>=0)rows.push([tr('lb.power'),`${POWERS[pk.pw][0]} <b style="color:var(--gold)">${esc(pwName(pk.pw))}</b> · ${esc(pwDesc(pk.pw))}`]);
+  const rows=[[tr('lb.leader'),leaderHTML(pk.ci,'big')],[tr('lb.cap'),`🏰 ${cityNameAt(pk.cell)}`]];if(pk.pw>=0)rows.push([tr('lb.power'),`${POWERS[pk.pw][0]} <b style="color:var(--gold)">${esc(pwName(pk.pw))}</b> · ${esc(pwDesc(pk.pw))}`]);
   rows.push([tr('lb.trait'),`<b style="color:var(--ok)">★ ${trt.name}</b> · ${trt.desc}`],[tr('lb.troops'),`${cu.mel} · ${cu.rng}`]);
   if(sup)rows.push([tr('lb.super'),`${tr('lb.superTxt')} · ${supPerk(sup)}`]);
   if(ME.perk==='x2')rows.push([tr('lb.perk'),tr('lb.perkX2')]);
@@ -3553,7 +3617,7 @@ cam.s=fitScale();clampCam();
 applyI18n();$('bLang').textContent=LANG==='ko'?'EN':'한';if(!ON_CLAUDE)$('lgPlay').disabled=true;renderLogin();acctInit();
 newMatch(false);for(let i=0;i<300;i++)step();G.bubbles=[];ME.status='queued';
 $('loading').remove();
-window.__ttm={G,ME,NET,ACCT,BT,REG_N,setLang,play,recordScore,step,draw,cam,zoomAt,startLobby,beginMatch,TOTAL_LAND,sprite,getCulture,META,stateHash,issue};
+window.__ttm={G,ME,NET,ACCT,BT,REG_N,leaderImgT:leaderImg,setLang,play,recordScore,step,draw,cam,zoomAt,startLobby,beginMatch,TOTAL_LAND,sprite,getCulture,META,stateHash,issue};
 requestAnimationFrame(frame);
 })();
 </script>
