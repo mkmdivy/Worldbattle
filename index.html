@@ -667,8 +667,31 @@ html.mobile .ob{font-size:14px;padding:6px 12px}
 html.mobile #fronts{top:calc(env(safe-area-inset-top,0px) + 104px)}
 html.mobile #tr{top:calc(env(safe-area-inset-top,0px) + 148px)}
 html.mobile #tgt{font-size:14px}
-html.mobile .ub .bt{font-size:13px;top:9px;left:9px}
+html.mobile .ub .bt{font-size:13px;top:9px;left:8px}
+html.mobile .ub{padding-top:24px;min-height:100px}
+html.mobile #hud:has(#sci:not([hidden])) #objs{display:none}
+.ub .bt{background:var(--paper2);border-radius:999px;padding:1px 6px;line-height:1.3}
+.ub{padding-top:20px}
 html.mobile #mRank .gap{font-size:14px}
+
+.pf{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;text-align:left;margin:4px 0 12px;padding:14px;border-radius:16px;background:var(--card);border:1.5px solid var(--line);box-shadow:0 2px 0 var(--edge)}
+.pfAv{position:relative;width:76px;height:76px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,#fff,var(--paper2));box-shadow:0 0 0 4px var(--tc),0 0 0 7px rgba(255,255,255,.8),0 6px 14px rgba(60,40,20,.25)}
+.pfAv span{font-size:42px;line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+.pfAv i{position:absolute;right:-6px;bottom:-4px;font-style:normal;font-size:24px;filter:drop-shadow(0 2px 0 rgba(0,0,0,.2))}
+.pf.new .pfAv span{opacity:.7}
+.pfName{font:900 22px/1.1 var(--f-display);color:var(--ink)}
+.pfTier{display:flex;align-items:baseline;gap:8px;margin-top:4px}.pfTier b{font:800 15px var(--f-body);color:var(--tc)}.pfTier span{font:800 15px var(--f-num);color:var(--ink2)}
+.pfBar{height:7px;border-radius:4px;background:var(--paper2);margin:6px 0 3px;overflow:hidden}.pfBar i{display:block;height:100%;border-radius:4px}
+.pfMain small{font-size:12.5px;color:var(--muted);font-weight:700}
+.pfStats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:-4px 0 10px}
+.pfStats div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:7px 4px;text-align:center}
+.pfStats b{display:block;font:800 19px var(--f-num);color:var(--ink)}.pfStats span{font-size:11.5px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+.pfSig{font-size:14px;font-weight:700;color:var(--ink2);margin-bottom:10px}
+.pfHall{display:flex;flex-direction:column;gap:3px;align-items:stretch;text-align:left;margin-bottom:10px;padding:10px 12px;border-radius:12px;background:#fff6dc;border:1.5px dashed #b8902a}
+.pfHall span{font:800 11px var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:#8a6510}
+.pfHall em{font-style:normal;font-weight:800;font-size:14px;display:flex;justify-content:space-between;gap:8px}.pfHall em small{color:var(--muted);font-weight:800}
+html.mobile .logo{font-size:40px;margin:0 auto}html.mobile .logoT{font-size:34px}html.mobile .login .lead{margin:4px auto 10px;font-size:15px}
+html.mobile .pfAv{width:84px;height:84px}html.mobile .pfAv span{font-size:46px}html.mobile .pfName{font-size:24px}html.mobile .pfStats b{font-size:21px}html.mobile .pfSig{font-size:15px}
 </style>
 
 <canvas id="map" data-i18n-aria="map.aria" aria-label="World map battlefield"></canvas>
@@ -777,6 +800,7 @@ html.mobile #mRank .gap{font-size:14px}
     <div class="logo" aria-hidden="true">⚔️</div>
     <div class="big logoT" data-i18n="title">World Battle</div>
     <p class="lead" data-i18n="lg.sub">Start as a random country on the real world map. Grow, research, conquer.</p>
+    <div id="lgProfile"></div>
     <div id="lgAcct"></div>
     <div class="lgActs"><button class="btn pri play" id="lgPlay" type="button" data-i18n="lg.play">Play</button><button class="btn" id="lgBoard" type="button" data-i18n="lg.board">🏆 Leaderboard</button></div>
   </div>
@@ -928,6 +952,10 @@ const I18N={
  'lb.superTxt':['Income +50% · cheaper units · bigger start','수입 +50% · 유닛 할인 · 시작 영토 확대'],
  'lb.perk':['Winner\'s perk','1등 특전'],'lb.perkX2':['Half-price troops','병력 반값'],'lb.perkLoc':['Choose your start','시작 위치 지정'],
  'lb.secs':['{0}s','{0}초'],
+ 'pf.new':['New commander','새 지휘관'],'pf.next':['{0} to {1}','{1}까지 {0}'],'pf.top':['Top tier','최고 등급'],'pf.rate':['Win rate','승률'],'pf.best':['Best ⭐','최고 ⭐'],
+ 'pf.sig':['Signature nation: {0} {1} · {2} wins','대표 국가: {0} {1} · {2}승'],'pf.sigPlay':['Most played: {0} {1} · {2} games · win with it to make it your signature','가장 많이 한 나라: {0} {1} · {2}판 · 이 나라로 이기면 대표 국가가 됩니다'],
+ 'pf.sigNone':['Win a game and that country becomes your signature nation','한 판 이기면 그 나라가 대표 국가가 됩니다'],
+ 'pf.hall':['Hall of fame','명예의 전당'],'pf.rating':['Rating','레이팅'],'pf.change':['{0} {1} ({2})','{0} {1} ({2})'],
  'obj.tip':['Hidden objective: first to occupy it +{0}⭐, then +{1}⭐ every round while held','숨은 목표: 처음 점령하면 +{0}⭐, 보유하는 동안 라운드마다 +{1}⭐'],
  'obj.hidden':['{0} — find it on the map yourself. First to take it: +{1}⭐, then +{2}⭐ a round','{0} — 위치는 직접 찾으세요. 처음 점령 +{1}⭐, 이후 라운드마다 +{2}⭐'],
  'sp.objFirst':['🏛 {0} is yours! +{1}⭐','🏛 {0} 점령! +{1}⭐'],'sp.obj':['🏛 {0} retaken · +{2}⭐ a round','🏛 {0} 탈환 · 라운드마다 +{2}⭐'],'sp.objLost':['🏛 {0} was taken from you','🏛 {0}을(를) 빼앗겼습니다'],
@@ -1503,6 +1531,10 @@ function sprite(cu,type,color,wt=0,at=0,era=0){
   if(type==='hero'){g.fillStyle='#d4af37';g.beginPath();g.moveTo(10,14);g.lineTo(6,29);g.lineTo(26,29);g.lineTo(22,14);g.fill();}
   const hatT=type==='farm'?(era>=4?'cap':'straw'):era>=4?null:cu.hat;
   hatBack(g,hatT,cu);
+  const TC=TYPE_C[type];
+  if(type==='melee'){g.fillStyle=TC;g.beginPath();g.moveTo(10.6,14);g.lineTo(21.4,14);g.lineTo(23.6,26.5);g.lineTo(8.4,26.5);g.closePath();g.fill();g.strokeStyle='rgba(0,0,0,.35)';g.lineWidth=.6;g.stroke();}
+  if(type==='ranged'){g.save();g.translate(10.2,16);g.rotate(-.5);g.fillStyle='#7a4f2a';g.fillRect(-1.8,-5,3.6,10);g.strokeStyle='rgba(0,0,0,.4)';g.lineWidth=.5;g.strokeRect(-1.8,-5,3.6,10);
+    for(let k=0;k<3;k++){g.fillStyle=['#e8e1d0','#c8553d','#e8e1d0'][k];g.beginPath();g.moveTo(-1.2+k*1.2,-5);g.lineTo(-.6+k*1.2,-7.4);g.lineTo(0+k*1.2,-5);g.fill();}g.restore();}
   g.fillStyle=era>=6?'#7c8794':era>=5&&type!=='farm'?OLIVE_D:'#262626'; g.fillRect(12.4,23,2.8,6); g.fillRect(16.8,23,2.8,6);
   if(era>=4){g.fillStyle='#151515';g.fillRect(12.1,27.2,3.4,1.9);g.fillRect(16.5,27.2,3.4,1.9);}
   const modern=type!=='farm'&&era>=5;
@@ -1517,6 +1549,7 @@ function sprite(cu,type,color,wt=0,at=0,era=0){
     else if(era>=6){g.save();g.shadowColor=color;g.shadowBlur=3;g.strokeStyle=color;g.lineWidth=.9;g.beginPath();g.moveTo(12,15);g.lineTo(16,18.5);g.lineTo(20,15);g.moveTo(16,18.5);g.lineTo(16,23.5);g.stroke();g.restore();}
   }
   g.fillStyle=modern?(era>=6?'#6c7682':'#2f3620'):era===4&&type!=='farm'?'#3a2a1a':cu.c2; g.fillRect(10.4,19,11.2,2);
+  if(type!=='hero'){g.fillStyle=TC;if(type==='farm'){g.fillRect(12.4,17,7.2,7.4);g.fillRect(12.6,13.4,1.6,4);g.fillRect(17.8,13.4,1.6,4);}else{g.fillRect(13.4,13.6,5.2,10.6);g.fillStyle='rgba(255,255,255,.35)';g.fillRect(13.4,13.6,5.2,1.2);}}
   if(at>=1){const tc=TIER_C[at];g.fillStyle=tc;g.beginPath();g.roundRect(12.6,15.2,6.8,3.6,1.4);g.fill();g.strokeStyle='rgba(0,0,0,.45)';g.lineWidth=.6;g.stroke();
     g.fillStyle='rgba(255,255,255,.55)';g.fillRect(13,15.4,2,1.2);
     if(at>=2){g.fillStyle=tc;g.beginPath();g.arc(10.8,15,2,0,6.283);g.arc(21.2,15,2,0,6.283);g.fill();g.stroke();}
@@ -1535,7 +1568,7 @@ function sprite(cu,type,color,wt=0,at=0,era=0){
   if(type==='farm'){ // hoe over the shoulder and a little seed bag
     g.strokeStyle='#8b5a2b';g.lineWidth=1.3;g.beginPath();g.moveTo(21,24);g.lineTo(26,8);g.stroke();
     g.strokeStyle='#9aa3ab';g.lineWidth=1.8;g.beginPath();g.moveTo(25.6,8.6);g.lineTo(29.5,10.5);g.stroke();
-    g.fillStyle='#c9a46a';g.beginPath();g.ellipse(10,21,2.8,3.2,0,0,6.283);g.fill();g.fillStyle='#6fbf4a';g.beginPath();g.arc(10,18.4,1.2,0,6.283);g.fill();
+    g.strokeStyle='#d9a93a';g.lineWidth=1.1;for(let k=-2;k<=2;k++){g.beginPath();g.moveTo(9.5,25);g.lineTo(8.6+k*1.3,15.5);g.stroke();}g.fillStyle='#e9c14f';for(let k=-2;k<=2;k++){g.beginPath();g.ellipse(8.6+k*1.3,15,1,1.9,k*.15,0,6.283);g.fill();}g.fillStyle='#a07a2a';g.fillRect(8,20.4,3.2,1.3);
   } else if(era>=3&&eraWeapon(g,type,era,bl,color,cu,at)){
   } else if(type==='def'){ // tower shield and spear
     g.strokeStyle='#7a5230';g.lineWidth=1.3;g.beginPath();g.moveTo(24.5,28);g.lineTo(25.5,2);g.stroke();g.fillStyle=bl;g.beginPath();g.moveTo(24.6,3);g.lineTo(25.6,-1.5);g.lineTo(26.6,3.2);g.fill();
@@ -1758,6 +1791,7 @@ function strength(n){return n.units*(1+.15*n.lv.atk)*(1+.2*n.lv.hp)+n.cells*.03+
 // the counter triangle (shown on the unit cards): Assault beats Archers, Archers beat Guards, Guards beat Assault
 const CTR={melee:{ranged:1.6,def:.7},ranged:{def:1.6,melee:.7},def:{melee:1.6,ranged:.7}};
 const BEATS={melee:'ranged',ranged:'def',def:'melee'},T_IC={melee:'⚔',ranged:'🏹',def:'🛡',farm:'🌾'},T_IDX={farm:0,melee:1,ranged:2,def:3};
+const TYPE_C={farm:'#5f9a3c',melee:'#c8553d',ranged:'#d39a2a',def:'#3e6fa8',hero:'#d4af37'};
 const UNITS=[
  {t:'farm',  ic:'🌾',nm:'농부',  en:'Farmer', base:22,desc:'도시 주변에서 농사를 지어 골드 수입을 올립니다. 싸우지 않고, 적이 오면 도망칩니다',descEn:'Works the fields around a city for more gold. Never fights and runs from raiders'},
  {t:'melee', ic:'⚔', nm:'돌격병',en:'Assault',base:10,desc:'적진으로 돌격해 땅을 빼앗는 근접 병사',descEn:'Melee soldier who storms enemy land and takes it'},
@@ -2648,16 +2682,16 @@ function draw(){
   // units: nearby soldiers of one nation stack into one figure that grows with the headcount,
   // drawn at a fixed screen size so it stays readable at every zoom
   {const mob=VW<760||IS_TOUCH,cs=(mob?66:56)*(s<3.2?1.5:1)/s,m=new Map(),meId=(G.nations.find(n=>n.isPlayer)||{}).id;
-    for(const u of G.units){if(u.type==='farm'||!vis(u.x,u.y))continue;const k=(Math.floor(u.y/cs)*4096+Math.floor(u.x/cs))*64+u.n;let g=m.get(k);
-      if(!g)m.set(k,g={n:u.n,N:0,sx:0,sy:0,dx:0,dy:0,me:0,ra:0,de:0,he:0,hp:0,hit:0,wa:0});
+    for(const u of G.units){if(!vis(u.x,u.y))continue;const fm=u.type==='farm';if(fm&&s<2.2)continue;const k=((Math.floor(u.y/cs)*4096+Math.floor(u.x/cs))*64+u.n)*2+(fm?1:0);let g=m.get(k);
+      if(!g)m.set(k,g={n:u.n,N:0,sx:0,sy:0,dx:0,dy:0,me:0,ra:0,de:0,he:0,fa:0,hp:0,hit:0,wa:0});
       g.N++;g.sx+=u.x;g.sy+=u.y;g.hp+=u.hp/u.mhp;if(u.hit>0)g.hit=1;if(u.water)g.wa++;
-      if(u.type==='ranged')g.ra++;else if(u.type==='def')g.de++;else if(u.type==='hero')g.he++;else g.me++;
+      if(u.type==='ranged')g.ra++;else if(u.type==='def')g.de++;else if(u.type==='hero')g.he++;else if(fm)g.fa++;else g.me++;
       if(!u.idle){const vx=u.tx-u.x,vy=u.ty-u.y,d=Math.hypot(vx,vy);if(d>.6){g.dx+=vx/d;g.dy+=vy/d;}}}
     const gs=[...m.values()];for(const g of gs){g.X=SX(g.sx/g.N);g.Y=SY(g.sy/g.N);}gs.sort((a,b)=>a.Y-b.Y);
     const base=mob?40:32;
     for(const g of gs){const n=G.nations[g.n],N=g.N,X=g.X,Y=g.Y;
-      const ty=g.he&&g.he*6>=N?'hero':g.ra>g.me&&g.ra>=g.de?'ranged':g.de>g.me?'def':'melee';
-      const sz=Math.round(base*Math.min(2,1+Math.log2(N)*.2)/2)*2,mv=Math.hypot(g.dx,g.dy)/N,face=g.dx<0?-1:1;
+      const ty=g.fa?'farm':g.he&&g.he*6>=N?'hero':g.ra>g.me&&g.ra>=g.de?'ranged':g.de>g.me?'def':'melee';
+      const sz=Math.round(base*(ty==='farm'?.8:1)*Math.min(2,1+Math.log2(N)*.2)/2)*2,mv=Math.hypot(g.dx,g.dy)/N,face=g.dx<0?-1:1;
       // ground disc in nation colour; red while charging, white rim for the player's own stacks
       ctx.globalAlpha=.5;ctx.fillStyle=n.chargeT>0?'#ff4b3e':n.color;ctx.beginPath();ctx.ellipse(X,Y,sz*.5,sz*.18,0,0,6.283);ctx.fill();ctx.globalAlpha=1;
       if(g.n===meId){ctx.strokeStyle='rgba(255,255,255,.85)';ctx.lineWidth=2;ctx.stroke();}
@@ -2676,6 +2710,11 @@ function draw(){
       if(N>=2){const fs=N>=100?16:N>=25?15:13,t=textImg(String(N),`800 ${fs}px "Alegreya Sans","Gowun Dodum",sans-serif`,N>=100?'#ffe08a':'#ffffff',3);
         const bw=t.width+4,bh=fs+6,bx=X+sz*.18,by=Y-sz*.95;ctx.fillStyle='#0a1122';ctx.beginPath();ctx.roundRect(bx-1.5,by-1.5,bw+3,bh+3,8);ctx.fill();
         ctx.fillStyle=n.color;ctx.beginPath();ctx.roundRect(bx,by,bw,bh,7);ctx.fill();drawRec(t,bx+2,by+bh/2-t.height/2);}
+      // type badge on the left: the card colour and icon, plus a smaller one for a strong second type
+      {const br=mob?11:9,bx=X-sz*.36,by=Y-sz*.62;const sec=ty==='farm'||ty==='hero'?null:[['melee',g.me],['ranged',g.ra],['def',g.de]].filter(q=>q[0]!==ty&&q[1]>=N*.3).sort((a,b)=>b[1]-a[1])[0];
+        for(const [t2,r2,ox,oy] of [[ty==='hero'?'hero':ty,br,0,0],...(sec?[[sec[0],br*.72,-br*.9,br*1.25]]:[])]){
+          ctx.fillStyle='#fffaf0';ctx.beginPath();ctx.arc(bx+ox,by+oy,r2+1.6,0,6.283);ctx.fill();ctx.fillStyle=TYPE_C[t2];ctx.beginPath();ctx.arc(bx+ox,by+oy,r2,0,6.283);ctx.fill();
+          const ic=textImg(t2==='hero'?'👑':T_IC[t2],`800 ${Math.round(r2*1.15)}px "Alegreya Sans",sans-serif`,'#ffffff',0);drawRec(ic,bx+ox-ic.width/2,by+oy-ic.height/2+.5);}}
       const hp=g.hp/N;if(hp<.95){const w=sz*.62;ctx.fillStyle='#0a1122';ctx.fillRect(X-w/2-1,Y+sz*.17-1,w+2,5);ctx.fillStyle=hp>.5?'#5fe0a8':'#ff5b52';ctx.fillRect(X-w/2,Y+sz*.17,w*hp,3);}
     }}
   // projectiles, batched by look; glow is a wider translucent pass instead of shadowBlur
@@ -3376,7 +3415,7 @@ function fbLoadAcct(){const u=fbUser();ACCT.user=fbUserApi;
   if(u){ACCT.uid=u.uid;ACCT.anon=false;ACCT.name=u.displayName||'';ACCT.db=fbDbApi;ACCT.canWrite=true;}
   else{ACCT.uid=null;ACCT.anon=false;ACCT.db=null;}}
 function renderLogin(){
-  const a=$('lgAcct');if(!a)return;
+  const a=$('lgAcct');if(!a)return;loadRecord();renderProfile();if(boardDb())subscribeBoard();
   $('lgEn').setAttribute('aria-pressed',LANG==='en');$('lgKo').setAttribute('aria-pressed',LANG==='ko');
   if(!ON_CLAUDE){
     const room=`<small class="room">${tr('lg.room',esc(FB_ROOM))}</small>`;
@@ -3410,21 +3449,51 @@ $('lgAcct').addEventListener('click',async e=>{
 $('login').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.tagName==='INPUT')play();});
 const myName=()=>ACCT.uid?(ACCT.name||tr('player')):ACCT.nick;
 // local board
+// ---- profile: rating, tier, signature nation (the country you have won with most)
+const TIERS=[['Recruit','신병',0,'🪖','#8a7d70'],['Bronze','브론즈',900,'🥉','#a0673a'],['Silver','실버',1050,'🥈','#8b98a5'],['Gold','골드',1200,'🥇','#c9962a'],['Platinum','플래티넘',1350,'💠','#3aa3a3'],['Diamond','다이아몬드',1500,'💎','#4f7fd0'],['Master','마스터',1700,'👑','#8a5cc2']];
+function rankTier(r){let i=0;for(let k=0;k<TIERS.length;k++)if(r>=TIERS[k][2])i=k;const t=TIERS[i],nx=TIERS[i+1];return {i,name:L2(t[0],t[1]),ic:t[3],col:t[4],next:nx?nx[2]:null,from:t[2]};}
+function signature(rec){const nat=rec&&rec.nat;if(!nat)return null;let best=null;for(const a2 in nat){const v=nat[a2]||{},g=v[0]|0,w=v[1]|0;if(!best||w>best.w||(w===best.w&&g>best.g))best={a2,g,w};}return best;}
+function myRecord(){
+  if(ACCT.rec)return ACCT.rec;const all=localScores();const k=ACCT.uid?'u:'+ACCT.uid:'g:'+ACCT.nick;if(all[k])return all[k];
+  if(!ON_CLAUDE&&!ACCT.uid){let last=null;for(const v of Object.values(all))if(!last||(v.last||0)>(last.last||0))last=v;return last;}
+  return null;}
+function loadRecord(){const uid=ACCT.uid;if(!uid||!ACCT.db||ACCT.recFor===uid)return;ACCT.recFor=uid;
+  ACCT.db.doc('scores/'+uid).get().then(s=>{if(s.exists){const r=s.data(),l=localScores()['u:'+uid];ACCT.rec=l&&(l.games||0)>(r.games||0)?l:r;renderProfile();}}).catch(()=>{});}
+function renderProfile(){
+  const box=$('lgProfile');if(!box)return;const r=myRecord(),games=r?r.games|0:0,wins=r?r.wins|0:0,rating=r&&r.rating?r.rating|0:1000,t=rankTier(rating),sig=signature(r);
+  const ci=sig?META.findIndex(m=>m.a2===sig.a2):-1,name=ACCT.name||(r&&r.name)||(ACCT.uid?tr('player'):ACCT.nick);
+  const pct=t.next?Math.max(0,Math.min(100,(rating-t.from)/(t.next-t.from)*100)):100;
+  const top=(ACCT.rows||[]).slice(0,3);
+  box.innerHTML=`<div class="pf${games?'':' new'}">
+    <div class="pfAv" style="--tc:${t.col}"><span>${sig?flagOf(sig.a2):'🌍'}</span><i>${t.ic}</i></div>
+    <div class="pfMain"><div class="pfName">${esc(games?name:tr('pf.new'))}</div>
+      <div class="pfTier" style="--tc:${t.col}"><b>${t.ic} ${esc(t.name)}</b><span>${rating}</span></div>
+      <div class="pfBar"><i style="width:${pct}%;background:${t.col}"></i></div>
+      <small>${t.next?tr('pf.next',t.next-rating,esc(rankTier(t.next).name)):tr('pf.top')}</small></div>
+    </div>
+    <div class="pfStats"><div><b>${games}</b><span>${tr('bd.games')}</span></div><div><b>${wins}</b><span>${tr('bd.wins')}</span></div><div><b>${games?Math.round(wins/games*100):0}%</b><span>${tr('pf.rate')}</span></div><div><b>${r&&r.bestS?r.bestS:'—'}</b><span>${tr('pf.best')}</span></div></div>
+    <div class="pfSig">${sig&&sig.w?tr('pf.sig',flagOf(sig.a2),esc(locName(ci)),sig.w):sig?tr('pf.sigPlay',flagOf(sig.a2),esc(locName(ci)),sig.g):tr('pf.sigNone')}</div>
+    ${top.length?`<div class="pfHall"><span>${tr('pf.hall')}</span>${top.map((q,i)=>`<em>${['🥇','🥈','🥉'][i]} ${flagOf(q.nation)} ${esc(q.name||tr('player'))} <small>${q.rating?rankTier(q.rating).ic+' '+(q.rating|0):q.pts|0}</small></em>`).join('')}</div>`:''}`;
+}
 function localScores(){try{return JSON.parse(localStorage.getItem('ttm_scores')||'{}');}catch(e){return {};}}
 function recordScore(me,rank){
   const best=Math.round(me.peak/TOTAL_LAND*1000)/10,pts=Math.max(5,Math.round(100*Math.pow(.72,rank-1)))+Math.round(best)+Math.floor(me.kills/25),win=rank===1?1:0;
-  const add=o=>({pts:(o.pts||0)+pts,games:(o.games||0)+1,wins:(o.wins||0)+win,best:Math.max(o.best||0,best),kills:(o.kills||0)+me.kills,last:Date.now(),nation:META[me.ci].a2||'',...(ON_CLAUDE?{}:{name:myName()})});
-  try{const all=localScores(),k=ACCT.uid?'u:'+ACCT.uid:'g:'+ACCT.nick;all[k]={...add(all[k]||{}),name:myName()};localStorage.setItem('ttm_scores',JSON.stringify(all));}catch(e){}
-  $('endPts').textContent=tr('end.pts',pts);
+  const N=Math.max(2,ranking().length),S=(N-rank)/(N-1),dr=Math.round(64*(S-.5))+(win?12:0),sc=G.score?G.score[me.pid]|0:0,a2=META[me.ci].a2||'';
+  const add=o=>{const nat={...(o.nat||{})},v=nat[a2]||[0,0];if(a2)nat[a2]=[(v[0]|0)+1,(v[1]|0)+win];
+    return {pts:(o.pts||0)+pts,games:(o.games||0)+1,wins:(o.wins||0)+win,best:Math.max(o.best||0,best),kills:(o.kills||0)+me.kills,last:Date.now(),nation:a2,
+      rating:Math.max(100,(o.rating||1000)+dr),bestS:Math.max(o.bestS||0,sc),nat,...(ON_CLAUDE?{}:{name:myName()})};};
+  ACCT.lastDr=dr;
+  try{const all=localScores(),k=ACCT.uid?'u:'+ACCT.uid:'g:'+ACCT.nick;all[k]={...add(all[k]||{}),name:myName()};localStorage.setItem('ttm_scores',JSON.stringify(all));ACCT.rec=all[k];}catch(e){}
+  {const nr=ACCT.rec&&ACCT.rec.rating||1000,t=rankTier(nr);$('endPts').textContent=tr('end.pts',pts)+' · '+tr('pf.change',t.ic,nr,(dr>=0?'+':'')+dr);}
   if(ACCT.db&&ACCT.uid&&ACCT.canWrite!==false){
     const ref=ACCT.db.doc('scores/'+ACCT.uid);
-    ref.get().then(s=>ref.set(add(s.exists?s.data():{}))).then(()=>feed(tr('bd.saved',pts),'gold')).catch(()=>{ACCT.canWrite=false;feed(tr('bd.savedLocal',pts),'gold');});
+    ref.get().then(s=>{const v=add(s.exists?s.data():{});ACCT.rec=v;return ref.set(v);}).then(()=>feed(tr('bd.saved',pts),'gold')).catch(()=>{ACCT.canWrite=false;feed(tr('bd.savedLocal',pts),'gold');});
   }else feed(tr('bd.savedLocal',pts),'gold');
 }
 const boardDb=()=>ACCT.db||(!ON_CLAUDE&&FB.ok?fbDbApi:null);
 function subscribeBoard(){
   const db=boardDb();if(ACCT.unsub||!db)return;
-  try{ACCT.unsub=db.collection('scores').orderBy('pts','desc').limit(50).onSnapshot(snap=>{ACCT.rows=snap.docs.map(d=>({id:d.id,...d.data()}));if(!$('board').hidden)renderBoard();},()=>{ACCT.rows=[];ACCT.unsub=null;});}catch(e){ACCT.rows=[];}
+  try{ACCT.unsub=db.collection('scores').orderBy('pts','desc').limit(50).onSnapshot(snap=>{ACCT.rows=snap.docs.map(d=>({id:d.id,...d.data()}));if(!$('board').hidden)renderBoard();if(!$('login').hidden)renderProfile();},()=>{ACCT.rows=[];ACCT.unsub=null;});}catch(e){ACCT.rows=[];}
 }
 async function renderBoard(){
   $('bdG').setAttribute('aria-selected',ACCT.tab==='g');$('bdL').setAttribute('aria-selected',ACCT.tab==='l');
@@ -3438,8 +3507,8 @@ async function renderBoard(){
     const all=localScores();rows=Object.entries(all).map(([k,v])=>({...v,me:k===(ACCT.uid?'u:'+ACCT.uid:'g:'+ACCT.nick)})).sort((a,b)=>b.pts-a.pts);
   }
   if(!rows.length){body.innerHTML=`<p class="hint">${tr('bd.empty')}</p>`;return;}
-  body.innerHTML=`<div class="bd head"><span>#</span><span>${tr('bd.cols')}</span><span>${tr('bd.pts')}</span><span>${tr('bd.wins')}</span><span>${tr('bd.games')}</span><span>${tr('bd.best')}</span></div>`+
-    rows.map((r,i)=>`<div class="bd${r.me?' me':''}"><span class="rk">${i+1}</span><span class="nm"><span class="flag">${flagOf(r.nation)}</span> ${esc(r.name)}${r.me?` <small>(${tr('bd.you')})</small>`:''}</span><span class="pt">${r.pts|0}</span><span>${r.wins|0}</span><span>${r.games|0}</span><span>${(+r.best||0).toFixed(1)}%</span></div>`).join('');
+  body.innerHTML=`<div class="bd head"><span>#</span><span>${tr('bd.cols')}</span><span>${tr('bd.pts')}</span><span>${tr('bd.wins')}</span><span>${tr('bd.games')}</span><span>${tr('pf.rating')}</span></div>`+
+    rows.map((r,i)=>`<div class="bd${r.me?' me':''}"><span class="rk">${i+1}</span><span class="nm"><span class="flag">${flagOf(r.nation)}</span> ${esc(r.name)}${r.me?` <small>(${tr('bd.you')})</small>`:''}</span><span class="pt">${r.pts|0}</span><span>${r.wins|0}</span><span>${r.games|0}</span><span>${r.rating?rankTier(r.rating).ic+' '+(r.rating|0):'—'}</span></div>`).join('');
 }
 function openBoard(){ACCT.tab=boardDb()?ACCT.tab:'l';$('board').hidden=false;renderBoard();}
 $('bBoard').addEventListener('click',()=>{userActed=true;openBoard();});
