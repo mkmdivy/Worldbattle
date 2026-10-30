@@ -700,6 +700,17 @@ html.mobile .pfAv{width:84px;height:84px}html.mobile .pfAv span{font-size:46px}h
 .ldrMini{width:30px;height:30px;border-radius:50%;vertical-align:middle;margin-right:6px;box-shadow:0 1px 0 var(--edge)}
 .vn .ldrMini{width:40px;height:40px;margin:0}
 html.mobile .ldr.big img{width:60px;height:60px}html.mobile .ldr.big b{font-size:19px}html.mobile .ldrMini{width:34px;height:34px}html.mobile .ldr.sm b{font-size:13px}
+
+#ab_auto{display:none!important}
+#buy{grid-template-columns:repeat(3,1fr)!important}
+.ub.st{min-width:84px;padding:18px 6px 8px}.ub.st .co{background:none;box-shadow:none;color:var(--ink2);font:700 11px var(--f-body);padding:0;white-space:normal;line-height:1.2}
+.ub.st.on{color:#fff;border-color:rgba(0,0,0,.25)}.ub.st.on .co,.ub.st.on .ct{color:rgba(255,255,255,.9)}
+.ub.st.farm.on{background:#5f9a3c;box-shadow:0 2px 0 #3d6a22}.ub.st.melee.on{background:#c8553d;box-shadow:0 2px 0 #8f3524}.ub.st.def.on{background:#3e6fa8;box-shadow:0 2px 0 #284d7a}
+.ub.st.on::before{background:rgba(0,0,0,.18)}
+.ub.st .nm{font:900 15px var(--f-display)}
+html.mobile #acts{grid-template-columns:repeat(3,1fr)}
+html.mobile .ub.st{min-height:104px;padding-top:22px}html.mobile .ub.st .ic{font-size:34px}html.mobile .ub.st .nm{font-size:19px}html.mobile .ub.st .co{font-size:12.5px}
+html.mobile .ub.st .ct{font-size:14px}
 </style>
 
 <canvas id="map" data-i18n-aria="map.aria" aria-label="World map battlefield"></canvas>
@@ -884,8 +895,8 @@ const I18N={
  'f.newCity':['🏙 New city: {0} {1}','🏙 새 도시: {0} {1}'],
  'f.super':['✨ Super nation {0} appears! ({1})','✨ 슈퍼 국가 {0} 등장! ({1})'],
  'f.joined':['👥 {0} join the war!','👥 {0} 참전!'],
- 'f.hint1':['💡 Gold builds up on its own. Tap a unit button to keep producing it. Start with 🌾 Farmers to grow your income','💡 골드는 자동으로 쌓입니다. 유닛 버튼을 누르면 계속 생산돼요. 먼저 🌾 농부를 켜서 돈을 불려 보세요'],
- 'f.hint2':['💡 Borders met. Turn on ⚔ Assault to push and 🛡 Guards to hold the line','💡 국경이 맞닿았어요. ⚔ 돌격병 생산을 켜서 밀고, 🛡 수비병으로 막으세요'],
+ 'f.hint1':['💡 Gold is spent for you. Start on 🌾 Grow for income, then ⚔ Attack to take land','💡 골드는 알아서 쓰입니다. 🌾 성장으로 수입을 늘린 뒤 ⚔ 공격으로 땅을 넓히세요'],
+ 'f.hint2':['💡 Borders met. ⚔ Attack to push, 🛡 Defend if they push back','💡 국경이 맞닿았어요. ⚔ 공격으로 밀고, 밀리면 🛡 방어로'],
  'f.lastWin':['👑 Last game\'s winner: {0}','👑 지난 판 1등: {0}'],
  'f.up':['{0} {1} Lv{2} · {3}','{0} {1} Lv{2} · {3}'],
  'f.built':['{0} city built: {1}','{0} 도시 건설: {1}'],
@@ -959,7 +970,14 @@ const I18N={
  'lb.cap':['Capital','시작 수도'],'lb.trait':['Trait','국가 특성'],'lb.troops':['Troops','병종'],'lb.super':['Super perks','슈퍼 특전'],
  'lb.superTxt':['Income +50% · cheaper units · bigger start','수입 +50% · 유닛 할인 · 시작 영토 확대'],
  'lb.perk':['Winner\'s perk','1등 특전'],'lb.perkX2':['Half-price troops','병력 반값'],'lb.perkLoc':['Choose your start','시작 위치 지정'],
- 'lb.secs':['{0}s','{0}초'],'lb.leader':['Leader','지도자'],'f.leader':['🎖 {0} {1} now leads {2}','🎖 {0} {1}이(가) {2}을(를) 이끕니다'],
+ 'lb.secs':['{0}s','{0}초'],
+ 'st.grow':['Grow','성장'],'st.atk':['Attack','공격'],'st.def':['Defend','방어'],
+ 'st.growS':['🌾 Farmers · more gold','🌾 농부 · 골드 증가'],'st.atkS':['⚔ Attackers · take land','⚔ 공격병 · 땅 빼앗기'],'st.defS':['🛡 Guards · hold borders','🛡 수비병 · 국경 지키기'],
+ 'st.growD':['new troops are mostly Farmers','새로 뽑는 병력은 대부분 농부'],'st.atkD':['new troops are mostly Attackers','새로 뽑는 병력은 대부분 공격병'],'st.defD':['new troops are mostly Guards','새로 뽑는 병력은 대부분 수비병'],
+ 't.stance':['{0} {1}: {2}','{0} {1}: {2}'],
+ 'adv.grow':['Nobody near yet: stay on 🌾 Grow, gold now pays off all game','아직 주변에 적이 없음: 🌾 성장 유지, 지금 골드가 끝까지 갑니다'],
+ 'adv.defend':['{0} is pushing you back: switch to 🛡 Defend','{0}에게 밀리는 중: 🛡 방어로 전환'],
+ 'adv.turtle':['{0} hides behind Guards: mass ⚔ Attackers to break through','{0}는 수비병 위주: ⚔ 공격병을 모아 돌파'],'lb.leader':['Leader','지도자'],'f.leader':['🎖 {0} {1} now leads {2}','🎖 {0} {1}이(가) {2}을(를) 이끕니다'],
  'pf.new':['New commander','새 지휘관'],'pf.next':['{0} to {1}','{1}까지 {0}'],'pf.top':['Top tier','최고 등급'],'pf.rate':['Win rate','승률'],'pf.best':['Best ⭐','최고 ⭐'],
  'pf.sig':['Signature nation: {0} {1} · {2} wins','대표 국가: {0} {1} · {2}승'],'pf.sigPlay':['Most played: {0} {1} · {2} games · win with it to make it your signature','가장 많이 한 나라: {0} {1} · {2}판 · 이 나라로 이기면 대표 국가가 됩니다'],
  'pf.sigNone':['Win a game and that country becomes your signature nation','한 판 이기면 그 나라가 대표 국가가 됩니다'],
@@ -974,12 +992,12 @@ const I18N={
  'vp.obj':['hidden cities (+{0}⭐ first, +{1}⭐/round)','숨은 도시 (첫 점령 +{0}⭐, 라운드마다 +{1}⭐)'],
  'adv.thin':['Spread thin (army cap −{0}%): decline and start fresh','과잉 확장(병력 상한 −{0}%): 쇠퇴하고 새로 시작할 때'],
  'adv.farm':['No enemy yet: build Farmers first, gold now pays off all game','아직 적이 없음: 농부부터. 지금 늘린 골드가 끝까지 갑니다'],
- 'adv.expand':['Grab free land with Assault before borders close','국경이 닫히기 전에 돌격병으로 빈 땅 확보'],
+ 'adv.expand':['Farms are full: ⚔ Attack to grab free land before borders close','농부는 충분: ⚔ 공격으로 국경이 닫히기 전에 빈 땅 확보'],
  'adv.expandObj':['Grab land, and look for {0} on the map','땅을 넓히고 지도에서 {0}을(를) 찾으세요'],
  'adv.counter':['{0} fields mostly {1} → build {2}','{0} 주력은 {1} → {2} 생산'],
- 'adv.final':['Final rounds: hold your regions with Guards, every region is ⭐','마지막 라운드: 수비병으로 지역을 지키세요, 지역이 곧 ⭐'],
- 'adv.farmWar':['At war with few farmers: add a couple, gold keeps the army coming','전쟁 중 농부 부족: 몇 명 더, 골드가 병력을 만듭니다'],
- 'adv.war':['Push {0} with Assault, Archers behind, Guards on threatened borders','{0}에게 돌격병으로 밀고, 궁수는 뒤에서, 위험한 국경엔 수비병'],'lb.power':['Power','특수 능력'],'lb.rowHead':['Pick your combo · you start with {0}⭐','조합 고르기 · 시작 ⭐ {0}'],'over.tip':['Spread thin: army cap −{0}% (every region beyond {1} costs 2.5%)','과잉 확장: 병력 상한 −{0}% ({1}개 넘는 지역마다 2.5%)'],'f.over':['⚠ Your army is spread thin (cap −{0}%). Small World players decline here and start a fresh nation.','⚠ 병력이 얇게 퍼졌습니다 (상한 −{0}%). 스몰 월드라면 여기서 쇠퇴하고 새 나라를 시작할 때입니다.'],'lb.reroll':['🎲 Reroll ({0} left)','🎲 다시 뽑기 ({0}회 남음)'],'lb.go':['Start now','바로 시작'],'lb.goAll':['Everyone\'s here, start','모두 모였어요, 시작'],
+ 'adv.final':['Final rounds: 🛡 Defend what you hold, every region is ⭐','마지막 라운드: 🛡 방어로 지역을 지키세요, 지역이 곧 ⭐'],
+ 'adv.farmWar':['At war with few farmers: a moment of 🌾 Grow keeps the army coming','전쟁 중 농부 부족: 잠깐 🌾 성장으로 골드를 확보하세요'],
+ 'adv.war':['Holding up against {0}: ⚔ Attack to take their regions','{0}와 대등하거나 우세: ⚔ 공격으로 지역을 빼앗으세요'],'lb.power':['Power','특수 능력'],'lb.rowHead':['Pick your combo · you start with {0}⭐','조합 고르기 · 시작 ⭐ {0}'],'over.tip':['Spread thin: army cap −{0}% (every region beyond {1} costs 2.5%)','과잉 확장: 병력 상한 −{0}% ({1}개 넘는 지역마다 2.5%)'],'f.over':['⚠ Your army is spread thin (cap −{0}%). Small World players decline here and start a fresh nation.','⚠ 병력이 얇게 퍼졌습니다 (상한 −{0}%). 스몰 월드라면 여기서 쇠퇴하고 새 나라를 시작할 때입니다.'],'lb.reroll':['🎲 Reroll ({0} left)','🎲 다시 뽑기 ({0}회 남음)'],'lb.go':['Start now','바로 시작'],'lb.goAll':['Everyone\'s here, start','모두 모였어요, 시작'],
  'lb.seat':['Assigning a seat…','자리 배정 중…'],'lb.players':['Players','참가자'],'lb.hostSoon':['The host will start soon','방장이 곧 시작합니다'],
  'lb.foot':['16 nations · 10 rounds · 15 min','16개국 · 10라운드 · 15분'],
  'pk.title':['🏆 Pick your perk for winning last game','🏆 지난 판 1등 특전을 골라주세요'],
@@ -1035,14 +1053,14 @@ const I18N={
  'help.eye':['How to play','게임 방법'],'help.ok':['Got it','알겠어요'],'help.foot':['Drag to move · scroll/pinch to zoom','드래그로 이동 · 휠/핀치로 확대'],
  'help.list':[`<li>Every game you start as a <b>random country</b>. Big countries come up often, tiny ones rarely.</li>
 <li>Tiny countries like the Vatican, Monaco and San Marino are <b style="color:var(--gold)">super nations</b> with bonuses and a unique perk.</li>
-<li>Gold builds up <b>on its own</b>. Tap a unit button to <b>keep producing</b> it, tap again to stop. You can run several at once. (Keys A·S·D·F, Shift buys 5 at once)</li>
-<li>⚔ <b>Counters</b>: Assault beats 🏹 Archers, Archers beat 🛡 Guards, Guards beat ⚔ Assault (×1.6 damage, ×0.7 the other way). The ▶ on each unit card shows what it beats; the 💡 line tells you what to build.</li>
+<li>Gold builds up <b>on its own</b> and is spent for you. Your one big choice is the <b>stance</b>: 🌾 <b>Grow</b> (Farmers, more gold), ⚔ <b>Attack</b> (Attackers take land), 🛡 <b>Defend</b> (Guards hold your borders). Keys A·S·D.</li>
+<li>⚔ <b>Who beats whom</b>: Guards beat Attackers (×1.7), Attackers cut down Farmers (×2), Guards never take land. Grow while it is quiet, Attack when you are stronger, Defend when a front turns red. The 💡 line and the glowing stance tell you which.</li>
 <li>🏛 <b>Hidden cities</b>: three famous cities are named at the start, but not shown on the map. First to occupy one gets +5⭐, and +3⭐ every round while holding it.</li>
-<li>🌾 <b>Farmers</b> work the fields around your cities for more income. ⚔ <b>Assault</b> troops take land, 🏹 <b>Archers</b> shoot from behind, 🛡 <b>Guards</b> hold the border. Protect your farmers from raids.</li>
+<li>Upgrades, cities and research also run themselves; tap ⬆️ Upgrade to buy one yourself. 📯 Charge gives the whole army 8 s of +50%.</li>
 <li>⭐ <b>Small World rules</b>: the game has <b>10 rounds of 90 s</b>. When a round ends, each of your nations scores <b>1⭐ per region</b> (a real country you own at least half of) plus its <b>special power</b>. Every nation is a combo like <i>Mounted Korea</i> or <i>Wealthy Brazil</i>.</li>
 <li>🔬 <b>Research</b> fills over time. Open the <b>tech tree</b> and pick from three lanes: ⚔ Elite (stronger), 👥 Numbers (cheaper, more), 🌾 Economy (richer). (Keys Z·X·C, T opens the tree)</li>
 <li>Tap enemy land to set an <b>attack target</b>. Tap your own land to go back to automatic targets.</li>
-<li>Busy? Turn on 🤖 <b>Auto</b> and only pick targets.</li>
+<li>Tap enemy land to choose who to attack.</li>
 <li>Every nation has its own trait: Korea fires 3 arrows at once, Japan lands critical hits, Russia defends at home, Mongolia rides fast.</li>
 <li>🥀 <b>Decline</b> a nation that has stopped growing: it stops producing but keeps scoring its regions. Then take a new combo from the row of six; the first is free, later ones cost 1⭐ each, left on the combos you skip. If your nation falls, you pick a new one too. Most ⭐ after round 10 wins.</li>
 <li>In the lobby you can 🎲 <b>reroll</b> your country up to 3 times.</li>
@@ -1050,14 +1068,14 @@ const I18N={
 <li><b>Multiplayer</b>: open the same link with friends at the same time and you meet in one lobby. The first one in is the 👑 host; AI nations fill the other seats.</li>`,
 `<li>매 판 <b>무작위 국가</b>로 시작합니다. 땅이 넓은 나라가 자주 걸리고, 작은 나라는 가끔 걸립니다.</li>
 <li>바티칸·모나코·산마리노 같은 아주 작은 나라는 <b style="color:var(--gold)">슈퍼 국가</b>입니다. 보너스와 고유 특전이 붙습니다.</li>
-<li>골드는 <b>자동으로</b> 쌓입니다. 유닛 버튼을 한 번 누르면 그 유닛을 <b>계속 생산</b>하고, 다시 누르면 멈춥니다. 여러 개를 같이 켤 수 있습니다. (단축키 A·S·D·F, Shift를 누르면 5명 즉시 구매)</li>
-<li>⚔ <b>상성</b>: 돌격병은 🏹 궁수에게, 궁수는 🛡 수비병에게, 수비병은 ⚔ 돌격병에게 강합니다(피해 ×1.6, 반대는 ×0.7). 유닛 카드의 ▶ 표시가 이기는 상대이고, 💡 줄이 지금 뽑을 유닛을 알려줍니다.</li>
+<li>골드는 <b>자동으로</b> 쌓이고 알아서 쓰입니다. 내가 고를 것은 <b>태세</b> 하나: 🌾 <b>성장</b>(농부, 골드 증가), ⚔ <b>공격</b>(공격병이 땅을 빼앗음), 🛡 <b>방어</b>(수비병이 국경을 지킴). 단축키 A·S·D.</li>
+<li>⚔ <b>상성</b>: 수비병은 공격병에게 강하고(×1.7), 공격병은 농부를 쓸어버립니다(×2). 수비병은 땅을 빼앗지 않습니다. 조용할 땐 성장, 더 강할 땐 공격, 전선이 빨개지면 방어. 💡 줄과 깜빡이는 태세 버튼이 알려줍니다.</li>
 <li>🏛 <b>숨은 도시</b>: 시작할 때 유명 도시 3곳의 이름만 알려주고 지도에는 표시하지 않습니다. 먼저 점령하면 +5⭐, 보유하는 동안 라운드마다 +3⭐.</li>
-<li>🌾 <b>농부</b>는 도시 주변에서 농사를 지어 수입을 올립니다. ⚔ <b>돌격병</b>은 땅을 빼앗고, 🏹 <b>궁수</b>는 뒤에서 쏘고, 🛡 <b>수비병</b>은 국경을 지킵니다. 농부는 습격에 약하니 지켜 주세요.</li>
+<li>업그레이드·도시·연구도 자동으로 진행됩니다. 직접 사고 싶으면 ⬆️ 업그레이드를 누르세요. 📯 돌격은 8초간 전군 +50%.</li>
 <li>⭐ <b>스몰 월드 규칙</b>: 한 판은 <b>90초짜리 10라운드</b>입니다. 라운드가 끝날 때마다 내 나라들이 <b>지역마다 1⭐</b>(절반 이상 가진 실제 국가) + <b>특수 능력</b> 점수를 냅니다. 모든 나라는 <i>기마 한국</i>, <i>부유한 브라질</i> 같은 조합입니다.</li>
 <li>🔬 <b>연구</b>가 차면 <b>테크트리</b>에서 세 갈래 중 하나를 고릅니다. ⚔ 정예(더 강하게), 👥 대군(더 싸고 많이), 🌾 경제(더 부유하게). (단축키 Z·X·C, T는 테크트리)</li>
 <li>적 땅을 누르면 <b>공격 목표</b>가 됩니다. 내 땅을 누르면 자동 목표로 돌아갑니다.</li>
-<li>손이 바쁘면 🤖 <b>자동</b>을 켜고 공격 목표만 찍으세요.</li>
+<li>적 땅을 누르면 공격할 상대를 정합니다.</li>
 <li>나라마다 고유 특성이 있습니다. 한국은 화살 3연발, 일본은 치명타, 러시아는 홈 방어, 몽골은 기마 속도.</li>
 <li>🥀 성장이 멈춘 나라는 <b>쇠퇴</b>시키세요. 생산은 멈추지만 지역 점수는 계속 냅니다. 그리고 6개 조합 중 새 나라를 고릅니다. 첫 조합은 무료, 뒤로 갈수록 1⭐씩 들고 그 ⭐는 건너뛴 조합에 쌓입니다. 나라가 멸망해도 새 나라를 고릅니다. 10라운드 후 ⭐ 1위가 승리.</li>
 <li>대기실에서 🎲 <b>다시 뽑기</b>로 나라를 최대 3번 바꿀 수 있습니다.</li>
@@ -1797,7 +1815,8 @@ function strength(n){return n.units*(1+.15*n.lv.atk)*(1+.2*n.lv.hp)+n.cells*.03+
 // ---- economy: gold flows in on its own; every unit is bought one at a time.
 // 🌾 farmers raise income, ⚔ assault troops take land, 🏹 archers shoot, 🛡 guards hold the border.
 // the counter triangle (shown on the unit cards): Assault beats Archers, Archers beat Guards, Guards beat Assault
-const CTR={melee:{ranged:1.6,def:.7},ranged:{def:1.6,melee:.7},def:{melee:1.6,ranged:.7}};
+// Attackers take land and run down farmers; Guards hold the border and beat Attackers
+const CTR={melee:{farm:2,def:.7,ranged:1.3},ranged:{def:1.3},def:{melee:1.7,ranged:1.2}};
 const BEATS={melee:'ranged',ranged:'def',def:'melee'},T_IC={melee:'⚔',ranged:'🏹',def:'🛡',farm:'🌾'},T_IDX={farm:0,melee:1,ranged:2,def:3};
 // ---- national leaders (as of mid-2026; edit here when they change). Kind: p president, pm prime minister, c chancellor,
 // s party/supreme leader, k monarch, pr prince, e emir, cp crown prince, pope. f marks a woman, for the drawn portrait only.
@@ -2113,27 +2132,35 @@ function botAI(n){
   for(const u of UPG)if(canUp(n,u))opts.push([()=>doUp(n,u),{prod:2.6,atk:2.2,hp:2,spd:1,rng:n.cul.wpn?1.2:1}[u.k]]);
   if(canCity(n))opts.push([()=>{const c=citySpot(n,citiesOf(n.id));if(c>=0)buildCity(n,c,SR()<.5?'melee':'ranged');},1.4]);
   if(canHero(n))opts.push([()=>doHero(n),2.5]);
-  if(canCharge(n)&&n.border.size&&n.gold>220)opts.push([()=>doCharge(n),.8]);
+  if(!n.human&&canCharge(n)&&n.border.size&&n.gold>220)opts.push([()=>doCharge(n),.8]);
   if(!opts.length)return;
   if(SR()<.3&&n.gold<400)return; // save a bit
   let tot=opts.reduce((s,o)=>s+o[1],0),r=SR()*tot;for(const o of opts){r-=o[1];if(r<=0){o[0]();break;}}
 }
 // how an AI (or the autopilot) spends gold on units: farms first while it is safe, then an army mix
+// what a stance builds: 🌾 Grow = farmers, ⚔ Attack = attackers, 🛡 Defend = guards (plus a little of the others)
+const STANCES=[{k:'grow',ic:'🌾',t:'farm'},{k:'atk',ic:'⚔',t:'melee'},{k:'def',ic:'🛡',t:'def'}];
+const STANCE_W=[{farm:.8,melee:.08,def:.12},{farm:.06,melee:.8,def:.14},{farm:.06,melee:.16,def:.78}];
+// the AI's own stance: grow while safe, attack when strong, defend when losing ground
+function aiStance(n){
+  const war=n.border.size>0;if(!war)return n.farmers<farmCap(n)*.7?0:1;
+  const t=n.target!==null?G.nations[n.target]:null;if(t&&strength(t)>strength(n)*1.25)return 2;
+  if(n.cells<n.peak*.8)return 2;return n.farmers<3?0:1;}
 function botBuy(n){
-  const war=n.border.size>0;let cheapUp=1e9;for(const u of UPG)if(n.lv[u.k]<MAXLV&&share(n)>=u.unlock)cheapUp=Math.min(cheapUp,upCost(n,u));
+  const st=n.human&&!n.auto?(n.stance|0):aiStance(n),w={...STANCE_W[st]};
+  let cheapUp=1e9;for(const u of UPG)if(n.lv[u.k]<MAXLV&&share(n)>=u.unlock)cheapUp=Math.min(cheapUp,upCost(n,u));
   const keep=SR()<.35?cheapUp*.7:0;
-  const wantFarm=Math.min(farmCap(n),(war?3:6)+citiesOf(n.id).length*(war?1.5:3));
   for(let k=0;k<8&&n.gold>keep+8;k++){
-    let i;
-    if(n.farmers<wantFarm&&(n.units>10||!war)&&SR()<(war?.35:.7))i=0;
-    else i=botMix(n);
-    if(!buyUnit(n,i)){if(i===0||!buyUnit(n,1))break;}
+    if(n.farmers>=farmCap(n))w.farm=0;if(n.units>=unitCap(n)){w.melee=0;w.def=0;}
+    const tot=w.farm+w.melee+w.def;if(tot<=0)break;
+    let r=SR()*tot,i=1;for(const t of ['farm','melee','def']){r-=w[t];if(r<=0){i=T_IDX[t];break;}}
+    if(!buyUnit(n,i))break;
   }
 }
 function counterOf(t){const uc=t&&t.uc;if(!uc)return null;const tot=uc.melee+uc.ranged+uc.def;if(tot<6)return null;
   const top=uc.melee>=uc.ranged&&uc.melee>=uc.def?'melee':uc.ranged>=uc.def?'ranged':'def';
   return uc[top]/tot>=.42?{top,ans:Object.keys(BEATS).find(k=>BEATS[k]===top)}:null;}
-function botMix(n){const w={melee:.45,ranged:.35,def:.2};const t=n.target!==null?G.nations[n.target]:null,c=counterOf(t);if(c)w[c.ans]+=.6;
+function botMixOld(n){const w={melee:.45,ranged:.35,def:.2};const t=n.target!==null?G.nations[n.target]:null,c=counterOf(t);if(c)w[c.ans]+=.6;
   let r=SR()*(w.melee+w.ranged+w.def);for(const k of ['melee','ranged','def']){r-=w[k];if(r<=0)return T_IDX[k];}return 1;}
 function autoCities(){
   for(const n of G.nations){if(!n.alive)continue;
@@ -2175,7 +2202,7 @@ function newMatchCfg(cfg,mp){
     claimDisk(x,y,n.sp==='NR'?6:n.sup?4.5:3.2,n.id,true);
     if(owner[n.spawn]===-1)claim(n.spawn,n.id);
     const cap0=addCity(n.spawn,n.id,'capital');
-    for(const t of ['farm','farm','melee','melee','melee','melee','ranged','ranged','def'])spawnUnit(n,cap0,t);
+    for(const t of ['farm','farm','melee','melee','melee','melee','melee','def','def'])spawnUnit(n,cap0,t);
     if(n.pw===9)spawnUnit(n,cap0,'hero');
     if(n.sup)feed(tr('f.super',`${n.flag} ${n.name}`,supPerk(n.sup)),'gold');
   }
@@ -2212,6 +2239,7 @@ function applyCmd(nid,t,a,b){
   else if(t===10){for(let k=0;k<Math.max(1,Math.min(10,b));k++)if(!buyUnit(n,a))break;}
   else if(t===9){n.auto=!!a;if(n.isPlayer){toast(tr(a?'t.autoOn':'t.autoOff'),'#9fd3ff');feed(tr(a?'f.autoOn':'f.autoOff'));}}
   else if(t===5){if(n.human){n.human=false;feed(tr('f.dc',n.pname||n.name));}}
+  else if(t===13){n.stance=Math.max(0,Math.min(2,a|0));if(n.isPlayer){const S=STANCES[n.stance];toast(tr('t.stance',S.ic,tr('st.'+S.k),tr('st.'+S.k+'D')),TYPE_C[S.t]);}}
 }
 function setTarget(n,c){
   const o=c>=0&&c<NC?owner[c]:n.id;if(o===-2)return;
@@ -2241,7 +2269,7 @@ function step(){
     if(!n.alive)continue;
     n.gold+=dt*goldRate(n);
     n.chargeT-=dt;n.chargeCD-=dt;n.heroCD-=dt;
-    if(!n.human||n.auto){n.aiT-=dt;if(n.aiT<=0){n.aiT=srnd(1.5,3);botAI(n);}n.buyT-=dt;if(n.buyT<=0&&!n.dec){n.buyT=srnd(.4,.8);botBuy(n);}}
+    {n.aiT-=dt;if(n.aiT<=0){n.aiT=srnd(1.5,3);botAI(n);}n.buyT-=dt;if(n.buyT<=0&&!n.dec){n.buyT=srnd(.4,.8);botBuy(n);}}
     n.boostT-=dt;n.flashT-=dt;
     // production lines: each switched-on unit type is built every LINE_IV seconds while gold allows
     for(let i=0;i<4;i++){if(!n.lines[i])continue;n.lineT[i]-=dt;if(n.lineT[i]<=0){if(buyUnit(n,i))n.lineT[i]=LINE_IV;else n.lineT[i]=0;}}
@@ -2262,7 +2290,7 @@ function step(){
       if(n.rp<cost)n.rp=Math.min(cost,n.rp+dt*sciRate(n));
       else{n.sciWait+=dt;
         if(!n.human||n.auto){if(n.sciWait>1.5)chooseTech(n,botLane(n));}
-        else if(n.sciWait>30){const o=openLanes(n).sort((a,b)=>laneCnt(n,a)-laneCnt(n,b));chooseTech(n,o[0]);}}}
+        else if(n.sciWait>12){const o=openLanes(n).sort((a,b)=>laneCnt(n,a)-laneCnt(n,b));chooseTech(n,o[0]);}}}
   }
   stepUnits(dt);
   // eliminations
@@ -2376,7 +2404,7 @@ function declineAndPick(n,idx){
   const [x,y]=cellXY(cell);claimDisk(x,y,3.4,id,false);if(owner[cell]!==id)claim(cell,id);
   const cap=addCity(cell,id,'capital');const r=G.roundsPaid;
   for(const t of ['farm','farm','def'])spawnUnit(nn,cap,t);
-  for(let k=0;k<5+r*2;k++)spawnUnit(nn,cap,'melee');for(let k=0;k<2+r;k++)spawnUnit(nn,cap,'ranged');
+  for(let k=0;k<5+r*2;k++)spawnUnit(nn,cap,'melee');for(let k=0;k<2+r;k++)spawnUnit(nn,cap,'def');
   if(nn.pw===9)spawnUnit(nn,cap,'hero');
   nn.gold=120+r*60;G.borderT=0;
   feed(tr('f.newNation',`${nn.flag} ${comboName(nn.ci,nn.pw)}`,pwDesc(nn.pw)),was?'good':'gold');
@@ -2914,16 +2942,21 @@ function renderObjs(){
 $('objs').addEventListener('click',e=>{const b=e.target.closest('.ob');if(!b)return;userActed=true;const o=G.obj&&G.obj[+b.dataset.i];if(!o)return;
   if(o.owner>=0){flyTo(o.cell%W+.5,(o.cell/W|0)+.5,Math.max(cam.s,5));}else toast(tr('obj.hidden',cityNameAt(o.cell),OBJ_FIRST,OBJ_ROUND));});
 // advisor: one line on what to do now, and the unit card it recommends glows
+function worstFront(n){let w=null;const agg=new Map();
+  for(const z of BT.values()){const a=z.s.get(n.id);if(!a||z.heat<1||a.m<.3)continue;
+    for(const [id,b] of z.s){if(id===n.id||b.m<.3)continue;let g=agg.get(id);if(!g)agg.set(id,g={id,a:{d:0,k:0,c:0},b:{d:0,k:0,c:0},h:0});for(const k of ['d','k','c']){g.a[k]+=a[k];g.b[k]+=b[k];}g.h+=z.heat;}}
+  for(const g of agg.values()){if(g.h<1.6)continue;const p=btShare(g.a,g.b);if(!w||p<w.p)w={p,id:g.id};}return w;}
 function advise(n){
-  const war=n.border.size>0,of=overF(n),fr=n.target!==null?G.nations[n.target]:null,c=counterOf(fr),r=G.roundsPaid|0;
-  const freeObj=(G.obj||[]).find(o=>o.owner<0);
-  if(of<.8)return {t:tr('adv.thin',Math.round((1-of)*100))};
-  if(!war){if(n.farmers<Math.min(farmCap(n),6+citiesOf(n.id).length*2))return {t:tr('adv.farm'),u:0};
+  const war=n.border.size>0,of=overF(n),r=G.roundsPaid|0,freeObj=(G.obj||[]).find(o=>o.owner<0);
+  if(of<.8)return {t:tr('adv.thin',Math.round((1-of)*100)),u:-1};
+  if(!war){if(n.farmers<Math.min(farmCap(n),6+citiesOf(n.id).length*2))return {t:tr('adv.grow'),u:0};
     return {t:freeObj?tr('adv.expandObj',cityNameAt(freeObj.cell)):tr('adv.expand'),u:1};}
-  if(c)return {t:tr('adv.counter',`${fr.flag} ${fr.name}`,T_IC[c.top]+' '+uNm(UNITS[T_IDX[c.top]]),T_IC[c.ans]+' '+uNm(UNITS[T_IDX[c.ans]])),u:T_IDX[c.ans]};
-  if(r>=ROUNDS-3)return {t:tr('adv.final'),u:3};
+  const wf=worstFront(n),fe=wf?G.nations[wf.id]:(n.target!==null?G.nations[n.target]:null),nm=fe?`${fe.flag} ${fe.name}`:'';
+  if(wf&&wf.p<.4)return {t:tr('adv.defend',nm),u:2};
+  if(r>=ROUNDS-2)return {t:tr('adv.final'),u:2};
   if(n.farmers<4)return {t:tr('adv.farmWar'),u:0};
-  return {t:tr('adv.war',fr?`${fr.flag} ${fr.name}`:''),u:1};
+  if(fe&&fe.uc&&fe.uc.def>fe.uc.melee*1.3)return {t:tr('adv.turtle',nm),u:1};
+  return {t:tr('adv.war',nm),u:1};
 }
 function renderClock(){
   const t=G.state==='lobby'?0:G.t;
@@ -2949,11 +2982,12 @@ const BTN=[
  {id:'more',ic:'⬆️',nmK:'btn.more',tipK:'btn.moreTip'},
 ];
 // tap = switch that unit's production line on/off (it keeps building while gold allows)
-$('buy').addEventListener('click',e=>{const el=e.target.closest('.ub');if(!el)return;const i=+el.id.slice(2);const n=myNation();if(!n)return;userActed=true;issue(11,i,n.lines[i]?0:1);try{navigator.vibrate&&navigator.vibrate(10);}catch(e){}});
+$('buy').addEventListener('click',e=>{const el=e.target.closest('.ub');if(!el)return;const i=+el.id.slice(2);const n=myNation();if(!n)return;userActed=true;if((n.stance|0)!==i)issue(13,i);try{navigator.vibrate&&navigator.vibrate(10);}catch(e){}});
 const btnNm=b=>b.up?uNm(b.up):tr(b.nmK),btnTip=b=>b.up?uDesc(b.up):tr(b.tipK);
 function renderButtons(){
   acts.innerHTML=BTN.map(b=>`<button class="ab" id="ab_${b.id}" type="button" title="${btnTip(b)}"><span class="lv"></span><span class="ic">${b.ic}</span><span>${btnNm(b)}</span><span class="co"></span><i class="cdv" hidden></i></button>`).join('');
-  $('buy').innerHTML=UNITS.map((U,i)=>`<button class="ub ${U.t}" id="ub${i}" type="button" aria-pressed="false" title="${tr('buy.tip',uDesc(U))}"><span class="ct"></span><span class="bt">${U.t==='farm'?'💰':'▶'+T_IC[BEATS[U.t]]}</span><span class="ic">${U.ic}</span><span class="nm">${uNm(U)}</span><span class="co"></span><i class="ln"></i></button>`).join('');
+  $('buy').innerHTML=STANCES.map((S,i)=>`<button class="ub st ${S.t}" id="st${i}" type="button" aria-pressed="false"><span class="ct"></span><span class="ic">${S.ic}</span><span class="nm">${tr('st.'+S.k)}</span><span class="co">${tr('st.'+S.k+'S')}</span></button>`).join('');
+  if(false)$('buy').innerHTML=UNITS.map((U,i)=>`<button class="ub ${U.t}" id="ub${i}" type="button" aria-pressed="false" title="${tr('buy.tip',uDesc(U))}"><span class="ct"></span><span class="bt">${U.t==='farm'?'💰':'▶'+T_IC[BEATS[U.t]]}</span><span class="ic">${U.ic}</span><span class="nm">${uNm(U)}</span><span class="co"></span><i class="ln"></i></button>`).join('');
 }
 renderButtons();
 let placing=null;
@@ -3008,7 +3042,7 @@ function updateBar(){
     if(of<.85&&!ME.overHint){ME.overHint=true;feed(tr('f.over',Math.round((1-of)*100)),'gold');}}{const v=G.score[n.pid]|0;setText('sVP',`⭐ ${v} (+${projPay(n.pid)})`);$('sVP').classList.toggle('hot',ranking()[0]===n);}
   {const t=landTrend(n),d=t.d;setHTML('sLand',`${(share(n)*100).toFixed(1)}%<i class="${d>.05?'up':d<-.05?'dn':''}">${d>.05?'▲':d<-.05?'▼':''}</i>`);}
   const tn=n.manual?(n.manual.kind==='nation'?G.nations[n.manual.id]:null):null;
-  const adv=advise(n);UNITS.forEach((U,i)=>$('ub'+i).classList.toggle('rec',adv.u===i));
+  const adv=advise(n);STANCES.forEach((S,i)=>{const el=$('st'+i);if(el)el.classList.toggle('rec',adv.u===i&&(n.stance|0)!==i);});
   const goal=nextGoal(n);$('tgt').title=goal;
   setText('tgt','💡 '+adv.t+' · '+(goal?'🎯 '+goal+' · ':'')+(n.manual?(tn?tr('tgt.manual',`${tn.flag} ${tn.name}`):tr('tgt.neutral')):(n.target!==null&&G.nations[n.target]?tr('tgt.auto',`${G.nations[n.target].flag} ${G.nations[n.target].name}`):tr('tgt.expand'))));
   for(const u of UPG){const el=$('ab_'+u.k);const locked=share(n)<u.unlock;const max=n.lv[u.k]>=MAXLV;
@@ -3020,11 +3054,8 @@ function updateBar(){
   const eh=$('ab_hero'),lh=share(n)<ACT.hero.unlock;eh.querySelector('.co').textContent=lh?`🔒${(ACT.hero.unlock*100).toFixed(0)}%`:n.heroCD>0?Math.ceil(n.heroCD)+'s':ACT.hero.cost;eh.disabled=!canHero(n);eh.classList.toggle('locked',lh);eh.classList.toggle('can',canHero(n));
   {const em=$('ab_more'),any=UPG.some(u=>canUp(n,u))||canHero(n)||(canCity(n)&&n.gold>=cityCost(n));em.classList.toggle('can',any);em.querySelector('.co').textContent=any?'●':'';}
   {const ed=$('ab_decline'),ok=canDecline(n);ed.disabled=!ok;ed.classList.toggle('can',ok&&n.cells<n.peak*.6);ed.querySelector('.co').textContent=G.t<DECLINE_MIN_T?`${Math.ceil(DECLINE_MIN_T-G.t)}s`:'';}
-  UNITS.forEach((U,i)=>{const el=$('ub'+i),ok=canBuy(n,i),on=n.lines[i];el.classList.toggle('can',ok);el.classList.toggle('on',on);el.setAttribute('aria-pressed',on?'true':'false');
-    const full=U.t==='farm'?n.farmers>=farmCap(n):n.units>=unitCap(n);
-    el.querySelector('.co').textContent=on?tr(full?'line.full':ok?'line.on':'line.wait'):unitCost(n,i)+'💰';
-    let cnt=0;if(U.t==='farm')cnt=n.farmers;else for(const u of G.units)if(u.n===n.id&&u.type===U.t)cnt++;
-    el.querySelector('.ct').textContent=U.t==='farm'?`${n.farmers}/${farmCap(n)}`:cnt;});
+  STANCES.forEach((S,i)=>{const el=$('st'+i);if(!el)return;const on=(n.stance|0)===i;el.classList.toggle('on',on);el.setAttribute('aria-pressed',on?'true':'false');
+    el.querySelector('.ct').textContent=S.t==='farm'?`${n.farmers}/${farmCap(n)}`:String(n.uc?n.uc[S.t]|0:0);});
   const done=sciDone(n)>=21,rdy=sciReady(n),era=eraName(eraOf(n));
   setText('sciTxt',done?tr('sci.done'):rdy?tr('sci.pick',era):tr('sci.pct',era,Math.floor(n.rp/sciCost(n)*100)));
   $('sciFill').style.width=done?'100%':(Math.min(1,n.rp/sciCost(n))*100)+'%';$('sciBar').classList.toggle('ready',rdy);
@@ -3156,7 +3187,7 @@ addEventListener('keydown',e=>{if(e.target!==document.body||!$('login').hidden)r
   const map={'1':'prod','2':'atk','3':'hp','4':'spd','5':'rng','6':'city','7':'hero','8':'charge',' ':'charge'};if(map[k]){e.preventDefault();$('ab_'+map[k]).click();}
   const zi='zxc'.indexOf(k);if(zi>=0&&k.length===1){e.preventDefault();const n=myNation();if(n&&sciReady(n))issue(8,zi);}
   if(k==='t'){e.preventDefault();$('tree').hidden?openTree():($('tree').hidden=true);}
-  const bi='asdf'.indexOf(k);if(bi>=0&&k.length===1){e.preventDefault();const n=myNation();if(n){if(e.shiftKey){if(canBuy(n,bi))issue(10,bi,5);}else issue(11,bi,n.lines[bi]?0:1);}}});
+  const bi='asd'.indexOf(k);if(bi>=0&&k.length===1){e.preventDefault();const n=myNation();if(n&&(n.stance|0)!==bi)issue(13,bi);}});
 $('bSound').onclick=()=>{soundOn=!soundOn;userActed=true;$('bSound').textContent=soundOn?'🔊':'🔇';$('bSound').setAttribute('aria-pressed',soundOn);if(!soundOn)try{speechSynthesis.cancel()}catch(e){}};
 $('bSpeed').onclick=()=>{G.speed=G.speed===1?2:G.speed===2?4:G.speed===4?8:1;$('bSpeed').textContent='▶ '+G.speed+'×';};
 $('bHelp').onclick=()=>{$('help').hidden=false;};$('helpX').onclick=()=>{$('help').hidden=true;try{localStorage.setItem('ttm_help','1')}catch(e){}};
@@ -3288,7 +3319,7 @@ function hostIntake(){
     const n=G.nations.filter(x=>x.human&&x.peer===p.peer).pop();if(!n)continue;
     let last=NET.lastSeq[p.peer]||0;
     for(const c of pr.cmds){if(!Array.isArray(c)||!(c[0]>last))continue;last=c[0];
-      const t=c[1]|0,a=c[2]|0,b=c[3]|0;if(t>=0&&t<=12&&t!==5&&a>=-1&&a<NC&&!(t===8&&(a<0||a>2)))hostSchedule(n.id,t,a,b);}
+      const t=c[1]|0,a=c[2]|0,b=c[3]|0;if(t>=0&&t<=13&&t!==5&&a>=-1&&a<NC&&!(t===8&&(a<0||a>2)))hostSchedule(n.id,t,a,b);}
     NET.lastSeq[p.peer]=last;}
 }
 function emitTk(){
